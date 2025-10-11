@@ -1,0 +1,4 @@
+---
+solar_app:
+  module: solar_app
+  class: SolarApp

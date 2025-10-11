@@ -1,0 +1,16 @@
+---
+appdaemon:
+  production_mode: true
+  latitude: !secret latitude
+  longitude: !secret longitude
+  elevation: !secret elevation
+  time_zone: !secret time_zone
+  plugins:
+    HASS:
+      type: hass
+      token: !env_var SUPERVISOR_TOKEN
+      ws_timeout: 30
+http:
+  url: http://0.0.0.0:5050
+admin:
+api:

@@ -1,0 +1,187 @@
+from datetime import datetime
+
+from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
+from appdaemon_protocols.appdaemon_service import AppdaemonService
+from solar.battery_discharge_slot_estimator import BatteryDischargeSlotEstimator
+from solar.battery_reserve_soc_estimator import BatteryReserveSocEstimator
+from solar.solar_configuration import SolarConfiguration
+from solar.state import State
+from solar.state_factory import StateFactory
+from solar.storage_mode import StorageMode
+from solar.storage_mode_estimator import StorageModeEstimator
+from units.battery_current import BatteryCurrent
+from units.battery_soc import BatterySoc
+
+
+class Solar:
+    def __init__(
+        self,
+        appdaemon_logger: AppdaemonLogger,
+        appdaemon_service: AppdaemonService,
+        config: SolarConfiguration,
+        state_factory: StateFactory,
+        battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
+        battery_reserve_soc_estimator: BatteryReserveSocEstimator,
+        storage_mode_estimator: StorageModeEstimator,
+    ) -> None:
+        self.appdaemon_logger = appdaemon_logger
+        self.appdaemon_service = appdaemon_service
+        self.config = config
+        self.state_factory = state_factory
+        self.battery_discharge_slot_estimator = battery_discharge_slot_estimator
+        self.battery_reserve_soc_estimator = battery_reserve_soc_estimator
+        self.storage_mode_estimator = storage_mode_estimator
+
+    def log_state(self) -> None:
+        state = self.state_factory.create()
+        if state is None:
+            self.appdaemon_logger.warn("Unknown state, cannot log state")
+        else:
+            self.appdaemon_logger.info(f"Current state: {state}")
+
+    def align_battery_reserve_soc(self, period_start: datetime, period_hours: int) -> None:
+        self.appdaemon_logger.info(
+            f"Align battery reserve SoC based on forecast starting at {period_start} for {period_hours} hours"
+        )
+
+        state = self.state_factory.create()
+        if state is None:
+            self.appdaemon_logger.warn("Unknown state, cannot estimate battery reserve SoC")
+            return None
+
+        estimated_battery_reserve_soc = self.battery_reserve_soc_estimator(state, period_start, period_hours)
+        self.appdaemon_logger.info(f"Estimated battery reserve SoC: {estimated_battery_reserve_soc}")
+
+        if estimated_battery_reserve_soc is not None:
+            self._set_battery_reserve_soc(state, estimated_battery_reserve_soc)
+
+    def reset_battery_reserve_soc(self) -> None:
+        battery_reserve_soc_default = self.config.battery_reserve_soc_min
+        self.appdaemon_logger.info(f"Reset battery reserve SoC to {battery_reserve_soc_default}")
+
+        state = self.state_factory.create()
+        if state is None:
+            self.appdaemon_logger.warn("Unknown state, cannot reset battery reserve SoC")
+            return None
+
+        self._set_battery_reserve_soc(state, battery_reserve_soc_default)
+
+    def schedule_battery_discharge(self, period_start: datetime, period_hours: int) -> None:
+        self.appdaemon_logger.info(
+            f"Schedule battery discharge based on forecast starting at {period_start} for {period_hours} hours"
+        )
+
+        state = self.state_factory.create()
+        if state is None:
+            self.appdaemon_logger.warn("Unknown state, cannot schedule battery discharge")
+            return None
+
+        estimated_battery_discharge_slot = self.battery_discharge_slot_estimator(state, period_start, period_hours)
+        self.appdaemon_logger.info(f"Estimated battery discharge slot: {estimated_battery_discharge_slot}")
+
+        if estimated_battery_discharge_slot is not None:
+            self._set_slot1_discharge(
+                state, estimated_battery_discharge_slot.time_str(), estimated_battery_discharge_slot.current
+            )
+        else:
+            self._disable_slot1_discharge(state)
+
+    def disable_battery_discharge(self) -> None:
+        self.appdaemon_logger.info("Disable battery discharge")
+
+        state = self.state_factory.create()
+        if state is None:
+            self.appdaemon_logger.warn("Unknown state, cannot disable battery discharge")
+            return
+
+        self._disable_slot1_discharge(state)
+
+    def align_storage_mode(self, now: datetime) -> None:
+        self.appdaemon_logger.info(f"Align storage mode at {now:%H:%M:%S}")
+
+        state = self.state_factory.create()
+        if state is None:
+            self.appdaemon_logger.warn("Unknown state, cannot align storage mode")
+            return None
+
+        estimated_storage_mode = self.storage_mode_estimator(state, now)
+        self.appdaemon_logger.info(f"Estimated storage mode: {estimated_storage_mode}")
+        self._set_storage_mode(state, estimated_storage_mode)
+
+    def _set_storage_mode(self, state: State, storage_mode: StorageMode) -> None:
+        current_storage_mode = state.inverter_storage_mode
+        if current_storage_mode != storage_mode:
+            self.appdaemon_logger.info(f"Change storage mode from {current_storage_mode} to {storage_mode}")
+            self.appdaemon_service.call_service(
+                "select/select_option",
+                callback=self.appdaemon_service.service_call_callback,
+                entity_id="select.solis_control_storage_mode",
+                option=storage_mode.value,
+            )
+        else:
+            self.appdaemon_logger.info(f"Storage mode already set to {current_storage_mode}")
+
+    def _set_battery_reserve_soc(self, state: State, battery_reserve_soc: BatterySoc) -> None:
+        current_battery_reserve_soc = state.battery_reserve_soc
+        if current_battery_reserve_soc != battery_reserve_soc:
+            self.appdaemon_logger.info(
+                f"Change battery reserve SoC from {current_battery_reserve_soc} to {battery_reserve_soc}"
+            )
+            self.appdaemon_service.call_service(
+                "number/set_value",
+                callback=self.appdaemon_service.service_call_callback,
+                entity_id="number.solis_control_battery_reserve_soc",
+                value=battery_reserve_soc.value,
+            )
+        else:
+            self.appdaemon_logger.info(f"Battery reserve SoC already set to {current_battery_reserve_soc}")
+
+    def _set_slot1_discharge(self, state: State, discharge_time: str, discharge_current: BatteryCurrent) -> None:
+        current_discharge_time = state.slot1_discharge_time
+        if current_discharge_time != discharge_time:
+            self.appdaemon_logger.info(
+                f"Change slot 1 battery discharge time from {current_discharge_time} to {discharge_time}"
+            )
+            self.appdaemon_service.call_service(
+                "text/set_value",
+                callback=self.appdaemon_service.service_call_callback,
+                entity_id="text.solis_control_slot1_discharge_time",
+                value=discharge_time,
+            )
+        else:
+            self.appdaemon_logger.info(f"Slot 1 battery discharge time already set to {current_discharge_time}")
+
+        current_discharge_current = state.slot1_discharge_current
+        if current_discharge_current != discharge_current:
+            self.appdaemon_logger.info(
+                f"Change slot 1 battery discharge current from {current_discharge_current} to {discharge_current}"
+            )
+            self.appdaemon_service.call_service(
+                "number/set_value",
+                callback=self.appdaemon_service.service_call_callback,
+                entity_id="number.solis_control_slot1_discharge_current",
+                value=discharge_current.value,
+            )
+        else:
+            self.appdaemon_logger.info(f"Slot 1 battery discharge current already set to {current_discharge_current}")
+
+        if not state.is_slot1_discharge_enabled:
+            self.appdaemon_logger.info("Enabling slot 1 battery discharge")
+            self.appdaemon_service.call_service(
+                "switch/turn_on",
+                callback=self.appdaemon_service.service_call_callback,
+                entity_id="switch.solis_control_slot1_discharge",
+            )
+        else:
+            self.appdaemon_logger.info("Slot 1 battery discharge is already enabled")
+
+    def _disable_slot1_discharge(self, state: State) -> None:
+        if state.is_slot1_discharge_enabled:
+            self.appdaemon_logger.info("Disabling slot 1 discharge")
+            self.appdaemon_service.call_service(
+                "switch/turn_off",
+                callback=self.appdaemon_service.service_call_callback,
+                entity_id="switch.solis_control_slot1_discharge",
+            )
+        else:
+            self.appdaemon_logger.info("Slot 1 battery discharge is already disabled")

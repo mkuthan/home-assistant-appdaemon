@@ -1,0 +1,40 @@
+[project]
+name = "home-assistant-appdaemon"
+version = "1.0.0"
+requires-python = "~=3.12.0"
+dependencies = [
+    "appdaemon==4.5.11",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest==8.4.2",
+    "pytest-cov==7.0.0",
+    "ruff==0.13.2"
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["apps"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "ANN", # flake8-annotations
+    "ARG", # flake8-argument-names    
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "TCH", # flake8-type-checking
+    "PYI", # flake8-pyi
+    "Q",   # flake8-quotes    
+    "UP",  # pyupgrade
+    "N",   # pep8-naming
+]
+
+[tool.pyright]
+extraPaths = ["apps"]
