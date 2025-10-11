@@ -21,7 +21,6 @@ Home Assistant AppDaemon applications for solar energy optimization.
 - Follow ruff configuration in `pyproject.toml`
 - Comments: Use sparingly, explain WHY not WHAT
 
-
 ## Testing Instructions
 
 - Tests located in `tests/` directory
@@ -34,6 +33,12 @@ Home Assistant AppDaemon applications for solar energy optimization.
 
 ## Architecture Patterns
 
-- Core business logic separated from AppDaemon framework (e.g., `Solar` class vs `SolarApp`)
-- Static factory methods for data parsing with robust error handling
-- BaseApp provides safe state converters and logging wrappers
+- `apps/solar_app.py` - AppDaemon integration layer that wires dependencies and handles framework interactions
+- `apps/solar/` - Core business logic isolated from the AppDaemon framework
+  - `solar.py` - Main orchestration logic
+  - `*_estimator.py` - Specialized estimators for energy usage and battery management decisions
+  - `*_forecast.py` - Forecast data models and factories
+  - `state.py` / `state_factory.py` - Home Assistant state management
+- `apps/units/` - Type-safe value objects for domain concepts (energy, power, SOC, etc.)
+- `apps/utils/` - Shared utilities and safe type converters
+- `apps/appdaemon_protocols/` - Protocol interfaces for dependency injection and testability
