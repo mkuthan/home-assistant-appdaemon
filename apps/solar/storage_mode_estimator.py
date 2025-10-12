@@ -23,10 +23,9 @@ class StorageModeEstimator:
     def __call__(self, state: State, now: datetime) -> StorageMode:
         remaining_hours = 24 - now.hour
 
-        if state.battery_soc <= state.battery_reserve_soc:
-            self.appdaemon_logger.info(
-                f"Battery SoC {state.battery_soc} <= Battery reserve SoC {state.battery_reserve_soc}"
-            )
+        required_battery_reserve_soc = self.config.battery_reserve_soc_min + self.config.battery_reserve_soc_margin
+        if state.battery_soc <= required_battery_reserve_soc:
+            self.appdaemon_logger.info(f"Battery SoC {state.battery_soc} <= {required_battery_reserve_soc}")
             return StorageMode.SELF_USE
 
         if state.hourly_price < self.config.pv_export_threshold_price:
