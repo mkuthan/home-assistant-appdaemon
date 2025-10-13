@@ -16,7 +16,9 @@ def test_call_returns_feed_in_priority(
     config: SolarConfiguration,
     state: State,
 ) -> None:
-    config = replace(config, battery_capacity=EnergyKwh(10.0), pv_export_threshold_price=EnergyPrice.pln_per_mwh(200.0))
+    config = replace(
+        config, battery_capacity=EnergyKwh(10.0), pv_export_min_price_margin=EnergyPrice.pln_per_mwh(200.0)
+    )
     state = replace(state, battery_soc=BatterySoc(80.0), hourly_price=EnergyPrice.pln_per_mwh(250.0))
 
     mock_production_forecast = Mock()
@@ -26,7 +28,7 @@ def test_call_returns_feed_in_priority(
     mock_consumption_forecast.estimate_energy_kwh.return_value = EnergyKwh(6.0)
 
     mock_price_forecast = Mock()
-    mock_price_forecast.find_valley_periods.return_value = []
+    mock_price_forecast.find_daily_min_price.return_value = EnergyPrice.pln_per_mwh(30.0)
 
     mock_forecast_factory = Mock()
     mock_forecast_factory.create_production_forecast.return_value = mock_production_forecast
@@ -39,12 +41,12 @@ def test_call_returns_feed_in_priority(
         forecast_factory=mock_forecast_factory,
     )
 
-    period_start = datetime.fromisoformat("2025-10-10T10:00:00+00:00")
+    period_start = datetime.now()
 
-    storage_mode = estimator(state, period_start)
+    storage_mode = estimator(state, period_start, 6)
 
-    mock_production_forecast.estimate_energy_kwh.assert_called_once_with(period_start, 14)
-    mock_consumption_forecast.estimate_energy_kwh.assert_called_once_with(period_start, 14)
-    mock_price_forecast.find_valley_periods.assert_called_once_with(period_start, 14, config.pv_export_threshold_price)
+    mock_production_forecast.estimate_energy_kwh.assert_called_once_with(period_start, 6)
+    mock_consumption_forecast.estimate_energy_kwh.assert_called_once_with(period_start, 6)
+    mock_price_forecast.find_daily_min_price.assert_called_once_with(period_start)
 
     assert storage_mode == StorageMode.FEED_IN_PRIORITY

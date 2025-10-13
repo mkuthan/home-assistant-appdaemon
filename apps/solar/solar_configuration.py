@@ -26,7 +26,7 @@ class SolarConfiguration:
     regular_consumption_day: EnergyKwh  # consumption during daytime (before evening_start_hour)
     regular_consumption_evening: EnergyKwh  # consumption during evening (evening_start_hour onwards)
 
-    pv_export_threshold_price: EnergyPrice  # minimum price threshold for selling PV energy to grid
+    pv_export_min_price_margin: EnergyPrice  # margin above minimum price to export PV energy to grid
 
     battery_export_threshold_price: EnergyPrice  # minimum price threshold for selling battery energy to grid
     battery_export_threshold_energy: EnergyKwh  # minimum energy threshold for selling battery energy to grid

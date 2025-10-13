@@ -113,3 +113,17 @@ def test_equal(price1: float, price2: float, expected: bool) -> None:
 def test_format() -> None:
     price = EnergyPrice.pln_per_mwh(123.4567)
     assert format(price) == "123.46 PLN/MWh"
+
+
+@pytest.mark.parametrize(
+    ("price_value", "expected_value"),
+    [
+        (-10.0, 0.0),
+        (0.0, 0.0),
+        (10.0, 10.0),
+    ],
+)
+def test_max_with_zero(price_value: float, expected_value: float) -> None:
+    price = EnergyPrice.pln_per_mwh(price_value)
+    expected = EnergyPrice.pln_per_mwh(expected_value)
+    assert price.max_with_zero() == expected

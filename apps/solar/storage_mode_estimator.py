@@ -20,31 +20,30 @@ class StorageModeEstimator:
         self.config = config
         self.forecast_factory = forecast_factory
 
-    def __call__(self, state: State, now: datetime) -> StorageMode:
-        remaining_hours = 24 - now.hour
-
+    def __call__(self, state: State, now: datetime, period_hours: int) -> StorageMode:
         required_battery_reserve_soc = self.config.battery_reserve_soc_min + self.config.battery_reserve_soc_margin
         if state.battery_soc <= required_battery_reserve_soc:
             self.appdaemon_logger.info(f"Battery SoC {state.battery_soc} <= {required_battery_reserve_soc}")
             return StorageMode.SELF_USE
 
-        if state.hourly_price < self.config.pv_export_threshold_price:
-            self.appdaemon_logger.info(f"Hourly price {state.hourly_price} < {self.config.pv_export_threshold_price}")
+        price_forecast = self.forecast_factory.create_price_forecast(state)
+        min_price = price_forecast.find_daily_min_price(now)
+        if min_price is None:
+            self.appdaemon_logger.info("Minimum price not found in the forecast")
             return StorageMode.SELF_USE
 
-        price_forecast = self.forecast_factory.create_price_forecast(state)
-        valley_periods = price_forecast.find_valley_periods(now, remaining_hours, self.config.pv_export_threshold_price)
-
-        if any(p.datetime.hour == now.hour for p in valley_periods):
-            self.appdaemon_logger.info(f"Current hour {now.hour} is in valley periods: {valley_periods}")
+        current_price = state.hourly_price.max_with_zero()
+        price_threshold = min_price.max_with_zero() + self.config.pv_export_min_price_margin
+        if current_price <= price_threshold:
+            self.appdaemon_logger.info(f"Current price {current_price} <= {price_threshold}")
             return StorageMode.SELF_USE
 
         production_forecast = self.forecast_factory.create_production_forecast(state)
-        production_kwh = production_forecast.estimate_energy_kwh(now, remaining_hours)
+        production_kwh = production_forecast.estimate_energy_kwh(now, period_hours)
         self.appdaemon_logger.info(f"Production forecast: {production_kwh}")
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
-        consumption_kwh = consumption_forecast.estimate_energy_kwh(now, remaining_hours)
+        consumption_kwh = consumption_forecast.estimate_energy_kwh(now, period_hours)
         self.appdaemon_logger.info(f"Consumption forecast: {consumption_kwh}")
 
         energy_surplus = production_kwh - consumption_kwh

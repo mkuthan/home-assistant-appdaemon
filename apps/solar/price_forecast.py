@@ -52,11 +52,12 @@ class PriceForecast:
         ]
         return relevant_periods
 
-    def find_valley_periods(
-        self, period_start: datetime, period_hours: int, price_threshold: EnergyPrice
-    ) -> list[PriceForecastPeriod]:
-        period_end = period_start + timedelta(hours=period_hours)
-        relevant_periods = [
-            p for p in self.periods if period_start <= p.datetime <= period_end and p.price <= price_threshold
-        ]
-        return relevant_periods
+    def find_daily_min_price(self, day: datetime) -> EnergyPrice | None:
+        day_start = datetime(day.year, day.month, day.day, tzinfo=day.tzinfo)
+        day_end = day_start + timedelta(days=1)
+
+        daily_prices = [p.price for p in self.periods if day_start <= p.datetime < day_end]
+        if not daily_prices:
+            return None
+
+        return min(daily_prices)

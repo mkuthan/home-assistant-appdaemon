@@ -33,7 +33,7 @@ class SolarApp(BaseApp):
             regular_consumption_away=EnergyKwh(0.35),
             regular_consumption_day=EnergyKwh(0.6),
             regular_consumption_evening=EnergyKwh(0.8),
-            pv_export_threshold_price=EnergyPrice.pln_per_mwh(50),
+            pv_export_min_price_margin=EnergyPrice.pln_per_mwh(200),
             battery_export_threshold_price=EnergyPrice.pln_per_mwh(1200),
             battery_export_threshold_energy=EnergyKwh(1.0),
         )
@@ -73,12 +73,11 @@ class SolarApp(BaseApp):
         self.info("Scheduling battery discharge disable at 22:00")
         self.run_daily(self.disable_battery_discharge, self.schedule_at(22, 0))
 
-        self.info("Listening to: [Battery SoC, Battery reserve SoC, Hourly price] changes and align storage mode")
+        self.info("Listening to: [Battery SoC, Hourly price] changes and align storage mode")
         self.listen_state(
             self.align_storage_mode,
             [
                 state_factory.BATTERY_SOC_ENTITY,
-                state_factory.BATTERY_RESERVE_SOC_ENTITY,
                 state_factory.HOURLY_PRICE_ENTITY,
             ],
             constrain_start_time="sunrise +01:00:00",
@@ -104,4 +103,7 @@ class SolarApp(BaseApp):
         self.solar.disable_battery_discharge()
 
     def align_storage_mode(self, entity, attribute, old, new, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
-        self.solar.align_storage_mode(self.get_now())
+        now = self.get_now()
+        end = self.parse_time("sunset -01:00:00")
+        period_hours = end.hour - now.hour
+        self.solar.align_storage_mode(now, period_hours)

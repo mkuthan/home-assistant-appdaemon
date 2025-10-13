@@ -195,9 +195,9 @@ def test_align_storage_mode(
     mock_storage_mode_estimator.return_value = new_storage_mode
 
     start_period = datetime.now()
-    solar.align_storage_mode(start_period)
+    solar.align_storage_mode(start_period, period_hours=6)
 
-    mock_storage_mode_estimator.assert_called_once_with(state, start_period)
+    mock_storage_mode_estimator.assert_called_once_with(state, start_period, 6)
 
     mock_appdaemon_service.call_service.assert_called_once_with(
         "select/select_option",
