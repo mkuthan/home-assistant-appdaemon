@@ -120,11 +120,20 @@ def test_find_daily_min_price_no_data(forecast_price: PriceForecast) -> None:
     assert min_price is None
 
 
-def test_start_time_end_time() -> None:
-    period = PriceForecastPeriod(
-        datetime=datetime.fromisoformat("2025-10-03T15:00:00+00:00"),
-        price=EnergyPrice.pln_per_mwh(500.0),
-    )
+class TestPriceForecastPeriod:
+    def test_format(self) -> None:
+        period = PriceForecastPeriod(
+            datetime=datetime.fromisoformat("2025-10-03T15:00:00+00:00"),
+            price=EnergyPrice.pln_per_mwh(500.0),
+        )
 
-    assert period.start_time() == time(15, 0)
-    assert period.end_time() == time(16, 0)
+        assert f"{period}" == "2025-10-03T15:00:00+00:00 - 500.00 PLN/MWh"
+
+    def test_start_time_end_time(self) -> None:
+        period = PriceForecastPeriod(
+            datetime=datetime.fromisoformat("2025-10-03T15:00:00+00:00"),
+            price=EnergyPrice.pln_per_mwh(500.0),
+        )
+
+        assert period.start_time() == time(15, 0)
+        assert period.end_time() == time(16, 0)

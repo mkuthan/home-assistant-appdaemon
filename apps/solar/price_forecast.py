@@ -9,6 +9,9 @@ class PriceForecastPeriod:
     datetime: datetime
     price: EnergyPrice
 
+    def __format__(self, _format_spec: str) -> str:
+        return f"{self.datetime.isoformat()} - {self.price}"
+
     def start_time(self) -> time:
         return self.datetime.time()
 
