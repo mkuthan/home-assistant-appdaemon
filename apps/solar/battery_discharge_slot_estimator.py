@@ -20,6 +20,20 @@ class BatteryDischargeSlotEstimator:
         self.forecast_factory = forecast_factory
 
     def __call__(self, state: State, period_start: datetime, period_hours: int) -> BatteryDischargeSlot | None:
+        price_forecast = self.forecast_factory.create_price_forecast(state)
+        peak_periods = price_forecast.find_peak_periods(
+            period_start, period_hours, self.config.battery_export_threshold_price
+        )
+        if not peak_periods:
+            self.appdaemon_logger.info(
+                f"No peak periods above the threshold {self.config.battery_export_threshold_price} "
+                + "found in the price forecast"
+            )
+            return None
+
+        best_period = max(peak_periods, key=lambda period: period.price.value)
+        self.appdaemon_logger.info(f"Best peak period: {best_period}")
+
         production_forecast = self.forecast_factory.create_production_forecast(state)
         production_kwh = production_forecast.estimate_energy_kwh(period_start, period_hours)
         self.appdaemon_logger.info(f"Production forecast: {production_kwh}")
@@ -44,30 +58,17 @@ class BatteryDischargeSlotEstimator:
                 + f"is below the threshold {self.config.battery_export_threshold_energy}"
             )
             return None
-        else:
-            self.appdaemon_logger.info(f"Estimated surplus energy: {estimated_surplus_energy}")
 
-        price_forecast = self.forecast_factory.create_price_forecast(state)
-        peak_periods = price_forecast.find_peak_periods(
-            period_start, period_hours, self.config.battery_export_threshold_price
+        self.appdaemon_logger.info(f"Estimated surplus energy: {estimated_surplus_energy}")
+
+        estimated_discharge_current = estimated_surplus_energy.to_battery_current(self.config.battery_voltage)
+        self.appdaemon_logger.info(f"Estimated battery discharge current: {estimated_discharge_current}")
+
+        discharge_slot = BatteryDischargeSlot(
+            start_time=best_period.start_time(),
+            end_time=best_period.end_time(),
+            current=min(estimated_discharge_current, self.config.battery_maximum_current),
         )
-        if not peak_periods:
-            self.appdaemon_logger.info(
-                f"No peak periods above the threshold {self.config.battery_export_threshold_price} "
-                + "found in the price forecast"
-            )
-            return None
-        else:
-            best_period = max(peak_periods, key=lambda period: period.price.value)
-            self.appdaemon_logger.info(f"Best peak period: {best_period}")
 
-            estimated_discharge_current = estimated_surplus_energy.to_battery_current(self.config.battery_voltage)
-            self.appdaemon_logger.info(f"Estimated battery discharge current: {estimated_discharge_current}")
-
-            discharge_slot = BatteryDischargeSlot(
-                start_time=best_period.start_time(),
-                end_time=best_period.end_time(),
-                current=min(estimated_discharge_current, self.config.battery_maximum_current),
-            )
-            self.appdaemon_logger.info(f"Estimated battery discharge slot: {discharge_slot}")
-            return discharge_slot
+        self.appdaemon_logger.info(f"Estimated battery discharge slot: {discharge_slot}")
+        return discharge_slot

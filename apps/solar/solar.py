@@ -50,7 +50,6 @@ class Solar:
             return None
 
         estimated_battery_reserve_soc = self.battery_reserve_soc_estimator(state, period_start, period_hours)
-        self.appdaemon_logger.info(f"Estimated battery reserve SoC: {estimated_battery_reserve_soc}")
 
         if estimated_battery_reserve_soc is not None:
             self._set_battery_reserve_soc(state, estimated_battery_reserve_soc)
@@ -77,7 +76,6 @@ class Solar:
             return None
 
         estimated_battery_discharge_slot = self.battery_discharge_slot_estimator(state, period_start, period_hours)
-        self.appdaemon_logger.info(f"Estimated battery discharge slot: {estimated_battery_discharge_slot}")
 
         if estimated_battery_discharge_slot is not None:
             self._set_slot1_discharge(
@@ -105,7 +103,7 @@ class Solar:
             return None
 
         estimated_storage_mode = self.storage_mode_estimator(state, now, period_hours)
-        self.appdaemon_logger.info(f"Estimated storage mode: {estimated_storage_mode}")
+
         self._set_storage_mode(state, estimated_storage_mode)
 
     def _set_storage_mode(self, state: State, storage_mode: StorageMode) -> None:
