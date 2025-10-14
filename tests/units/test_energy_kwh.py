@@ -1,6 +1,4 @@
 import pytest
-from units.battery_current import BatteryCurrent
-from units.battery_voltage import BatteryVoltage
 from units.energy_kwh import EnergyKwh
 
 
@@ -219,10 +217,3 @@ def test_ratio_divide_by_zero() -> None:
     energy2 = EnergyKwh(0.0)
     with pytest.raises(ValueError, match="Cannot divide by zero energy"):
         energy1.ratio(energy2)
-
-
-def test_to_battery_current() -> None:
-    energy = EnergyKwh(5.0)
-    voltage = BatteryVoltage(50.0)
-    duration_hours = 2
-    assert energy.to_battery_current(voltage, duration_hours) == BatteryCurrent(50.0)

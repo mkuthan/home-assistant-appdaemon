@@ -1,9 +1,6 @@
 from dataclasses import dataclass
 from typing import ClassVar
 
-from units.battery_current import BatteryCurrent
-from units.battery_voltage import BatteryVoltage
-
 
 @dataclass(frozen=True)
 class EnergyKwh:
@@ -55,12 +52,6 @@ class EnergyKwh:
         if other == ENERGY_KWH_ZERO:
             raise ValueError("Cannot divide by zero energy")
         return self.value / other.value
-
-    def to_battery_current(self, voltage: BatteryVoltage, duration_hours: int = 1) -> BatteryCurrent:
-        if duration_hours <= 0:
-            raise ValueError(f"Duration must be positive, got {duration_hours}")
-        current_value = (self.value * 1000) / (voltage.value * duration_hours)
-        return BatteryCurrent(value=current_value)
 
 
 ENERGY_KWH_ZERO = EnergyKwh(EnergyKwh._ZERO_VALUE)

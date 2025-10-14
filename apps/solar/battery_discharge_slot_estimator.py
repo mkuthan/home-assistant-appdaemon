@@ -4,7 +4,9 @@ from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from solar.forecast_factory import ForecastFactory
 from solar.solar_configuration import SolarConfiguration
 from solar.state import State
+from units.battery_current import BATTERY_CURRENT_ZERO
 from units.battery_discharge_slot import BatteryDischargeSlot
+from utils.battery_converters import current_to_energy_kwh, energy_kwh_to_current
 from utils.battery_estimators import estimate_battery_surplus_energy
 
 
@@ -31,9 +33,6 @@ class BatteryDischargeSlotEstimator:
             )
             return []
 
-        best_period = max(peak_periods, key=lambda period: period.price.value)
-        self.appdaemon_logger.info(f"Best peak period: {best_period}")
-
         production_forecast = self.forecast_factory.create_production_forecast(state)
         production_kwh = production_forecast.estimate_energy_kwh(period_start, period_hours)
         self.appdaemon_logger.info(f"Production forecast: {production_kwh}")
@@ -52,23 +51,38 @@ class BatteryDischargeSlotEstimator:
             self.config.battery_reserve_soc_min,
             self.config.battery_reserve_soc_margin,
         )
-        if estimated_surplus_energy <= self.config.battery_export_threshold_energy:
-            self.appdaemon_logger.info(
-                f"Estimated surplus energy {estimated_surplus_energy} "
-                + f"is below the threshold {self.config.battery_export_threshold_energy}"
-            )
-            return []
-
         self.appdaemon_logger.info(f"Estimated surplus energy: {estimated_surplus_energy}")
 
-        estimated_discharge_current = estimated_surplus_energy.to_battery_current(self.config.battery_voltage)
+        estimated_discharge_current = energy_kwh_to_current(estimated_surplus_energy, self.config.battery_voltage)
         self.appdaemon_logger.info(f"Estimated battery discharge current: {estimated_discharge_current}")
 
-        discharge_slot = BatteryDischargeSlot(
-            start_time=best_period.start_time(),
-            end_time=best_period.end_time(),
-            current=min(estimated_discharge_current, self.config.battery_maximum_current),
-        )
+        sorted_peak_periods = sorted(peak_periods, key=lambda period: period.price.value, reverse=True)
 
-        self.appdaemon_logger.info(f"Estimated battery discharge slot: {discharge_slot}")
-        return [discharge_slot]
+        discharge_slots = []
+        remaining_current = estimated_discharge_current
+
+        for period in sorted_peak_periods:
+            if remaining_current == BATTERY_CURRENT_ZERO:
+                break
+
+            slot_current = min(remaining_current, self.config.battery_maximum_current)
+
+            slot_energy = current_to_energy_kwh(slot_current, self.config.battery_voltage, duration_hours=1)
+            if slot_energy <= self.config.battery_export_threshold_energy:
+                self.appdaemon_logger.info(
+                    f"Skipping slot {period}, estimated energy {slot_energy} <= "
+                    + f"{self.config.battery_export_threshold_energy}"
+                )
+                continue
+
+            discharge_slot = BatteryDischargeSlot(
+                start_time=period.start_time(),
+                end_time=period.end_time(),
+                current=slot_current,
+            )
+            discharge_slots.append(discharge_slot)
+            self.appdaemon_logger.info(f"Estimated battery discharge slot: {discharge_slot}")
+
+            remaining_current = remaining_current - slot_current
+
+        return discharge_slots

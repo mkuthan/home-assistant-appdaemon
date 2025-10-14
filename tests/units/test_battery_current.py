@@ -1,5 +1,7 @@
 import pytest
 from units.battery_current import BatteryCurrent
+from units.battery_voltage import BatteryVoltage
+from units.energy_kwh import EnergyKwh
 
 
 @pytest.mark.parametrize(
@@ -26,6 +28,32 @@ def test_valid_current(current_value: float) -> None:
 def test_invalid_current(current_value: float) -> None:
     with pytest.raises(ValueError, match=f"Battery current must be non-negative, got {current_value}"):
         BatteryCurrent(value=current_value)
+
+
+@pytest.mark.parametrize(
+    ("current1", "current2", "expected"),
+    [
+        (5.0, 10.0, 15.0),
+        (0.0, 0.0, 0.0),
+        (7.5, 2.5, 10.0),
+    ],
+)
+def test_add(current1: float, current2: float, expected: float) -> None:
+    result = BatteryCurrent(value=current1) + BatteryCurrent(value=current2)
+    assert result == BatteryCurrent(value=expected)
+
+
+@pytest.mark.parametrize(
+    ("current1", "current2", "expected"),
+    [
+        (10.0, 6.0, 4.0),
+        (0.0, 0.0, 0.0),
+        (5.0, 10.0, 0.0),  # Negative result capped to 0
+    ],
+)
+def test_sub(current1: float, current2: float, expected: float) -> None:
+    result = BatteryCurrent(value=current1) - BatteryCurrent(value=current2)
+    assert result == BatteryCurrent(value=expected)
 
 
 @pytest.mark.parametrize(

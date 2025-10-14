@@ -49,7 +49,7 @@ class Solar:
         state = self.state_factory.create()
         if state is None:
             self.appdaemon_logger.warn("Unknown state, cannot estimate battery reserve SoC")
-            return None
+            return
 
         estimated_battery_reserve_soc = self.battery_reserve_soc_estimator(state, period_start, period_hours)
 
@@ -63,7 +63,7 @@ class Solar:
         state = self.state_factory.create()
         if state is None:
             self.appdaemon_logger.warn("Unknown state, cannot reset battery reserve SoC")
-            return None
+            return
 
         self._set_battery_reserve_soc(state, battery_reserve_soc_default)
 
@@ -75,12 +75,12 @@ class Solar:
         state = self.state_factory.create()
         if state is None:
             self.appdaemon_logger.warn("Unknown state, cannot schedule battery discharge")
-            return None
+            return
 
         estimated_battery_discharge_slots = self.battery_discharge_slot_estimator(state, period_start, period_hours)
         for slot in range(1, self._NUM_DISCHARGE_SLOTS + 1):
-            estimated_battery_discharge_slot = estimated_battery_discharge_slots[slot - 1]
-            if estimated_battery_discharge_slot is not None:
+            if len(estimated_battery_discharge_slots) >= slot:
+                estimated_battery_discharge_slot = estimated_battery_discharge_slots[slot - 1]
                 self._set_slot_discharge(
                     state,
                     slot,
@@ -107,7 +107,7 @@ class Solar:
         state = self.state_factory.create()
         if state is None:
             self.appdaemon_logger.warn("Unknown state, cannot align storage mode")
-            return None
+            return
 
         estimated_storage_mode = self.storage_mode_estimator(state, now, period_hours)
 

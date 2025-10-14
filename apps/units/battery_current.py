@@ -12,6 +12,12 @@ class BatteryCurrent:
         if self.value < self._ZERO_VALUE:
             raise ValueError(f"Battery current must be non-negative, got {self.value}")
 
+    def __add__(self, other: "BatteryCurrent") -> "BatteryCurrent":
+        return BatteryCurrent(self.value + other.value)
+
+    def __sub__(self, other: "BatteryCurrent") -> "BatteryCurrent":
+        return BatteryCurrent(max(self._ZERO_VALUE, self.value - other.value))
+
     def __lt__(self, other: "BatteryCurrent") -> bool:
         return self.value < other.value
 
