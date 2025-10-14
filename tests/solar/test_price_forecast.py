@@ -108,14 +108,14 @@ def test_find_peak_periods_with_threshold_too_high(forecast_price: PriceForecast
     assert results == []
 
 
-def test_find_daily_min_price(forecast_price: PriceForecast) -> None:
-    min_price = forecast_price.find_daily_min_price(datetime.fromisoformat("2025-10-03T10:00:00+00:00"))
+def test_find_daily_min_price_for_4h(forecast_price: PriceForecast) -> None:
+    min_price = forecast_price.find_daily_min_price(datetime.fromisoformat("2025-10-03T15:00:00+00:00"), 4)
 
     assert min_price == EnergyPrice.pln_per_mwh(426.1)
 
 
 def test_find_daily_min_price_no_data(forecast_price: PriceForecast) -> None:
-    min_price = forecast_price.find_daily_min_price(datetime.fromisoformat("2025-10-04T10:00:00+00:00"))
+    min_price = forecast_price.find_daily_min_price(datetime.fromisoformat("2025-10-04T15:00:00+00:00"), 4)
 
     assert min_price is None
 

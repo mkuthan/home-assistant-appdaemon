@@ -40,6 +40,11 @@ class DefaultStateFactory:
         slot1_discharge_current = safe_float(
             self.appdaemon_state.get_state("number.solis_control_slot1_discharge_current")
         )
+        is_slot2_discharge_enabled = safe_bool(self.appdaemon_state.get_state("switch.solis_control_slot2_discharge"))
+        slot2_discharge_time = safe_str(self.appdaemon_state.get_state("text.solis_control_slot2_discharge_time"))
+        slot2_discharge_current = safe_float(
+            self.appdaemon_state.get_state("number.solis_control_slot2_discharge_current")
+        )
         hvac_heating_mode = safe_str(self.appdaemon_state.get_state("climate.panasonic_heat_pump_main_z1_temp"))
         hourly_price = safe_float(self.appdaemon_state.get_state(self.HOURLY_PRICE_ENTITY))
 
@@ -82,6 +87,12 @@ class DefaultStateFactory:
             missing.append("slot1_discharge_time")
         if slot1_discharge_current is None:
             missing.append("slot1_discharge_current")
+        if is_slot2_discharge_enabled is None:
+            missing.append("is_slot2_discharge_enabled")
+        if slot2_discharge_time is None:
+            missing.append("slot2_discharge_time")
+        if slot2_discharge_current is None:
+            missing.append("slot2_discharge_current")
         if hvac_heating_mode is None:
             missing.append("hvac_heating_mode")
         if hourly_price is None:
@@ -111,6 +122,9 @@ class DefaultStateFactory:
         assert is_slot1_discharge_enabled is not None
         assert slot1_discharge_time is not None
         assert slot1_discharge_current is not None
+        assert is_slot2_discharge_enabled is not None
+        assert slot2_discharge_time is not None
+        assert slot2_discharge_current is not None
         assert hvac_heating_mode is not None
         assert hourly_price is not None
         assert pv_forecast_today is not None
@@ -130,6 +144,9 @@ class DefaultStateFactory:
             is_slot1_discharge_enabled=is_slot1_discharge_enabled,
             slot1_discharge_time=slot1_discharge_time,
             slot1_discharge_current=BatteryCurrent(slot1_discharge_current),
+            is_slot2_discharge_enabled=is_slot2_discharge_enabled,
+            slot2_discharge_time=slot2_discharge_time,
+            slot2_discharge_current=BatteryCurrent(slot2_discharge_current),
             hvac_heating_mode=hvac_heating_mode,
             hourly_price=EnergyPrice.pln_per_mwh(hourly_price),
             pv_forecast_today=pv_forecast_today,

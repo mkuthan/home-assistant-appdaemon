@@ -117,31 +117,45 @@ def test_schedule_battery_discharge(
 ) -> None:
     current_slot1_discharge_time = "00:00-00:00"
     current_slot1_discharge_current = BATTERY_CURRENT_ZERO
+    current_slot2_discharge_time = "00:00-00:00"
+    current_slot2_discharge_current = BATTERY_CURRENT_ZERO
 
     new_slot1_discharge_time = "18:00-19:00"
     new_slot1_discharge_current = BatteryCurrent(30.0)
+    new_slot2_discharge_time = "19:00-20:00"
+    new_slot2_discharge_current = BatteryCurrent(60.0)
 
     state = replace(
         state,
         is_slot1_discharge_enabled=False,
         slot1_discharge_time=current_slot1_discharge_time,
         slot1_discharge_current=current_slot1_discharge_current,
+        is_slot2_discharge_enabled=False,
+        slot2_discharge_time=current_slot2_discharge_time,
+        slot2_discharge_current=current_slot2_discharge_current,
     )
     mock_state_factory.create.return_value = state
 
-    estimated_discharge_slot = BatteryDischargeSlot(
+    estimated_discharge_slot1 = BatteryDischargeSlot(
         start_time=time(18, 0),
         end_time=time(19, 0),
         current=new_slot1_discharge_current,
     )
-    mock_battery_discharge_slot_estimator.return_value = estimated_discharge_slot
+    estimated_discharge_slot2 = BatteryDischargeSlot(
+        start_time=time(19, 0),
+        end_time=time(20, 0),
+        current=new_slot2_discharge_current,
+    )
+    estimated_discharge_slots = [estimated_discharge_slot1, estimated_discharge_slot2]
+
+    mock_battery_discharge_slot_estimator.return_value = estimated_discharge_slots
 
     start_period = datetime.now()
     solar.schedule_battery_discharge(start_period, period_hours=6)
 
     mock_battery_discharge_slot_estimator.assert_called_once_with(state, start_period, 6)
 
-    assert mock_appdaemon_service.call_service.call_count == 3
+    assert mock_appdaemon_service.call_service.call_count == 6
     mock_appdaemon_service.call_service.assert_any_call(
         "text/set_value",
         callback=mock_appdaemon_service.service_call_callback,
@@ -159,6 +173,23 @@ def test_schedule_battery_discharge(
         callback=mock_appdaemon_service.service_call_callback,
         entity_id="switch.solis_control_slot1_discharge",
     )
+    mock_appdaemon_service.call_service.assert_any_call(
+        "text/set_value",
+        callback=mock_appdaemon_service.service_call_callback,
+        entity_id="text.solis_control_slot2_discharge_time",
+        value=new_slot2_discharge_time,
+    )
+    mock_appdaemon_service.call_service.assert_any_call(
+        "number/set_value",
+        callback=mock_appdaemon_service.service_call_callback,
+        entity_id="number.solis_control_slot2_discharge_current",
+        value=new_slot2_discharge_current.value,
+    )
+    mock_appdaemon_service.call_service.assert_any_call(
+        "switch/turn_on",
+        callback=mock_appdaemon_service.service_call_callback,
+        entity_id="switch.solis_control_slot2_discharge",
+    )
 
 
 def test_disable_battery_discharge(
@@ -167,15 +198,21 @@ def test_disable_battery_discharge(
     mock_appdaemon_service: Mock,
     mock_state_factory: Mock,
 ) -> None:
-    state = replace(state, is_slot1_discharge_enabled=True)
+    state = replace(state, is_slot1_discharge_enabled=True, is_slot2_discharge_enabled=True)
     mock_state_factory.create.return_value = state
 
     solar.disable_battery_discharge()
 
-    mock_appdaemon_service.call_service.assert_called_once_with(
+    assert mock_appdaemon_service.call_service.call_count == 2
+    mock_appdaemon_service.call_service.assert_any_call(
         "switch/turn_off",
         callback=mock_appdaemon_service.service_call_callback,
         entity_id="switch.solis_control_slot1_discharge",
+    )
+    mock_appdaemon_service.call_service.assert_any_call(
+        "switch/turn_off",
+        callback=mock_appdaemon_service.service_call_callback,
+        entity_id="switch.solis_control_slot2_discharge",
     )
 
 

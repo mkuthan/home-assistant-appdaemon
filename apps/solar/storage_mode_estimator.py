@@ -27,7 +27,7 @@ class StorageModeEstimator:
             return StorageMode.SELF_USE
 
         price_forecast = self.forecast_factory.create_price_forecast(state)
-        min_price = price_forecast.find_daily_min_price(now)
+        min_price = price_forecast.find_daily_min_price(now, period_hours)
         if min_price is None:
             self.appdaemon_logger.info("Minimum price not found in the forecast")
             return StorageMode.SELF_USE

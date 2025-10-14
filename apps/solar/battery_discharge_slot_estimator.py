@@ -19,7 +19,7 @@ class BatteryDischargeSlotEstimator:
         self.config = config
         self.forecast_factory = forecast_factory
 
-    def __call__(self, state: State, period_start: datetime, period_hours: int) -> BatteryDischargeSlot | None:
+    def __call__(self, state: State, period_start: datetime, period_hours: int) -> list[BatteryDischargeSlot]:
         price_forecast = self.forecast_factory.create_price_forecast(state)
         peak_periods = price_forecast.find_peak_periods(
             period_start, period_hours, self.config.battery_export_threshold_price
@@ -29,7 +29,7 @@ class BatteryDischargeSlotEstimator:
                 f"No peak periods above the threshold {self.config.battery_export_threshold_price} "
                 + "found in the price forecast"
             )
-            return None
+            return []
 
         best_period = max(peak_periods, key=lambda period: period.price.value)
         self.appdaemon_logger.info(f"Best peak period: {best_period}")
@@ -57,7 +57,7 @@ class BatteryDischargeSlotEstimator:
                 f"Estimated surplus energy {estimated_surplus_energy} "
                 + f"is below the threshold {self.config.battery_export_threshold_energy}"
             )
-            return None
+            return []
 
         self.appdaemon_logger.info(f"Estimated surplus energy: {estimated_surplus_energy}")
 
@@ -71,4 +71,4 @@ class BatteryDischargeSlotEstimator:
         )
 
         self.appdaemon_logger.info(f"Estimated battery discharge slot: {discharge_slot}")
-        return discharge_slot
+        return [discharge_slot]

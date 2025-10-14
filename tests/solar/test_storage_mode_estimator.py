@@ -47,6 +47,6 @@ def test_call_returns_feed_in_priority(
 
     mock_production_forecast.estimate_energy_kwh.assert_called_once_with(period_start, 6)
     mock_consumption_forecast.estimate_energy_kwh.assert_called_once_with(period_start, 6)
-    mock_price_forecast.find_daily_min_price.assert_called_once_with(period_start)
+    mock_price_forecast.find_daily_min_price.assert_called_once_with(period_start, 6)
 
     assert storage_mode == StorageMode.FEED_IN_PRIORITY

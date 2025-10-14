@@ -68,6 +68,6 @@ def test_call_returns_discharge_slot_when_surplus_energy_and_peak_price(
     mock_production_forecast.estimate_energy_kwh.assert_called_once_with(period_start, 6)
     mock_consumption_forecast.estimate_energy_kwh.assert_called_once_with(period_start, 6)
 
-    assert battery_discharge_slot == BatteryDischargeSlot(
+    assert battery_discharge_slot[0] == BatteryDischargeSlot(
         start_time=time(19, 0), end_time=time(20, 0), current=BatteryCurrent(30.00)
     )

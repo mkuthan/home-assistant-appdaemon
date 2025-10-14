@@ -65,6 +65,9 @@ def state_values(
         "switch.solis_control_slot1_discharge:": "on",
         "text.solis_control_slot1_discharge_time:": "19:00-20:00",
         "number.solis_control_slot1_discharge_current:": "45.0",
+        "switch.solis_control_slot2_discharge:": "on",
+        "text.solis_control_slot2_discharge_time:": "20:00-21:00",
+        "number.solis_control_slot2_discharge_current:": "30.0",
         "climate.panasonic_heat_pump_main_z1_temp:": "heat",
         "sensor.rce:": "500.0",
         "sensor.solcast_pv_forecast_forecast_today:detailedHourly": pv_forecast_today,
@@ -115,6 +118,9 @@ def test_create(
     assert result.is_slot1_discharge_enabled is True
     assert result.slot1_discharge_time == "19:00-20:00"
     assert result.slot1_discharge_current == BatteryCurrent(45.0)
+    assert result.is_slot2_discharge_enabled is True
+    assert result.slot2_discharge_time == "20:00-21:00"
+    assert result.slot2_discharge_current == BatteryCurrent(30.0)
     assert result.hvac_heating_mode == "heat"
     assert result.hourly_price == EnergyPrice.pln_per_mwh(500.0)
     assert result.pv_forecast_today == pv_forecast_today
@@ -137,6 +143,9 @@ def test_create(
         ("switch.solis_control_slot1_discharge:", "Missing: is_slot1_discharge_enabled"),
         ("text.solis_control_slot1_discharge_time:", "Missing: slot1_discharge_time"),
         ("number.solis_control_slot1_discharge_current:", "Missing: slot1_discharge_current"),
+        ("switch.solis_control_slot2_discharge:", "Missing: is_slot2_discharge_enabled"),
+        ("text.solis_control_slot2_discharge_time:", "Missing: slot2_discharge_time"),
+        ("number.solis_control_slot2_discharge_current:", "Missing: slot2_discharge_current"),
         ("climate.panasonic_heat_pump_main_z1_temp:", "Missing: hvac_heating_mode"),
         ("sensor.rce:", "Missing: hourly_price"),
         ("sensor.solcast_pv_forecast_forecast_today:detailedHourly", "Missing: pv_forecast_today"),
