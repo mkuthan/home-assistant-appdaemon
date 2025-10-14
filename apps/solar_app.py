@@ -60,6 +60,9 @@ class SolarApp(BaseApp):
         self.info("Scheduling battery reserve SOC reset at 6:55 before morning usage")
         self.run_daily(self.reset_battery_reserve_soc, self.schedule_at(6, 55))
 
+        self.info("Scheduling battery reserve SOC reset at 7:05 before morning usage (backup call)")
+        self.run_daily(self.reset_battery_reserve_soc, self.schedule_at(7, 5))
+
         self.info("Scheduling battery reserve SOC alignment at 13:05 and 15:01 before evening usage")
         self.run_daily(self.align_battery_reserve_soc_today, self.schedule_at(13, 5), 13, 9)
         self.run_daily(self.align_battery_reserve_soc_today, self.schedule_at(15, 1), 15, 7)
@@ -67,11 +70,17 @@ class SolarApp(BaseApp):
         self.info("Scheduling battery reserve SOC reset at 15:55 before evening usage")
         self.run_daily(self.reset_battery_reserve_soc, self.schedule_at(15, 55))
 
+        self.info("Scheduling battery reserve SOC reset at 16:05 before evening usage (backup call)")
+        self.run_daily(self.reset_battery_reserve_soc, self.schedule_at(16, 5))
+
         self.info("Scheduling battery discharge schedule at 16:00")
         self.run_daily(self.schedule_battery_discharge, self.schedule_at(16, 0), 16, 6)
 
         self.info("Scheduling battery discharge disable at 22:00")
         self.run_daily(self.disable_battery_discharge, self.schedule_at(22, 0))
+
+        self.info("Scheduling battery discharge disable at 22:05 (backup call)")
+        self.run_daily(self.disable_battery_discharge, self.schedule_at(22, 5))
 
         self.info("Listening to: [Battery SoC, Hourly price] changes and align storage mode")
         self.listen_state(
