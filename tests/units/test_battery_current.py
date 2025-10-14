@@ -1,7 +1,5 @@
 import pytest
 from units.battery_current import BatteryCurrent
-from units.battery_voltage import BatteryVoltage
-from units.energy_kwh import EnergyKwh
 
 
 @pytest.mark.parametrize(

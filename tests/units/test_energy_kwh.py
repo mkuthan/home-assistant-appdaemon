@@ -39,7 +39,7 @@ def test_invalid_energy(energy_value: float) -> None:
         (0.0, 0.0, 0.0),
     ],
 )
-def test_add_valid_energies(energy1: float, energy2: float, expected: float) -> None:
+def test_add(energy1: float, energy2: float, expected: float) -> None:
     result = EnergyKwh(value=energy1) + EnergyKwh(value=energy2)
     assert result.value == expected
 
@@ -54,7 +54,7 @@ def test_add_valid_energies(energy1: float, energy2: float, expected: float) -> 
         (0.0, 1.0, 0.0),  # Caps at 0
     ],
 )
-def test_subtract_valid_energies(energy1: float, energy2: float, expected: float) -> None:
+def test_sub(energy1: float, energy2: float, expected: float) -> None:
     result = EnergyKwh(value=energy1) - EnergyKwh(value=energy2)
     assert result.value == expected
 

@@ -37,7 +37,7 @@ def test_invalid_soc(soc_value: float) -> None:
         (50.0, 60.0, 100.0),  # Caps at 100
     ],
 )
-def test_add_valid_socs(soc1: float, soc2: float, expected: float) -> None:
+def test_add(soc1: float, soc2: float, expected: float) -> None:
     result = BatterySoc(value=soc1) + BatterySoc(value=soc2)
     assert result.value == expected
 
@@ -50,7 +50,7 @@ def test_add_valid_socs(soc1: float, soc2: float, expected: float) -> None:
         (30.0, 50.0, 0.0),  # Caps at 0
     ],
 )
-def test_subtract_valid_socs(soc1: float, soc2: float, expected: float) -> None:
+def test_sub(soc1: float, soc2: float, expected: float) -> None:
     result = BatterySoc(value=soc1) - BatterySoc(value=soc2)
     assert result.value == expected
 
