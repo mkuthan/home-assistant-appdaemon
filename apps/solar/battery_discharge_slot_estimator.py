@@ -1,11 +1,11 @@
 from datetime import datetime
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
+from solar.battery_discharge_slot import BatteryDischargeSlot
 from solar.forecast_factory import ForecastFactory
 from solar.solar_configuration import SolarConfiguration
 from solar.state import State
 from units.battery_current import BATTERY_CURRENT_ZERO
-from units.battery_discharge_slot import BatteryDischargeSlot
 from utils.battery_converters import current_to_energy_kwh, energy_kwh_to_current
 from utils.battery_estimators import estimate_battery_surplus_energy
 

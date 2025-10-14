@@ -3,12 +3,12 @@ from datetime import datetime, time
 from unittest.mock import Mock
 
 import pytest
+from solar.battery_discharge_slot import BatteryDischargeSlot
 from solar.solar import Solar
 from solar.solar_configuration import SolarConfiguration
 from solar.state import State
 from solar.storage_mode import StorageMode
 from units.battery_current import BATTERY_CURRENT_ZERO, BatteryCurrent
-from units.battery_discharge_slot import BatteryDischargeSlot
 from units.battery_soc import BatterySoc
 
 

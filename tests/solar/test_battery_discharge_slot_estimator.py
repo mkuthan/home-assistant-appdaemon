@@ -2,12 +2,12 @@ from dataclasses import replace
 from datetime import datetime, time
 from unittest.mock import Mock
 
+from solar.battery_discharge_slot import BatteryDischargeSlot
 from solar.battery_discharge_slot_estimator import BatteryDischargeSlotEstimator
 from solar.price_forecast import PriceForecast, PriceForecastPeriod
 from solar.solar_configuration import SolarConfiguration
 from solar.state import State
 from units.battery_current import BatteryCurrent
-from units.battery_discharge_slot import BatteryDischargeSlot
 from units.battery_soc import BatterySoc
 from units.battery_voltage import BatteryVoltage
 from units.energy_kwh import EnergyKwh

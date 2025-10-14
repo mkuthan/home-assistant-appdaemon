@@ -1,7 +1,7 @@
 from datetime import time
 
+from solar.battery_discharge_slot import BatteryDischargeSlot
 from units.battery_current import BatteryCurrent
-from units.battery_discharge_slot import BatteryDischargeSlot
 
 
 def test_time_str() -> None:
