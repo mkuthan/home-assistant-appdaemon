@@ -57,5 +57,9 @@ class StorageModeEstimator:
             self.appdaemon_logger.info(f"Estimated battery max SoC {estimated_battery_max_soc} < {BATTERY_SOC_MAX}")
             return StorageMode.SELF_USE
 
-        self.appdaemon_logger.info(f"No conditions for {StorageMode.SELF_USE} met")
+        self.appdaemon_logger.info(
+            f"Try {StorageMode.FEED_IN_PRIORITY}, current price: {current_price}, "
+            + f"current battery SoC: {state.battery_soc}"
+        )
+
         return StorageMode.FEED_IN_PRIORITY

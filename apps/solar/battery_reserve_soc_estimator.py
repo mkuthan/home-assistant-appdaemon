@@ -40,9 +40,10 @@ class BatteryReserveSocEstimator:
 
         if estimated_reserve_soc <= state.battery_reserve_soc:
             self.appdaemon_logger.info(
-                f"Estimated reserve SoC: {estimated_reserve_soc} <= current reserve SoC: {state.battery_reserve_soc}"
+                f"Estimated battery reserve SoC: {estimated_reserve_soc} <= "
+                + f"current battery reserve SoC: {state.battery_reserve_soc}"
             )
             return None
 
-        self.appdaemon_logger.info(f"Estimated reserve SoC: {estimated_reserve_soc}")
+        self.appdaemon_logger.info(f"Estimated battry reserve SoC: {estimated_reserve_soc}")
         return estimated_reserve_soc
