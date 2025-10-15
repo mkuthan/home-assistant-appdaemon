@@ -87,6 +87,7 @@ class Solar:
                     estimated_battery_discharge_slot.time_str(),
                     estimated_battery_discharge_slot.current,
                 )
+                self._enable_slot_discharge(state, slot)
             else:
                 self._disable_slot_discharge(state, slot)
 
@@ -178,15 +179,25 @@ class Solar:
                 f"Slot {slot} battery discharge current already set to {current_discharge_current}"
             )
 
+    def _enable_slot_discharge(self, state: State, slot: int) -> None:
+        if not 1 <= slot <= self._NUM_DISCHARGE_SLOTS:
+            self.appdaemon_logger.error(f"Invalid slot number: {slot}")
+            return
+
         if not getattr(state, f"is_slot{slot}_discharge_enabled"):
-            self.appdaemon_logger.info(f"Enabling slot {slot} battery discharge")
-            self.appdaemon_service.call_service(
+            self.appdaemon_logger.info(f"Enabling slot {slot} discharge")
+            # slots can't be enabled concurrently, use blocking call
+            result = self.appdaemon_service.call_service(
                 "switch/turn_on",
-                callback=self.appdaemon_service.service_call_callback,
                 entity_id=f"switch.solis_control_slot{slot}_discharge",
             )
+            match result:
+                case {"success": True}:
+                    self.appdaemon_logger.info(f"Successfully enabled slot {slot} discharge")
+                case _:
+                    self.appdaemon_logger.error(f"Failed to enable slot {slot} discharge: {result}")
         else:
-            self.appdaemon_logger.info("Slot {slot} battery discharge is already enabled")
+            self.appdaemon_logger.info(f"Slot {slot} battery discharge is already enabled")
 
     def _disable_slot_discharge(self, state: State, slot: int) -> None:
         if not 1 <= slot <= self._NUM_DISCHARGE_SLOTS:
@@ -195,10 +206,15 @@ class Solar:
 
         if getattr(state, f"is_slot{slot}_discharge_enabled"):
             self.appdaemon_logger.info(f"Disabling slot {slot} discharge")
-            self.appdaemon_service.call_service(
+            # slots can't be disabled concurrently, use blocking call
+            result = self.appdaemon_service.call_service(
                 "switch/turn_off",
-                callback=self.appdaemon_service.service_call_callback,
                 entity_id=f"switch.solis_control_slot{slot}_discharge",
             )
+            match result:
+                case {"success": True}:
+                    self.appdaemon_logger.info(f"Successfully disabled slot {slot} discharge")
+                case _:
+                    self.appdaemon_logger.error(f"Failed to disable slot {slot} discharge: {result}")
         else:
             self.appdaemon_logger.info(f"Slot {slot} battery discharge is already disabled")

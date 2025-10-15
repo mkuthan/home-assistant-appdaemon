@@ -170,7 +170,6 @@ def test_schedule_battery_discharge(
     )
     mock_appdaemon_service.call_service.assert_any_call(
         "switch/turn_on",
-        callback=mock_appdaemon_service.service_call_callback,
         entity_id="switch.solis_control_slot1_discharge",
     )
     mock_appdaemon_service.call_service.assert_any_call(
@@ -187,7 +186,6 @@ def test_schedule_battery_discharge(
     )
     mock_appdaemon_service.call_service.assert_any_call(
         "switch/turn_on",
-        callback=mock_appdaemon_service.service_call_callback,
         entity_id="switch.solis_control_slot2_discharge",
     )
 
@@ -206,12 +204,10 @@ def test_disable_battery_discharge(
     assert mock_appdaemon_service.call_service.call_count == 2
     mock_appdaemon_service.call_service.assert_any_call(
         "switch/turn_off",
-        callback=mock_appdaemon_service.service_call_callback,
         entity_id="switch.solis_control_slot1_discharge",
     )
     mock_appdaemon_service.call_service.assert_any_call(
         "switch/turn_off",
-        callback=mock_appdaemon_service.service_call_callback,
         entity_id="switch.solis_control_slot2_discharge",
     )
 
