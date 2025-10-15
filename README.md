@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/mkuthan/home-assistant-appdaemon/actions/workflows/ci.yml/badge.svg)](https://github.com/mkuthan/home-assistant-appdaemon/actions/workflows/ci.yml)
 
+[![codecov](https://codecov.io/gh/mkuthan/home-assistant-appdaemon/graph/badge.svg?token=OIJ3MV1L8G)](https://codecov.io/gh/mkuthan/home-assistant-appdaemon)
+
 This project provides intelligent automation for solar-powered homes, optimizing energy usage and battery management to maximize self-consumption and minimize grid costs. By integrating real-time solar production data, household consumption patterns, weather forecasts, and dynamic electricity pricing, the system makes autonomous decisions about when to store, consume, or discharge battery energy.
 
 ## Features
