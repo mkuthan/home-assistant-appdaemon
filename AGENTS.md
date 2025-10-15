@@ -11,25 +11,36 @@ Home Assistant AppDaemon applications for solar energy optimization.
 - Run linter: `uv run ruff check`
 - Format code: `uv run ruff format`
 
+## General rules
+
+- Always ask if you are unsure what to do or if the potential impact of a change is large
+- Comments: Use sparingly, explain WHY not WHAT
+
 ## Code Style
 
 - Python 3.12+
-- Use Protocol classes for Appdaemon dependency injection (see `apps/appdaemon_protocols/`)
-- Dataclasses with `frozen=True` for immutable data structures
-- Type hints required (enforced by ruff ANN rules)
 - Line length: 120 characters
+- Type hints required
 - Follow ruff configuration in `pyproject.toml`
-- Comments: Use sparingly, explain WHY not WHAT
+- Protocol classes for Appdaemon dependency injection (see `apps/appdaemon_protocols/`)
+- Callable protocols for strategy patterns (e.g., estimators, converters)
+- Dataclasses with `frozen=True` for immutable data structures
+- Include context in log messages (current values, thresholds, comparisons)
+- Log warnings when optional data is missing but processing can continue
+- Log errors only for genuine failures that prevent operation
 
 ## Testing Instructions
 
 - Tests located in `tests/` directory
+- Test files should follow `test_*.py` naming convention
 - Use pytest with `pythonpath = ["apps"]` configuration
 - Mock dependencies using `unittest.mock.Mock`
-- Test files should follow `test_*.py` naming convention
-- Run tests before committing: `uv run pytest`
-- Use `@pytest.mark.parametrize` for parametrized tests to cover different scenarios
-- Use separated test for failure scenarios
+- Define Shared fixtures in `conftest.py` for cross-module reuse
+- Use fixtures to reduce test setup duplication
+- Use `@pytest.mark.parametrize` to cover different scenarios
+- Avoid redundant test cases
+- Use dedicated tests for failure scenarios instead of mixing them with happy path cases
+- Use `dataclasses.replace()` to create modified copies of frozen dataclasses in tests
 
 ## Architecture Patterns
 
@@ -41,4 +52,4 @@ Home Assistant AppDaemon applications for solar energy optimization.
   - `state.py` / `state_factory.py` - Home Assistant state management
 - `apps/units/` - Type-safe value objects for domain concepts (energy, power, SOC, etc.)
 - `apps/utils/` - Shared utilities and safe type converters
-- `apps/appdaemon_protocols/` - Protocol interfaces for dependency injection and testability
+- `apps/appdaemon_protocols/` - Protocol interfaces for AppDaemon dependency injection and testability
