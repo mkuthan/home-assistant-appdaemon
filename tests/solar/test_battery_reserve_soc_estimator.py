@@ -30,7 +30,7 @@ def battery_reserve_soc_estimator(
     )
 
 
-def test_call_returns_estimated_reserve_soc_when_higher_than_current(
+def test_estimator_when_higher_than_current(
     battery_reserve_soc_estimator: BatteryReserveSocEstimator,
     state: State,
     mock_production_forecast: Mock,
@@ -42,10 +42,33 @@ def test_call_returns_estimated_reserve_soc_when_higher_than_current(
     mock_consumption_forecast.estimate_energy_kwh.return_value = EnergyKwh(6.0)
 
     period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
+    period_hours = 6
 
-    battery_reserve_soc = battery_reserve_soc_estimator(state, period_start, period_hours=6)
+    battery_reserve_soc = battery_reserve_soc_estimator(state, period_start, period_hours)
 
-    mock_production_forecast.estimate_energy_kwh.assert_called_once_with(period_start, 6)
-    mock_consumption_forecast.estimate_energy_kwh.assert_called_once_with(period_start, 6)
+    mock_production_forecast.estimate_energy_kwh.assert_called_once_with(period_start, period_hours)
+    mock_consumption_forecast.estimate_energy_kwh.assert_called_once_with(period_start, period_hours)
 
     assert battery_reserve_soc == BatterySoc(65.0)
+
+
+def test_estimator_when_lower_than_current(
+    battery_reserve_soc_estimator: BatteryReserveSocEstimator,
+    state: State,
+    mock_production_forecast: Mock,
+    mock_consumption_forecast: Mock,
+) -> None:
+    state = replace(state, battery_reserve_soc=BatterySoc(50.0))
+
+    mock_production_forecast.estimate_energy_kwh.return_value = EnergyKwh(5.0)
+    mock_consumption_forecast.estimate_energy_kwh.return_value = EnergyKwh(6.0)
+
+    period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
+    period_hours = 6
+
+    battery_reserve_soc = battery_reserve_soc_estimator(state, period_start, period_hours)
+
+    mock_production_forecast.estimate_energy_kwh.assert_called_once_with(period_start, period_hours)
+    mock_consumption_forecast.estimate_energy_kwh.assert_called_once_with(period_start, period_hours)
+
+    assert battery_reserve_soc is None

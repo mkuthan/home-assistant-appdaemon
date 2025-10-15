@@ -32,7 +32,7 @@ def storage_mode_estimator(
     )
 
 
-def test_call_returns_feed_in_priority(
+def test_estimator_feed_in_priority(
     storage_mode_estimator: StorageModeEstimator,
     state: State,
     mock_production_forecast: Mock,
@@ -46,11 +46,104 @@ def test_call_returns_feed_in_priority(
     mock_price_forecast.find_daily_min_price.return_value = EnergyPrice.pln_per_mwh(30.0)
 
     period_start = datetime.now()
+    period_hours = 6
 
-    storage_mode = storage_mode_estimator(state, period_start, 6)
+    storage_mode = storage_mode_estimator(state, period_start, period_hours)
 
-    mock_production_forecast.estimate_energy_kwh.assert_called_once_with(period_start, 6)
-    mock_consumption_forecast.estimate_energy_kwh.assert_called_once_with(period_start, 6)
-    mock_price_forecast.find_daily_min_price.assert_called_once_with(period_start, 6)
+    mock_production_forecast.estimate_energy_kwh.assert_called_once_with(period_start, period_hours)
+    mock_consumption_forecast.estimate_energy_kwh.assert_called_once_with(period_start, period_hours)
+    mock_price_forecast.find_daily_min_price.assert_called_once_with(period_start, period_hours)
 
     assert storage_mode == StorageMode.FEED_IN_PRIORITY
+
+
+def test_estimator_self_use_when_battery_soc_below_reserve(
+    storage_mode_estimator: StorageModeEstimator,
+    state: State,
+    mock_production_forecast: Mock,
+    mock_consumption_forecast: Mock,
+    mock_price_forecast: Mock,
+) -> None:
+    state = replace(state, battery_soc=BatterySoc(20.0), hourly_price=EnergyPrice.pln_per_mwh(250.0))
+
+    period_start = datetime.now()
+    period_hours = 6
+
+    storage_mode = storage_mode_estimator(state, period_start, period_hours)
+
+    mock_production_forecast.estimate_energy_kwh.assert_not_called()
+    mock_consumption_forecast.estimate_energy_kwh.assert_not_called()
+    mock_price_forecast.find_daily_min_price.assert_not_called()
+
+    assert storage_mode == StorageMode.SELF_USE
+
+
+def test_estimator_self_use_when_min_price_not_found(
+    storage_mode_estimator: StorageModeEstimator,
+    state: State,
+    mock_production_forecast: Mock,
+    mock_consumption_forecast: Mock,
+    mock_price_forecast: Mock,
+) -> None:
+    state = replace(state, battery_soc=BatterySoc(80.0), hourly_price=EnergyPrice.pln_per_mwh(250.0))
+
+    mock_price_forecast.find_daily_min_price.return_value = None
+
+    period_start = datetime.now()
+    period_hours = 6
+
+    storage_mode = storage_mode_estimator(state, period_start, period_hours)
+
+    mock_production_forecast.estimate_energy_kwh.assert_not_called()
+    mock_consumption_forecast.estimate_energy_kwh.assert_not_called()
+    mock_price_forecast.find_daily_min_price.assert_called_once_with(period_start, period_hours)
+
+    assert storage_mode == StorageMode.SELF_USE
+
+
+def test_estimator_self_use_when_current_price_below_threshold(
+    storage_mode_estimator: StorageModeEstimator,
+    state: State,
+    mock_production_forecast: Mock,
+    mock_consumption_forecast: Mock,
+    mock_price_forecast: Mock,
+) -> None:
+    state = replace(state, battery_soc=BatterySoc(80.0), hourly_price=EnergyPrice.pln_per_mwh(150.0))
+
+    mock_price_forecast.find_daily_min_price.return_value = EnergyPrice.pln_per_mwh(30.0)
+
+    period_start = datetime.now()
+    period_hours = 6
+
+    storage_mode = storage_mode_estimator(state, period_start, period_hours)
+
+    mock_production_forecast.estimate_energy_kwh.assert_not_called()
+    mock_consumption_forecast.estimate_energy_kwh.assert_not_called()
+    mock_price_forecast.find_daily_min_price.assert_called_once_with(period_start, period_hours)
+
+    assert storage_mode == StorageMode.SELF_USE
+
+
+def test_estimator_self_use_when_no_enough_surplus_energy(
+    storage_mode_estimator: StorageModeEstimator,
+    state: State,
+    mock_production_forecast: Mock,
+    mock_consumption_forecast: Mock,
+    mock_price_forecast: Mock,
+) -> None:
+    state = replace(state, battery_soc=BatterySoc(80.0), hourly_price=EnergyPrice.pln_per_mwh(250.0))
+
+    mock_production_forecast.estimate_energy_kwh.return_value = EnergyKwh(5.0)
+    mock_consumption_forecast.estimate_energy_kwh.return_value = EnergyKwh(6.0)
+    mock_price_forecast.find_daily_min_price.return_value = EnergyPrice.pln_per_mwh(30.0)
+
+    period_start = datetime.now()
+    period_hours = 6
+
+    storage_mode = storage_mode_estimator(state, period_start, period_hours)
+
+    mock_production_forecast.estimate_energy_kwh.assert_called_once_with(period_start, period_hours)
+    mock_consumption_forecast.estimate_energy_kwh.assert_called_once_with(period_start, period_hours)
+    mock_price_forecast.find_daily_min_price.assert_called_once_with(period_start, period_hours)
+
+    assert storage_mode == StorageMode.SELF_USE

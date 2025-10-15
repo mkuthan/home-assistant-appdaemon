@@ -22,6 +22,7 @@ Home Assistant AppDaemon applications for solar energy optimization.
 - Line length: 120 characters
 - Type hints required
 - Follow ruff configuration in `pyproject.toml`
+- Ensure consistency across codebase
 - Protocol classes for Appdaemon dependency injection (see `apps/appdaemon_protocols/`)
 - Callable protocols for strategy patterns (e.g., estimators, converters)
 - Dataclasses with `frozen=True` for immutable data structures
