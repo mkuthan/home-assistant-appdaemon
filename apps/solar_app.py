@@ -64,7 +64,7 @@ class SolarApp(BaseApp):
         self.run_daily(self.reset_battery_reserve_soc, self.schedule_at(7, 5))
 
         self.info("Scheduling battery reserve SOC alignment at 13:05 and 15:01 before evening usage")
-        self.run_daily(self.align_battery_reserve_soc_today, self.schedule_at(13, 5), 13, 9)
+        self.run_daily(self.align_battery_reserve_soc_today, self.schedule_at(13, 5), 13, 2)
         self.run_daily(self.align_battery_reserve_soc_today, self.schedule_at(15, 1), 15, 7)
 
         self.info("Scheduling battery reserve SOC reset at 15:55 before evening usage")
