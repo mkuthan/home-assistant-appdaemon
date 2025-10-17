@@ -7,14 +7,14 @@ from units.energy_kwh import ENERGY_KWH_ZERO, EnergyKwh
 
 
 class TestForecastProductionComposite:
-    def test_estimate_energy_kwh(self) -> None:
+    def test_estimate_energy_kwh(self, mock_appdaemon_logger: Mock) -> None:
         component_1 = Mock()
         component_1.estimate_energy_kwh.return_value = EnergyKwh(1.5)
 
         component_2 = Mock()
         component_2.estimate_energy_kwh.return_value = EnergyKwh(2.0)
 
-        forecast_consumption = ProductionForecastComposite(component_1, component_2)
+        forecast_consumption = ProductionForecastComposite(mock_appdaemon_logger, component_1, component_2)
         period_start = datetime.fromisoformat("2025-10-03T10:00:00+00:00")
 
         result = forecast_consumption.estimate_energy_kwh(period_start=period_start, period_hours=3)

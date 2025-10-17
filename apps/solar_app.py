@@ -25,8 +25,8 @@ class SolarApp(BaseApp):
             battery_maximum_current=BatteryCurrent(80.0),
             battery_reserve_soc_min=BatterySoc(20.0),
             battery_reserve_soc_margin=BatterySoc(10.0),
-            heating_cop_at_7c=3.5,  # ratio
-            heating_h=0.18,  # kW/°C
+            heating_cop_at_7c=4.0,  # ratio
+            heating_h=0.15,  # kW/°C
             temp_out_fallback=5.0,  # °C
             humidity_out_fallback=80.0,  # %
             evening_start_hour=16,  # hour

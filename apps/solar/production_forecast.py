@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Protocol
 
+from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from units.energy_kwh import ENERGY_KWH_ZERO, EnergyKwh
 
 
@@ -16,13 +17,16 @@ class ProductionForecast(Protocol):
 
 
 class ProductionForecastComposite:
-    def __init__(self, *components: ProductionForecast) -> None:
+    def __init__(self, appdaemon_logger: AppdaemonLogger, *components: ProductionForecast) -> None:
+        self.appdaemon_logger = appdaemon_logger
         self.components = components
 
     def estimate_energy_kwh(self, period_start: datetime, period_hours: int) -> EnergyKwh:
         total_energy_kwh = ENERGY_KWH_ZERO
         for component in self.components:
-            total_energy_kwh += component.estimate_energy_kwh(period_start, period_hours)
+            energy_kwh = component.estimate_energy_kwh(period_start, period_hours)
+            self.appdaemon_logger.info(f"Estimated energy production ({component.__class__.__name__}): {energy_kwh}")
+            total_energy_kwh += energy_kwh
         return total_energy_kwh
 
 

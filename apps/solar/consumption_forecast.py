@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Protocol
 
+from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from solar.weather_forecast import WeatherForecast
 from units.energy_kwh import ENERGY_KWH_ZERO, EnergyKwh
 from utils.hvac_estimators import estimate_heating_energy_consumption
@@ -11,13 +12,16 @@ class ConsumptionForecast(Protocol):
 
 
 class ConsumptionForecastComposite:
-    def __init__(self, *components: ConsumptionForecast) -> None:
+    def __init__(self, appdaemon_logger: AppdaemonLogger, *components: ConsumptionForecast) -> None:
+        self.appdaemon_logger = appdaemon_logger
         self.components = components
 
     def estimate_energy_kwh(self, period_start: datetime, period_hours: int) -> EnergyKwh:
         total_energy_kwh = ENERGY_KWH_ZERO
         for component in self.components:
-            total_energy_kwh += component.estimate_energy_kwh(period_start, period_hours)
+            energy_kwh = component.estimate_energy_kwh(period_start, period_hours)
+            self.appdaemon_logger.info(f"Estimated energy consumption ({component.__class__.__name__}): {energy_kwh}")
+            total_energy_kwh += energy_kwh
         return total_energy_kwh
 
 
