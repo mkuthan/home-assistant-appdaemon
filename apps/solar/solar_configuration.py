@@ -14,6 +14,7 @@ class SolarConfiguration:
     battery_maximum_current: BatteryCurrent  # maximum battery discharge/charge current
     battery_reserve_soc_min: BatterySoc  # minimum reserve SOC
     battery_reserve_soc_margin: BatterySoc  # margin above minimum reserve SOC
+    battery_reserve_soc_max: BatterySoc  # maximum reserve SOC
 
     heating_cop_at_7c: float  # coefficient of heat-pump performance at 7 degrees Celsius
     heating_h: float  # coefficient representing building heat loss rate in kW/°C

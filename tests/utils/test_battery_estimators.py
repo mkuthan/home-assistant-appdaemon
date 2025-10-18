@@ -9,14 +9,23 @@ from utils.battery_estimators import (
 
 
 @pytest.mark.parametrize(
-    ("energy_reserve", "battery_capacity", "battery_reserve_soc_default", "battery_reserve_soc_margin", "expected"),
+    (
+        "energy_reserve",
+        "battery_capacity",
+        "battery_reserve_soc_default",
+        "battery_reserve_soc_margin",
+        "battery_reserve_soc_max",
+        "expected",
+    ),
     [
         # Energy reserve is half of capacity, no default or margin
-        (EnergyKwh(5.0), EnergyKwh(10.0), BatterySoc(20.0), BatterySoc(15.0), BatterySoc(85.0)),
+        (EnergyKwh(5.0), EnergyKwh(10.0), BatterySoc(20.0), BatterySoc(15.0), BatterySoc(100.0), BatterySoc(85.0)),
         # Energy reserve exceeds capacity (should be clamped to 100%)
-        (EnergyKwh(10.0), EnergyKwh(10.0), BatterySoc(20.0), BatterySoc(15.0), BatterySoc(100.0)),
+        (EnergyKwh(10.0), EnergyKwh(10.0), BatterySoc(20.0), BatterySoc(15.0), BatterySoc(100.0), BatterySoc(100.0)),
         # No energy reserve, only default and margin
-        (EnergyKwh(0.0), EnergyKwh(10.0), BatterySoc(20.0), BatterySoc(15.0), BatterySoc(35.0)),
+        (EnergyKwh(0.0), EnergyKwh(10.0), BatterySoc(20.0), BatterySoc(15.0), BatterySoc(100.0), BatterySoc(35.0)),
+        # Energy reserve + default + margin exceeds max (should be clamped to max)
+        (EnergyKwh(8.0), EnergyKwh(10.0), BatterySoc(20.0), BatterySoc(15.0), BatterySoc(80.0), BatterySoc(80.0)),
     ],
 )
 def test_estimate_battery_reserve_soc(
@@ -24,6 +33,7 @@ def test_estimate_battery_reserve_soc(
     battery_capacity: EnergyKwh,
     battery_reserve_soc_default: BatterySoc,
     battery_reserve_soc_margin: BatterySoc,
+    battery_reserve_soc_max: BatterySoc,
     expected: BatterySoc,
 ) -> None:
     result = estimate_battery_reserve_soc(
@@ -31,6 +41,7 @@ def test_estimate_battery_reserve_soc(
         battery_capacity,
         battery_reserve_soc_default,
         battery_reserve_soc_margin,
+        battery_reserve_soc_max,
     )
     assert result.value == pytest.approx(expected.value)
 

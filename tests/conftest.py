@@ -34,6 +34,7 @@ def config() -> SolarConfiguration:
         battery_maximum_current=BATTERY_CURRENT_ZERO,
         battery_reserve_soc_min=BATTERY_SOC_MIN,
         battery_reserve_soc_margin=BATTERY_SOC_MIN,
+        battery_reserve_soc_max=BATTERY_SOC_MIN,
         heating_cop_at_7c=-1.0,
         heating_h=-1.0,
         temp_out_fallback=-1.0,

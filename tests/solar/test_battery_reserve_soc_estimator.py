@@ -21,6 +21,7 @@ def battery_reserve_soc_estimator(
         battery_capacity=EnergyKwh(10.0),
         battery_reserve_soc_min=BatterySoc(20.0),
         battery_reserve_soc_margin=BatterySoc(5.0),
+        battery_reserve_soc_max=BatterySoc(100.0),
     )
 
     return BatteryReserveSocEstimator(

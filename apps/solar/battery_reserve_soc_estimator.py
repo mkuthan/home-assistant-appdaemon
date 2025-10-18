@@ -36,6 +36,7 @@ class BatteryReserveSocEstimator:
             self.config.battery_capacity,
             self.config.battery_reserve_soc_min,
             self.config.battery_reserve_soc_margin,
+            self.config.battery_reserve_soc_max,
         )
 
         if estimated_reserve_soc <= state.battery_reserve_soc:
