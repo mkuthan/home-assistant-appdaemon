@@ -25,8 +25,10 @@ class ProductionForecastComposite:
         total_energy_kwh = ENERGY_KWH_ZERO
         for component in self.components:
             energy_kwh = component.estimate_energy_kwh(period_start, period_hours)
-            self.appdaemon_logger.info(f"Estimated energy production ({component.__class__.__name__}): {energy_kwh}")
-            total_energy_kwh += energy_kwh
+            if energy_kwh > ENERGY_KWH_ZERO:
+                name = component.__class__.__name__
+                self.appdaemon_logger.info(f"Estimated energy production ({name}): {energy_kwh}")
+                total_energy_kwh += energy_kwh
         return total_energy_kwh
 
 
