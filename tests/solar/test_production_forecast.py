@@ -42,11 +42,11 @@ class TestForecastProductionDefault:
 
         assert forecast_production.periods == [
             HourlyProductionEnergy(
-                period=HourlyPeriod(datetime.fromisoformat("2025-10-02T06:00:00+00:00")),
+                period=HourlyPeriod.parse("2025-10-02T06:00:00+00:00"),
                 energy=EnergyKwh(1.0),
             ),
             HourlyProductionEnergy(
-                period=HourlyPeriod(datetime.fromisoformat("2025-10-02T07:00:00+00:00")),
+                period=HourlyPeriod.parse("2025-10-02T07:00:00+00:00"),
                 energy=EnergyKwh(0.9),
             ),
         ]
@@ -55,19 +55,19 @@ class TestForecastProductionDefault:
     def forecast_periods(self) -> list[HourlyProductionEnergy]:
         return [
             HourlyProductionEnergy(
-                period=HourlyPeriod(datetime.fromisoformat("2025-10-02T06:00:00+00:00")),
+                period=HourlyPeriod.parse("2025-10-02T06:00:00+00:00"),
                 energy=EnergyKwh(1.0),
             ),
             HourlyProductionEnergy(
-                period=HourlyPeriod(datetime.fromisoformat("2025-10-02T07:00:00+00:00")),
+                period=HourlyPeriod.parse("2025-10-02T07:00:00+00:00"),
                 energy=EnergyKwh(2.0),
             ),
             HourlyProductionEnergy(
-                period=HourlyPeriod(datetime.fromisoformat("2025-10-02T08:00:00+00:00")),
+                period=HourlyPeriod.parse("2025-10-02T08:00:00+00:00"),
                 energy=EnergyKwh(3.0),
             ),
             HourlyProductionEnergy(
-                period=HourlyPeriod(datetime.fromisoformat("2025-10-02T09:00:00+00:00")),
+                period=HourlyPeriod.parse("2025-10-02T09:00:00+00:00"),
                 energy=EnergyKwh(4.0),
             ),
         ]

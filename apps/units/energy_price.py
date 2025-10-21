@@ -50,17 +50,12 @@ class EnergyPrice:
             raise ValueError("Cannot compare energy prices with different currency or unit")
         return self.value >= other.value
 
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, EnergyPrice):
-            return NotImplemented
-        return self.value == other.value and self.currency == other.currency and self.unit == other.unit
-
-    def __format__(self, _format_spec: str) -> str:
-        return f"{self.value:.2f} {self.currency}/{self.unit}"
+    def __str__(self) -> str:
+        return f"{self.value:.2f}{self.currency}/{self.unit}"
 
     def max_with_zero(self) -> "EnergyPrice":
         return EnergyPrice(value=max(0.0, self.value), currency=self.currency, unit=self.unit)
 
-    @staticmethod
-    def pln_per_mwh(value: float) -> "EnergyPrice":
-        return EnergyPrice(value=value, currency=EnergyPrice._CURRENCY_PLN, unit=EnergyPrice._UNIT_MWH)
+    @classmethod
+    def pln_per_mwh(cls, value: float) -> "EnergyPrice":
+        return cls(value=value, currency=EnergyPrice._CURRENCY_PLN, unit=EnergyPrice._UNIT_MWH)

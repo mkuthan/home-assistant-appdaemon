@@ -1,22 +1,8 @@
-from dataclasses import dataclass
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 
 from units.energy_price import EnergyPrice
-
-
-@dataclass(frozen=True)
-class PriceForecastPeriod:
-    datetime: datetime
-    price: EnergyPrice
-
-    def __format__(self, _format_spec: str) -> str:
-        return f"{self.datetime.isoformat()} - {self.price}"
-
-    def start_time(self) -> time:
-        return self.datetime.time()
-
-    def end_time(self) -> time:
-        return (self.datetime + timedelta(hours=1)).time()
+from units.hourly_period import HourlyPeriod
+from units.hourly_price import HourlyPrice
 
 
 class PriceForecast:
@@ -33,8 +19,8 @@ class PriceForecast:
 
                 try:
                     periods.append(
-                        PriceForecastPeriod(
-                            datetime=datetime.fromisoformat(item["hour"]),
+                        HourlyPrice(
+                            period=HourlyPeriod.parse(item["hour"]),
                             price=EnergyPrice.pln_per_mwh(item["price"]),
                         )
                     )
@@ -43,21 +29,21 @@ class PriceForecast:
 
         return PriceForecast(periods)
 
-    def __init__(self, periods: list[PriceForecastPeriod]) -> None:
+    def __init__(self, periods: list[HourlyPrice]) -> None:
         self.periods = periods
 
     def find_peak_periods(
         self, period_start: datetime, period_hours: int, price_threshold: EnergyPrice
-    ) -> list[PriceForecastPeriod]:
+    ) -> list[HourlyPrice]:
         period_end = period_start + timedelta(hours=period_hours)
         relevant_periods = [
-            p for p in self.periods if period_start <= p.datetime <= period_end and p.price >= price_threshold
+            p for p in self.periods if period_start <= p.period.start <= period_end and p.price >= price_threshold
         ]
         return relevant_periods
 
     def find_daily_min_price(self, period_start: datetime, period_hours: int) -> EnergyPrice | None:
         period_end = period_start + timedelta(hours=period_hours)
-        daily_prices = [p.price for p in self.periods if period_start <= p.datetime <= period_end]
+        daily_prices = [p.price for p in self.periods if period_start <= p.period.start <= period_end]
         if not daily_prices:
             return None
 

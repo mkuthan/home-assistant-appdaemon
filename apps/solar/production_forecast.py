@@ -3,8 +3,9 @@ from typing import Protocol
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from units.energy_kwh import ENERGY_KWH_ZERO, EnergyKwh
-from units.hourly_energy import HourlyEnergyAggregator, HourlyProductionEnergy
+from units.hourly_energy import HourlyProductionEnergy
 from units.hourly_period import HourlyPeriod
+from utils.energy_aggregators import EnergyAggregators
 
 
 class ProductionForecast(Protocol):
@@ -29,7 +30,7 @@ class ProductionForecastComposite:
 
     def hourly(self, period_start: datetime, period_hours: int) -> list[HourlyProductionEnergy]:
         total = [item for component in self.components for item in component.hourly(period_start, period_hours)]
-        return HourlyEnergyAggregator.aggregate_hourly_production(total)
+        return EnergyAggregators.aggregate_hourly_production(total)
 
 
 class ProductionForecastDefault:
@@ -47,7 +48,7 @@ class ProductionForecastDefault:
                 try:
                     periods.append(
                         HourlyProductionEnergy(
-                            period=HourlyPeriod(datetime.fromisoformat(item["period_start"])),
+                            period=HourlyPeriod.parse(item["period_start"]),
                             energy=EnergyKwh(item["pv_estimate"]),
                         )
                     )

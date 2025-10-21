@@ -109,27 +109,7 @@ def test_greater_than_or_equal(soc1: float, soc2: float, expected: bool) -> None
     assert result == expected
 
 
-@pytest.mark.parametrize(
-    ("soc1", "soc2", "expected"),
-    [
-        (50.0, 50.0, True),
-        (0.0, 0.0, True),
-        (50.0, 51.0, False),
-    ],
-)
-def test_equality(soc1: float, soc2: float, expected: bool) -> None:
-    result = BatterySoc(value=soc1) == BatterySoc(value=soc2)
-    assert result == expected
-
-
-def test_equality_with_non_battery_soc() -> None:
-    soc = BatterySoc(value=50.0)
-    assert (soc == 50.0) is False
-    assert (soc == "50") is False
-    assert (soc == object()) is False
-
-
-def test_format() -> None:
+def test_str() -> None:
     soc = BatterySoc(value=75.4567)
     assert f"{soc}" == "75.46%"
 

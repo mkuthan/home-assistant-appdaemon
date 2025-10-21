@@ -1,7 +1,8 @@
 from datetime import datetime
 
 import pytest
-from solar.weather_forecast import WeatherForecast, WeatherForecastPeriod
+from solar.weather_forecast import HourlyWeather, WeatherForecast
+from units.hourly_period import HourlyPeriod
 
 
 def test_create() -> None:
@@ -26,13 +27,13 @@ def test_create() -> None:
     forecast_weather = WeatherForecast.create(raw_forecast)
 
     assert forecast_weather.periods == [
-        WeatherForecastPeriod(
-            datetime=datetime.fromisoformat("2025-10-03T14:00:00+00:00"),
+        HourlyWeather(
+            period=HourlyPeriod.parse("2025-10-03T14:00:00+00:00"),
             temperature=12.0,
             humidity=46.0,
         ),
-        WeatherForecastPeriod(
-            datetime=datetime.fromisoformat("2025-10-03T15:00:00+00:00"),
+        HourlyWeather(
+            period=HourlyPeriod.parse("2025-10-03T15:00:00+00:00"),
             temperature=13.0,
             humidity=45.0,
         ),
@@ -43,13 +44,13 @@ def test_create() -> None:
 def forecast_weather() -> WeatherForecast:
     return WeatherForecast(
         [
-            WeatherForecastPeriod(
-                datetime=datetime.fromisoformat("2025-10-03T14:00:00+00:00"),
+            HourlyWeather(
+                period=HourlyPeriod.parse("2025-10-03T14:00:00+00:00"),
                 temperature=12.0,
                 humidity=46.0,
             ),
-            WeatherForecastPeriod(
-                datetime=datetime.fromisoformat("2025-10-03T15:00:00+00:00"),
+            HourlyWeather(
+                period=HourlyPeriod.parse("2025-10-03T15:00:00+00:00"),
                 temperature=13.0,
                 humidity=45.0,
             ),
@@ -62,8 +63,8 @@ def test_find_by_datetime_found(forecast_weather: WeatherForecast) -> None:
 
     result = forecast_weather.find_by_datetime(dt)
 
-    assert result == WeatherForecastPeriod(
-        datetime=dt,
+    assert result == HourlyWeather(
+        period=HourlyPeriod(dt),
         temperature=13.0,
         humidity=45.0,
     )

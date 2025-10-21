@@ -106,26 +106,6 @@ def test_greater_than_or_equal(current1: float, current2: float, expected: bool)
     assert result == expected
 
 
-@pytest.mark.parametrize(
-    ("current1", "current2", "expected"),
-    [
-        (10.0, 10.0, True),
-        (0.0, 0.0, True),
-        (10.0, 10.1, False),
-    ],
-)
-def test_equality(current1: float, current2: float, expected: bool) -> None:
-    result = BatteryCurrent(value=current1) == BatteryCurrent(value=current2)
-    assert result == expected
-
-
-def test_equality_with_non_battery_current() -> None:
-    current = BatteryCurrent(value=10.0)
-    assert (current == 10.0) is False
-    assert (current == "10") is False
-    assert (current == object()) is False
-
-
-def test_format() -> None:
+def test_str() -> None:
     current = BatteryCurrent(value=12.3456)
     assert f"{current}" == "12.35A"

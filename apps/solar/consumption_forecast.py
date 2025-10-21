@@ -4,8 +4,9 @@ from typing import Protocol
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from solar.weather_forecast import WeatherForecast
 from units.energy_kwh import ENERGY_KWH_ZERO, EnergyKwh
-from units.hourly_energy import HourlyConsumptionEnergy, HourlyEnergyAggregator
+from units.hourly_energy import HourlyConsumptionEnergy
 from units.hourly_period import HourlyPeriod
+from utils.energy_aggregators import EnergyAggregators
 from utils.hvac_estimators import estimate_heating_energy_consumption
 
 
@@ -31,7 +32,7 @@ class ConsumptionForecastComposite:
 
     def hourly(self, period_start: datetime, period_hours: int) -> list[HourlyConsumptionEnergy]:
         total = [item for component in self.components for item in component.hourly(period_start, period_hours)]
-        return HourlyEnergyAggregator.aggregate_hourly_consumption(total)
+        return EnergyAggregators.aggregate_hourly_consumption(total)
 
 
 class HeatingEnergyEstimator(Protocol):

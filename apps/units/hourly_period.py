@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, time, timedelta
 
 
 @dataclass(frozen=True)
@@ -15,3 +15,13 @@ class HourlyPeriod:
 
     def __str__(self) -> str:
         return self.start.isoformat()
+
+    def start_time(self) -> time:
+        return self.start.time()
+
+    def end_time(self) -> time:
+        return (self.start + timedelta(hours=1)).time()
+
+    @classmethod
+    def parse(cls, date_string: str) -> "HourlyPeriod":
+        return cls(start=datetime.fromisoformat(date_string))

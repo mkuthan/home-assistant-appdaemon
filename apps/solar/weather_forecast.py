@@ -1,12 +1,7 @@
-from dataclasses import dataclass
 from datetime import datetime
 
-
-@dataclass(frozen=True)
-class WeatherForecastPeriod:
-    datetime: datetime
-    temperature: float
-    humidity: float
+from units.hourly_period import HourlyPeriod
+from units.hourly_weather import HourlyWeather
 
 
 class WeatherForecast:
@@ -27,8 +22,8 @@ class WeatherForecast:
                             continue
                         try:
                             periods.append(
-                                WeatherForecastPeriod(
-                                    datetime=datetime.fromisoformat(item["datetime"]),
+                                HourlyWeather(
+                                    period=HourlyPeriod.parse(item["datetime"]),
                                     temperature=float(item["temperature"]),
                                     humidity=float(item["humidity"]),
                                 )
@@ -38,11 +33,11 @@ class WeatherForecast:
 
         return WeatherForecast(periods)
 
-    def __init__(self, periods: list[WeatherForecastPeriod]) -> None:
+    def __init__(self, periods: list[HourlyWeather]) -> None:
         self.periods = periods
 
-    def find_by_datetime(self, dt: datetime) -> WeatherForecastPeriod | None:
+    def find_by_datetime(self, dt: datetime) -> HourlyWeather | None:
         for period in self.periods:
-            if period.datetime == dt:
+            if period.period.start == dt:
                 return period
         return None

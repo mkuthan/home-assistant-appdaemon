@@ -11,7 +11,7 @@ from units.energy_kwh import EnergyKwh
     ],
 )
 def test_valid_energy(energy_value: float) -> None:
-    energy = EnergyKwh(value=energy_value)
+    energy = EnergyKwh(energy_value)
     assert energy.value == energy_value
 
 
@@ -24,7 +24,7 @@ def test_valid_energy(energy_value: float) -> None:
     ],
 )
 def test_add(energy1: float, energy2: float, expected: float) -> None:
-    result = EnergyKwh(value=energy1) + EnergyKwh(value=energy2)
+    result = EnergyKwh(energy1) + EnergyKwh(energy2)
     assert result.value == expected
 
 
@@ -37,7 +37,7 @@ def test_add(energy1: float, energy2: float, expected: float) -> None:
     ],
 )
 def test_sub(energy1: float, energy2: float, expected: float) -> None:
-    result = EnergyKwh(value=energy1) - EnergyKwh(value=energy2)
+    result = EnergyKwh(energy1) - EnergyKwh(energy2)
     assert result.value == expected
 
 
@@ -50,7 +50,7 @@ def test_sub(energy1: float, energy2: float, expected: float) -> None:
     ],
 )
 def test_multiply_energy_by_float(energy_value: float, multiplier: float, expected: float) -> None:
-    result = EnergyKwh(value=energy_value) * multiplier
+    result = EnergyKwh(energy_value) * multiplier
     assert result.value == expected
 
 
@@ -63,12 +63,12 @@ def test_multiply_energy_by_float(energy_value: float, multiplier: float, expect
     ],
 )
 def test_divide_energy_by_float(energy_value: float, divisor: float, expected: float) -> None:
-    result = EnergyKwh(value=energy_value) / divisor
+    result = EnergyKwh(energy_value) / divisor
     assert result.value == expected
 
 
 def test_divide_by_invalid_float() -> None:
-    energy = EnergyKwh(value=50.0)
+    energy = EnergyKwh(50.0)
     with pytest.raises(ValueError, match="Cannot divide by zero"):
         energy / 0  # pyright: ignore[reportUnusedExpression]
 
@@ -83,7 +83,7 @@ def test_divide_by_invalid_float() -> None:
     ],
 )
 def test_less_than(energy1: float, energy2: float, expected: bool) -> None:
-    result = EnergyKwh(value=energy1) < EnergyKwh(value=energy2)
+    result = EnergyKwh(energy1) < EnergyKwh(energy2)
     assert result == expected
 
 
@@ -97,7 +97,7 @@ def test_less_than(energy1: float, energy2: float, expected: bool) -> None:
     ],
 )
 def test_less_than_or_equal(energy1: float, energy2: float, expected: bool) -> None:
-    result = EnergyKwh(value=energy1) <= EnergyKwh(value=energy2)
+    result = EnergyKwh(energy1) <= EnergyKwh(energy2)
     assert result == expected
 
 
@@ -111,7 +111,7 @@ def test_less_than_or_equal(energy1: float, energy2: float, expected: bool) -> N
     ],
 )
 def test_greater_than(energy1: float, energy2: float, expected: bool) -> None:
-    result = EnergyKwh(value=energy1) > EnergyKwh(value=energy2)
+    result = EnergyKwh(energy1) > EnergyKwh(energy2)
     assert result == expected
 
 
@@ -125,26 +125,12 @@ def test_greater_than(energy1: float, energy2: float, expected: bool) -> None:
     ],
 )
 def test_greater_than_or_equal(energy1: float, energy2: float, expected: bool) -> None:
-    result = EnergyKwh(value=energy1) >= EnergyKwh(value=energy2)
+    result = EnergyKwh(energy1) >= EnergyKwh(energy2)
     assert result == expected
 
 
-@pytest.mark.parametrize(
-    ("energy1", "energy2", "expected"),
-    [
-        (50.0, 50.0, True),
-        (0.0, 0.0, True),
-        (50.0, 51.0, False),
-        (0.0, 100.0, False),
-    ],
-)
-def test_equality(energy1: float, energy2: float, expected: bool) -> None:
-    result = EnergyKwh(value=energy1) == EnergyKwh(value=energy2)
-    assert result == expected
-
-
-def test_format() -> None:
-    energy = EnergyKwh(value=75.4567)
+def test_str() -> None:
+    energy = EnergyKwh(75.4567)
     assert f"{energy}" == "75.46kWh"
 
 

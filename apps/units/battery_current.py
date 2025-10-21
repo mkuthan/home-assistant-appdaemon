@@ -30,12 +30,7 @@ class BatteryCurrent:
     def __ge__(self, other: "BatteryCurrent") -> bool:
         return self.value >= other.value
 
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, BatteryCurrent):
-            return NotImplemented
-        return self.value == other.value
-
-    def __format__(self, _format_spec: str) -> str:
+    def __str__(self) -> str:
         return f"{self.value:.2f}A"
 
 

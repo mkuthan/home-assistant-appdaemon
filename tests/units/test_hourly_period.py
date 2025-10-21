@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, time
 
 import pytest
 from units.hourly_period import HourlyPeriod
@@ -11,9 +11,9 @@ def test_valid_hourly_period() -> None:
 
 
 def test_naive_datetime_raises_error() -> None:
-    naive_datetime = datetime.fromisoformat("2025-10-21T14:00:00")
+    start = datetime.fromisoformat("2025-10-21T14:00:00")
     with pytest.raises(ValueError, match="Hourly period start must be timezone-aware"):
-        HourlyPeriod(start=naive_datetime)
+        HourlyPeriod(start=start)
 
 
 @pytest.mark.parametrize(
@@ -25,12 +25,25 @@ def test_naive_datetime_raises_error() -> None:
     ],
 )
 def test_non_hour_start_raises_error(minute: int, second: int, microsecond: int) -> None:
-    invalid_start = datetime(2025, 10, 21, 14, minute, second, microsecond, tzinfo=UTC)
+    start = datetime(2025, 10, 21, 14, minute, second, microsecond, tzinfo=UTC)
     with pytest.raises(ValueError, match="Hourly period start must be at the beginning of an hour"):
-        HourlyPeriod(start=invalid_start)
+        HourlyPeriod(start=start)
 
 
-def test_string_representation() -> None:
+def test_str() -> None:
     start = "2025-10-21T14:00:00+00:00"
     period = HourlyPeriod(start=datetime.fromisoformat(start))
-    assert str(period) == start
+    assert f"{period}" == start
+
+
+def test_start_time_end_time() -> None:
+    period = HourlyPeriod.parse("2025-10-03T15:00:00+00:00")
+
+    assert period.start_time() == time(15, 0, 0)
+    assert period.end_time() == time(16, 0, 0)
+
+
+def test_parse() -> None:
+    start = "2025-10-21T14:00:00+00:00"
+    period = HourlyPeriod.parse(start)
+    assert period.start == datetime.fromisoformat(start)

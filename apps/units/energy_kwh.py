@@ -38,11 +38,6 @@ class EnergyKwh:
     def __ge__(self, other: "EnergyKwh") -> bool:
         return self.value >= other.value
 
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, EnergyKwh):
-            return NotImplemented
-        return self.value == other.value
-
     def __str__(self) -> str:
         return f"{self.value:.2f}kWh"
 

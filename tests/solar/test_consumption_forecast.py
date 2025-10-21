@@ -7,8 +7,9 @@ from solar.consumption_forecast import (
     ConsumptionForecastHvacHeating,
     ConsumptionForecastRegular,
 )
-from solar.weather_forecast import WeatherForecastPeriod
+from solar.weather_forecast import HourlyWeather
 from units.energy_kwh import EnergyKwh
+from units.hourly_period import HourlyPeriod
 
 
 class TestForecastConsumptionComposite:
@@ -134,18 +135,18 @@ class TestForecastConsumptionHvacHeating:
         mock_forecast_weather.find_by_datetime.assert_not_called()
 
     def test_estimate_energy_kwh_heating_mode_heat_with_weather_data(self, mock_forecast_weather: Mock) -> None:
-        period_1 = WeatherForecastPeriod(
-            datetime=datetime.fromisoformat("2025-10-03T10:00:00+00:00"),
+        period_1 = HourlyWeather(
+            period=HourlyPeriod.parse("2025-10-03T10:00:00+00:00"),
             temperature=5.0,
             humidity=80.0,
         )
-        period_2 = WeatherForecastPeriod(
-            datetime=datetime.fromisoformat("2025-10-03T11:00:00+00:00"),
+        period_2 = HourlyWeather(
+            period=HourlyPeriod.parse("2025-10-03T11:00:00+00:00"),
             temperature=3.0,
             humidity=75.0,
         )
-        period_3 = WeatherForecastPeriod(
-            datetime=datetime.fromisoformat("2025-10-03T12:00:00+00:00"),
+        period_3 = HourlyWeather(
+            period=HourlyPeriod.parse("2025-10-03T12:00:00+00:00"),
             temperature=7.0,
             humidity=70.0,
         )

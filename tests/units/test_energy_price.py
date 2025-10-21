@@ -97,22 +97,9 @@ def test_greater_than_or_equal(price1: float, price2: float, expected: bool) -> 
     assert result == expected
 
 
-@pytest.mark.parametrize(
-    ("price1", "price2", "expected"),
-    [
-        (10.0, 10.0, True),
-        (0.0, 0.0, True),
-        (10.0, -10.0, False),
-    ],
-)
-def test_equal(price1: float, price2: float, expected: bool) -> None:
-    result = EnergyPrice.pln_per_mwh(price1) == EnergyPrice.pln_per_mwh(price2)
-    assert result == expected
-
-
-def test_format() -> None:
+def test_str() -> None:
     price = EnergyPrice.pln_per_mwh(123.4567)
-    assert format(price) == "123.46 PLN/MWh"
+    assert format(price) == "123.46PLN/MWh"
 
 
 @pytest.mark.parametrize(

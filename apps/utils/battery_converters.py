@@ -2,6 +2,8 @@ from units.battery_current import BatteryCurrent
 from units.battery_voltage import BatteryVoltage
 from units.energy_kwh import EnergyKwh
 
+# TODO: figure out better place for these converters
+
 
 def current_to_energy_kwh(current: BatteryCurrent, voltage: BatteryVoltage, duration_hours: int = 1) -> EnergyKwh:
     if duration_hours <= 0:

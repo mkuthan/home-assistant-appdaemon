@@ -6,9 +6,9 @@ from solar.forecast_factory import ForecastFactory
 from solar.solar_configuration import SolarConfiguration
 from solar.state import State
 from units.battery_current import BATTERY_CURRENT_ZERO
-from units.hourly_energy import HourlyEnergyAggregator
 from utils.battery_converters import current_to_energy_kwh, energy_kwh_to_current
 from utils.battery_estimators import estimate_battery_surplus_energy
+from utils.energy_aggregators import EnergyAggregators
 
 
 class BatteryDischargeSlotEstimator:
@@ -42,10 +42,10 @@ class BatteryDischargeSlotEstimator:
         hourly_consumptions = consumption_forecast.hourly(period_start, period_hours)
         self.appdaemon_logger.info(f"Hourly consumptions: {hourly_consumptions}")
 
-        hourly_nets = HourlyEnergyAggregator.aggregate_hourly_net(hourly_consumptions, hourly_productions)
+        hourly_nets = EnergyAggregators.aggregate_hourly_net(hourly_consumptions, hourly_productions)
         self.appdaemon_logger.info(f"Hourly nets: {hourly_nets}")
 
-        required_energy_reserve = HourlyEnergyAggregator.maximum_cumulative_deficit(hourly_nets)
+        required_energy_reserve = EnergyAggregators.maximum_cumulative_deficit(hourly_nets)
         self.appdaemon_logger.info(f"Required energy reserve: {required_energy_reserve}")
 
         estimated_surplus_energy = estimate_battery_surplus_energy(
@@ -80,8 +80,8 @@ class BatteryDischargeSlotEstimator:
                 continue
 
             discharge_slot = BatteryDischargeSlot(
-                start_time=period.start_time(),
-                end_time=period.end_time(),
+                start_time=period.period.start_time(),
+                end_time=period.period.end_time(),
                 current=slot_current,
             )
             discharge_slots.append(discharge_slot)

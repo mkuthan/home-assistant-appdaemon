@@ -44,7 +44,7 @@ def test_estimator_when_higher_than_current(
     period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
 
-    hourly_period = HourlyPeriod(datetime.fromisoformat("2025-10-10T16:00:00+00:00"))
+    hourly_period = HourlyPeriod.parse("2025-10-10T16:00:00+00:00")
 
     mock_production_forecast.hourly.return_value = [
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(2.0)),
@@ -72,7 +72,7 @@ def test_estimator_when_lower_than_current(
     period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
 
-    hourly_period = HourlyPeriod(datetime.fromisoformat("2025-10-10T16:00:00+00:00"))
+    hourly_period = HourlyPeriod.parse("2025-10-10T16:00:00+00:00")
 
     mock_production_forecast.hourly.return_value = [
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(5.0)),

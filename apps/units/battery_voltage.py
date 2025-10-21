@@ -24,12 +24,7 @@ class BatteryVoltage:
     def __ge__(self, other: "BatteryVoltage") -> bool:
         return self.value >= other.value
 
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, BatteryVoltage):
-            return NotImplemented
-        return self.value == other.value
-
-    def __format__(self, _format_spec: str) -> str:
+    def __str__(self) -> str:
         return f"{self.value:.2f}V"
 
 

@@ -5,7 +5,7 @@ from unittest.mock import Mock
 import pytest
 from solar.battery_discharge_slot import BatteryDischargeSlot
 from solar.battery_discharge_slot_estimator import BatteryDischargeSlotEstimator
-from solar.price_forecast import PriceForecastPeriod
+from solar.price_forecast import HourlyPrice
 from solar.solar_configuration import SolarConfiguration
 from solar.state import State
 from units.battery_current import BatteryCurrent
@@ -53,7 +53,7 @@ def test_estimator_when_surplus_energy_for_two_slots(
     period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
 
-    hourly_period = HourlyPeriod(datetime.fromisoformat("2025-10-10T16:00:00+00:00"))
+    hourly_period = HourlyPeriod.parse("2025-10-10T16:00:00+00:00")
 
     mock_production_forecast.hourly.return_value = [
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(2.0)),
@@ -62,12 +62,12 @@ def test_estimator_when_surplus_energy_for_two_slots(
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(4.0)),
     ]
 
-    peak_period_1 = PriceForecastPeriod(
-        datetime=datetime.fromisoformat("2025-10-10T19:00:00+00:00"),
+    peak_period_1 = HourlyPrice(
+        period=HourlyPeriod.parse("2025-10-10T19:00:00+00:00"),
         price=EnergyPrice.pln_per_mwh(1250.0),
     )
-    peak_period_2 = PriceForecastPeriod(
-        datetime=datetime.fromisoformat("2025-10-10T20:00:00+00:00"),
+    peak_period_2 = HourlyPrice(
+        period=HourlyPeriod.parse("2025-10-10T20:00:00+00:00"),
         price=EnergyPrice.pln_per_mwh(1600.0),
     )
     mock_price_forecast.find_peak_periods.return_value = [peak_period_1, peak_period_2]
@@ -103,7 +103,7 @@ def test_estimator_when_surplus_energy_for_one_slot(
     period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
 
-    hourly_period = HourlyPeriod(datetime.fromisoformat("2025-10-10T16:00:00+00:00"))
+    hourly_period = HourlyPeriod.parse("2025-10-10T16:00:00+00:00")
 
     mock_production_forecast.hourly.return_value = [
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(2.0)),
@@ -112,12 +112,12 @@ def test_estimator_when_surplus_energy_for_one_slot(
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(4.0)),
     ]
 
-    peak_period_1 = PriceForecastPeriod(
-        datetime=datetime.fromisoformat("2025-10-10T19:00:00+00:00"),
+    peak_period_1 = HourlyPrice(
+        period=HourlyPeriod.parse("2025-10-10T19:00:00+00:00"),
         price=EnergyPrice.pln_per_mwh(1250.0),
     )
-    peak_period_2 = PriceForecastPeriod(
-        datetime=datetime.fromisoformat("2025-10-10T20:00:00+00:00"),
+    peak_period_2 = HourlyPrice(
+        period=HourlyPeriod.parse("2025-10-10T20:00:00+00:00"),
         price=EnergyPrice.pln_per_mwh(1600.0),
     )
     mock_price_forecast.find_peak_periods.return_value = [peak_period_1, peak_period_2]
@@ -153,7 +153,7 @@ def test_estimator_when_surplus_energy_for_no_slots(
     period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
 
-    hourly_period = HourlyPeriod(datetime.fromisoformat("2025-10-10T16:00:00+00:00"))
+    hourly_period = HourlyPeriod.parse("2025-10-10T16:00:00+00:00")
 
     mock_production_forecast.hourly.return_value = [
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(2.0)),
@@ -162,12 +162,12 @@ def test_estimator_when_surplus_energy_for_no_slots(
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(4.0)),
     ]
 
-    peak_period_1 = PriceForecastPeriod(
-        datetime=datetime.fromisoformat("2025-10-10T19:00:00+00:00"),
+    peak_period_1 = HourlyPrice(
+        period=HourlyPeriod.parse("2025-10-10T19:00:00+00:00"),
         price=EnergyPrice.pln_per_mwh(1250.0),
     )
-    peak_period_2 = PriceForecastPeriod(
-        datetime=datetime.fromisoformat("2025-10-10T20:00:00+00:00"),
+    peak_period_2 = HourlyPrice(
+        period=HourlyPeriod.parse("2025-10-10T20:00:00+00:00"),
         price=EnergyPrice.pln_per_mwh(1600.0),
     )
     mock_price_forecast.find_peak_periods.return_value = [peak_period_1, peak_period_2]

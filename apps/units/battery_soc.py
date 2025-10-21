@@ -34,12 +34,7 @@ class BatterySoc:
     def __ge__(self, other: "BatterySoc") -> bool:
         return self.value >= other.value
 
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, BatterySoc):
-            return NotImplemented
-        return self.value == other.value
-
-    def __format__(self, _format_spec: str) -> str:
+    def __str__(self) -> str:
         return f"{self.value:.2f}%"
 
     def to_energy_kwh(self, battery_capacity_kwh: EnergyKwh) -> EnergyKwh:

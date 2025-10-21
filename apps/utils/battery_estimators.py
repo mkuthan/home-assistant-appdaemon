@@ -1,6 +1,8 @@
 from units.battery_soc import BatterySoc
 from units.energy_kwh import EnergyKwh
 
+# TODO: encapsulate in a class
+
 
 def estimate_battery_reserve_soc(
     energy_reserve: EnergyKwh,
