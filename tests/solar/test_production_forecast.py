@@ -2,8 +2,9 @@ from datetime import datetime
 from unittest.mock import Mock
 
 import pytest
-from solar.production_forecast import ProductionForecastComposite, ProductionForecastDefault, ProductionForecastPeriod
+from solar.production_forecast import HourlyProductionEnergy, ProductionForecastComposite, ProductionForecastDefault
 from units.energy_kwh import ENERGY_KWH_ZERO, EnergyKwh
+from units.hourly_period import HourlyPeriod
 
 
 class TestForecastProductionComposite:
@@ -40,40 +41,40 @@ class TestForecastProductionDefault:
         forecast_production = ProductionForecastDefault.create(raw_forecast)
 
         assert forecast_production.periods == [
-            ProductionForecastPeriod(
-                datetime=datetime.fromisoformat("2025-10-02T06:00:00+00:00"),
+            HourlyProductionEnergy(
+                period=HourlyPeriod(datetime.fromisoformat("2025-10-02T06:00:00+00:00")),
                 energy=EnergyKwh(1.0),
             ),
-            ProductionForecastPeriod(
-                datetime=datetime.fromisoformat("2025-10-02T07:00:00+00:00"),
+            HourlyProductionEnergy(
+                period=HourlyPeriod(datetime.fromisoformat("2025-10-02T07:00:00+00:00")),
                 energy=EnergyKwh(0.9),
             ),
         ]
 
     @pytest.fixture
-    def forecast_periods(self) -> list[ProductionForecastPeriod]:
+    def forecast_periods(self) -> list[HourlyProductionEnergy]:
         return [
-            ProductionForecastPeriod(
-                datetime=datetime.fromisoformat("2025-10-02T06:00:00+00:00"),
+            HourlyProductionEnergy(
+                period=HourlyPeriod(datetime.fromisoformat("2025-10-02T06:00:00+00:00")),
                 energy=EnergyKwh(1.0),
             ),
-            ProductionForecastPeriod(
-                datetime=datetime.fromisoformat("2025-10-02T07:00:00+00:00"),
+            HourlyProductionEnergy(
+                period=HourlyPeriod(datetime.fromisoformat("2025-10-02T07:00:00+00:00")),
                 energy=EnergyKwh(2.0),
             ),
-            ProductionForecastPeriod(
-                datetime=datetime.fromisoformat("2025-10-02T08:00:00+00:00"),
+            HourlyProductionEnergy(
+                period=HourlyPeriod(datetime.fromisoformat("2025-10-02T08:00:00+00:00")),
                 energy=EnergyKwh(3.0),
             ),
-            ProductionForecastPeriod(
-                datetime=datetime.fromisoformat("2025-10-02T09:00:00+00:00"),
+            HourlyProductionEnergy(
+                period=HourlyPeriod(datetime.fromisoformat("2025-10-02T09:00:00+00:00")),
                 energy=EnergyKwh(4.0),
             ),
         ]
 
     def test_estimate_energy_kwh_exact_period_match(
         self,
-        forecast_periods: list[ProductionForecastPeriod],
+        forecast_periods: list[HourlyProductionEnergy],
     ) -> None:
         forecast_production = ProductionForecastDefault(forecast_periods)
 
@@ -86,7 +87,7 @@ class TestForecastProductionDefault:
 
     def test_estimate_energy_kwh_partial_period_match(
         self,
-        forecast_periods: list[ProductionForecastPeriod],
+        forecast_periods: list[HourlyProductionEnergy],
     ) -> None:
         forecast_production = ProductionForecastDefault(forecast_periods)
 
@@ -99,7 +100,7 @@ class TestForecastProductionDefault:
 
     def test_estimate_energy_kwh_all_periods(
         self,
-        forecast_periods: list[ProductionForecastPeriod],
+        forecast_periods: list[HourlyProductionEnergy],
     ) -> None:
         forecast_production = ProductionForecastDefault(forecast_periods)
 
@@ -112,7 +113,7 @@ class TestForecastProductionDefault:
 
     def test_estimate_energy_kwh_no_matching_periods(
         self,
-        forecast_periods: list[ProductionForecastPeriod],
+        forecast_periods: list[HourlyProductionEnergy],
     ) -> None:
         forecast_production = ProductionForecastDefault(forecast_periods)
 
@@ -125,7 +126,7 @@ class TestForecastProductionDefault:
 
     def test_estimate_energy_kwh_period_beyond_available_data(
         self,
-        forecast_periods: list[ProductionForecastPeriod],
+        forecast_periods: list[HourlyProductionEnergy],
     ) -> None:
         forecast_production = ProductionForecastDefault(forecast_periods)
 

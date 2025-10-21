@@ -6,6 +6,7 @@ from solar.forecast_factory import ForecastFactory
 from solar.solar_configuration import SolarConfiguration
 from solar.state import State
 from units.battery_current import BATTERY_CURRENT_ZERO
+from units.hourly_energy import HourlyEnergyAggregator
 from utils.battery_converters import current_to_energy_kwh, energy_kwh_to_current
 from utils.battery_estimators import estimate_battery_surplus_energy
 
@@ -34,18 +35,21 @@ class BatteryDischargeSlotEstimator:
             return []
 
         production_forecast = self.forecast_factory.create_production_forecast(state)
-        production_kwh = production_forecast.estimate_energy_kwh(period_start, period_hours)
-        self.appdaemon_logger.info(f"Production forecast: {production_kwh}")
+        hourly_productions = production_forecast.hourly(period_start, period_hours)
+        self.appdaemon_logger.info(f"Hourly productions: {hourly_productions}")
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
-        consumption_kwh = consumption_forecast.estimate_energy_kwh(period_start, period_hours)
-        self.appdaemon_logger.info(f"Consumption forecast: {consumption_kwh}")
+        hourly_consumptions = consumption_forecast.hourly(period_start, period_hours)
+        self.appdaemon_logger.info(f"Hourly consumptions: {hourly_consumptions}")
 
-        energy_reserve = consumption_kwh - production_kwh
-        self.appdaemon_logger.info(f"Required energy reserve: {energy_reserve}")
+        hourly_nets = HourlyEnergyAggregator.aggregate_hourly_net(hourly_consumptions, hourly_productions)
+        self.appdaemon_logger.info(f"Hourly nets: {hourly_nets}")
+
+        required_energy_reserve = HourlyEnergyAggregator.maximum_cumulative_deficit(hourly_nets)
+        self.appdaemon_logger.info(f"Required energy reserve: {required_energy_reserve}")
 
         estimated_surplus_energy = estimate_battery_surplus_energy(
-            energy_reserve,
+            required_energy_reserve,
             state.battery_soc,
             self.config.battery_capacity,
             self.config.battery_reserve_soc_min,

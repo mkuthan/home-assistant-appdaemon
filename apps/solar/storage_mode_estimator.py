@@ -6,6 +6,7 @@ from solar.solar_configuration import SolarConfiguration
 from solar.state import State
 from solar.storage_mode import StorageMode
 from units.battery_soc import BATTERY_SOC_MAX
+from units.energy_kwh import ENERGY_KWH_ZERO
 from utils.battery_estimators import estimate_battery_max_soc
 
 
@@ -50,7 +51,7 @@ class StorageModeEstimator:
         consumption_kwh = consumption_forecast.estimate_energy_kwh(now, period_hours)
         self.appdaemon_logger.info(f"Consumption forecast: {consumption_kwh}")
 
-        energy_surplus = production_kwh - consumption_kwh
+        energy_surplus = max(production_kwh - consumption_kwh, ENERGY_KWH_ZERO)
         self.appdaemon_logger.info(f"Energy surplus: {energy_surplus}")
 
         estimated_battery_max_soc = estimate_battery_max_soc(

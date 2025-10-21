@@ -9,6 +9,7 @@ class BatterySoc:
     _MIN_VALUE: ClassVar[float] = 0.0
     _MAX_VALUE: ClassVar[float] = 100.0
 
+    # TODO: use decimal
     value: float
 
     def __post_init__(self) -> None:

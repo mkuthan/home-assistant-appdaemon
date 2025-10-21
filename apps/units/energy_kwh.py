@@ -6,27 +6,25 @@ from typing import ClassVar
 class EnergyKwh:
     _ZERO_VALUE: ClassVar[float] = 0.0
 
+    # TODO: use decimal
     value: float
-
-    def __post_init__(self) -> None:
-        if self.value < self._ZERO_VALUE:
-            raise ValueError(f"Energy must be non-negative, got {self.value}")
 
     def __add__(self, other: "EnergyKwh") -> "EnergyKwh":
         return EnergyKwh(value=self.value + other.value)
 
     def __sub__(self, other: "EnergyKwh") -> "EnergyKwh":
-        return EnergyKwh(value=max(self.value - other.value, self._ZERO_VALUE))
+        return EnergyKwh(value=self.value - other.value)
 
     def __mul__(self, other: float) -> "EnergyKwh":
-        if other < self._ZERO_VALUE:
-            raise ValueError(f"Multiplier must be non-negative, got {other}")
         return EnergyKwh(value=self.value * other)
 
     def __truediv__(self, other: float) -> "EnergyKwh":
-        if other <= self._ZERO_VALUE:
-            raise ValueError(f"Divisor must be positive, got {other}")
+        if other == self._ZERO_VALUE:
+            raise ValueError("Cannot divide by zero")
         return EnergyKwh(value=self.value / other)
+
+    def __neg__(self) -> "EnergyKwh":
+        return EnergyKwh(value=-self.value)
 
     def __lt__(self, other: "EnergyKwh") -> bool:
         return self.value < other.value
@@ -45,7 +43,7 @@ class EnergyKwh:
             return NotImplemented
         return self.value == other.value
 
-    def __format__(self, _format_spec: str) -> str:
+    def __str__(self) -> str:
         return f"{self.value:.2f}kWh"
 
     def ratio(self, other: "EnergyKwh") -> float:

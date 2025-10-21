@@ -5,6 +5,7 @@ from solar.forecast_factory import ForecastFactory
 from solar.solar_configuration import SolarConfiguration
 from solar.state import State
 from units.battery_soc import BatterySoc
+from units.hourly_energy import HourlyEnergyAggregator
 from utils.battery_estimators import estimate_battery_reserve_soc
 
 
@@ -21,18 +22,21 @@ class BatteryReserveSocEstimator:
 
     def __call__(self, state: State, period_start: datetime, period_hours: int) -> BatterySoc | None:
         production_forecast = self.forecast_factory.create_production_forecast(state)
-        production_kwh = production_forecast.estimate_energy_kwh(period_start, period_hours)
-        self.appdaemon_logger.info(f"Production forecast: {production_kwh}")
+        hourly_productions = production_forecast.hourly(period_start, period_hours)
+        self.appdaemon_logger.info(f"Hourly productions: {hourly_productions}")
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
-        consumption_kwh = consumption_forecast.estimate_energy_kwh(period_start, period_hours)
-        self.appdaemon_logger.info(f"Consumption forecast: {consumption_kwh}")
+        hourly_consumptions = consumption_forecast.hourly(period_start, period_hours)
+        self.appdaemon_logger.info(f"Hourly consumptions: {hourly_consumptions}")
 
-        energy_reserve = consumption_kwh - production_kwh
-        self.appdaemon_logger.info(f"Required energy reserve: {energy_reserve}")
+        hourly_nets = HourlyEnergyAggregator.aggregate_hourly_net(hourly_consumptions, hourly_productions)
+        self.appdaemon_logger.info(f"Hourly nets: {hourly_nets}")
+
+        required_energy_reserve = HourlyEnergyAggregator.maximum_cumulative_deficit(hourly_nets)
+        self.appdaemon_logger.info(f"Required energy reserve: {required_energy_reserve}")
 
         estimated_reserve_soc = estimate_battery_reserve_soc(
-            energy_reserve,
+            required_energy_reserve,
             self.config.battery_capacity,
             self.config.battery_reserve_soc_min,
             self.config.battery_reserve_soc_margin,
@@ -46,5 +50,5 @@ class BatteryReserveSocEstimator:
             )
             return None
 
-        self.appdaemon_logger.info(f"Estimated battry reserve SoC: {estimated_reserve_soc}")
+        self.appdaemon_logger.info(f"Estimated battery reserve SoC: {estimated_reserve_soc}")
         return estimated_reserve_soc

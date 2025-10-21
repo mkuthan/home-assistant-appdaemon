@@ -7,6 +7,7 @@ class EnergyPrice:
     _CURRENCY_PLN: ClassVar[str] = "PLN"
     _UNIT_MWH: ClassVar[str] = "MWh"
 
+    # TODO: use Decimal
     value: float
     currency: str
     unit: str

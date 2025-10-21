@@ -8,6 +8,8 @@ from solar.solar_configuration import SolarConfiguration
 from solar.state import State
 from units.battery_soc import BatterySoc
 from units.energy_kwh import EnergyKwh
+from units.hourly_energy import HourlyProductionEnergy
+from units.hourly_period import HourlyPeriod
 
 
 @pytest.fixture
@@ -39,16 +41,22 @@ def test_estimator_when_higher_than_current(
 ) -> None:
     state = replace(state, battery_reserve_soc=BatterySoc(30.0))
 
-    mock_production_forecast.estimate_energy_kwh.return_value = EnergyKwh(2.0)
-    mock_consumption_forecast.estimate_energy_kwh.return_value = EnergyKwh(6.0)
-
     period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
 
+    hourly_period = HourlyPeriod(datetime.fromisoformat("2025-10-10T16:00:00+00:00"))
+
+    mock_production_forecast.hourly.return_value = [
+        HourlyProductionEnergy(hourly_period, energy=EnergyKwh(2.0)),
+    ]
+    mock_consumption_forecast.hourly.return_value = [
+        HourlyProductionEnergy(hourly_period, energy=EnergyKwh(6.0)),
+    ]
+
     battery_reserve_soc = battery_reserve_soc_estimator(state, period_start, period_hours)
 
-    mock_production_forecast.estimate_energy_kwh.assert_called_once_with(period_start, period_hours)
-    mock_consumption_forecast.estimate_energy_kwh.assert_called_once_with(period_start, period_hours)
+    mock_production_forecast.hourly.assert_called_once_with(period_start, period_hours)
+    mock_consumption_forecast.hourly.assert_called_once_with(period_start, period_hours)
 
     assert battery_reserve_soc == BatterySoc(65.0)
 
@@ -61,15 +69,21 @@ def test_estimator_when_lower_than_current(
 ) -> None:
     state = replace(state, battery_reserve_soc=BatterySoc(50.0))
 
-    mock_production_forecast.estimate_energy_kwh.return_value = EnergyKwh(5.0)
-    mock_consumption_forecast.estimate_energy_kwh.return_value = EnergyKwh(6.0)
-
     period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
 
+    hourly_period = HourlyPeriod(datetime.fromisoformat("2025-10-10T16:00:00+00:00"))
+
+    mock_production_forecast.hourly.return_value = [
+        HourlyProductionEnergy(hourly_period, energy=EnergyKwh(5.0)),
+    ]
+    mock_consumption_forecast.hourly.return_value = [
+        HourlyProductionEnergy(hourly_period, energy=EnergyKwh(6.0)),
+    ]
+
     battery_reserve_soc = battery_reserve_soc_estimator(state, period_start, period_hours)
 
-    mock_production_forecast.estimate_energy_kwh.assert_called_once_with(period_start, period_hours)
-    mock_consumption_forecast.estimate_energy_kwh.assert_called_once_with(period_start, period_hours)
+    mock_production_forecast.hourly.assert_called_once_with(period_start, period_hours)
+    mock_consumption_forecast.hourly.assert_called_once_with(period_start, period_hours)
 
     assert battery_reserve_soc is None
