@@ -40,6 +40,11 @@ class BatterySoc:
     def to_energy_kwh(self, battery_capacity_kwh: EnergyKwh) -> EnergyKwh:
         return battery_capacity_kwh * (self.value / self._MAX_VALUE)
 
+    @classmethod
+    def from_energy_kwh(cls, energy_kwh: EnergyKwh, battery_capacity_kwh: EnergyKwh) -> "BatterySoc":
+        ratio = energy_kwh.ratio(battery_capacity_kwh) * 100.0
+        return BatterySoc(min(ratio, cls._MAX_VALUE))
+
 
 BATTERY_SOC_MIN = BatterySoc(BatterySoc._MIN_VALUE)
 BATTERY_SOC_MAX = BatterySoc(BatterySoc._MAX_VALUE)

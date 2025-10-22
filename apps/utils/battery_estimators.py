@@ -25,8 +25,7 @@ def estimate_battery_surplus_energy(
     battery_reserve_soc_default: BatterySoc,
     battery_reserve_soc_margin: BatterySoc,
 ) -> EnergyKwh:
-    reserve_ratio = energy_reserve.ratio(battery_capacity) * 100.0
-    reserve_soc = BatterySoc(min(reserve_ratio, 100.0))
+    reserve_soc = BatterySoc.from_energy_kwh(energy_reserve, battery_capacity)
     surplus_soc = battery_soc - reserve_soc - battery_reserve_soc_default - battery_reserve_soc_margin
 
     return surplus_soc.to_energy_kwh(battery_capacity)

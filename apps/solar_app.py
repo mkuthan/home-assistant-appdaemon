@@ -116,4 +116,4 @@ class SolarApp(BaseApp):
         now = self.get_now()
         end = self.parse_time("sunset")  # 1 hour after constrain_end_time
         period_hours = end.hour - now.hour
-        self.solar.align_storage_mode(now, period_hours)
+        self.solar.align_storage_mode(self.today_at_hour(now.hour), period_hours)
