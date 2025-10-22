@@ -1,41 +1,26 @@
 from units.energy_kwh import ENERGY_KWH_ZERO, EnergyKwh
-from units.hourly_energy import HourlyConsumptionEnergy, HourlyNetEnergy, HourlyProductionEnergy
+from units.hourly_energy import HourlyConsumptionEnergy, HourlyProductionEnergy
 
 
 class EnergyAggregators:
     @staticmethod
-    def aggregate_hourly_consumption(
-        consumptions: list[HourlyConsumptionEnergy],
-    ) -> list[HourlyConsumptionEnergy]:
-        consumption_dict = {}
+    def total_surplus(
+        consumptions: list[HourlyConsumptionEnergy], productions: list[HourlyProductionEnergy]
+    ) -> EnergyKwh:
+        total_surplus = ENERGY_KWH_ZERO
 
         for consumption in consumptions:
-            if consumption.period in consumption_dict:
-                consumption_dict[consumption.period] += consumption.energy
-            else:
-                consumption_dict[consumption.period] = consumption.energy
-
-        return [HourlyConsumptionEnergy(period=period, energy=energy) for period, energy in consumption_dict.items()]
-
-    @staticmethod
-    def aggregate_hourly_production(
-        productions: list[HourlyProductionEnergy],
-    ) -> list[HourlyProductionEnergy]:
-        production_dict = {}
+            total_surplus -= consumption.energy
 
         for production in productions:
-            if production.period in production_dict:
-                production_dict[production.period] += production.energy
-            else:
-                production_dict[production.period] = production.energy
+            total_surplus += production.energy
 
-        return [HourlyProductionEnergy(period=period, energy=energy) for period, energy in production_dict.items()]
+        return max(total_surplus, ENERGY_KWH_ZERO)
 
     @staticmethod
-    def aggregate_hourly_net(
-        consumptions: list[HourlyConsumptionEnergy],
-        productions: list[HourlyProductionEnergy],
-    ) -> list[HourlyNetEnergy]:
+    def maximum_cumulative_deficit(
+        consumptions: list[HourlyConsumptionEnergy], productions: list[HourlyProductionEnergy]
+    ) -> EnergyKwh:
         net_energy_dict = {}
 
         for production in productions:
@@ -50,17 +35,16 @@ class EnergyAggregators:
             else:
                 net_energy_dict[consumption.period] = -consumption.energy
 
-        return [HourlyNetEnergy(period=period, energy=energy) for period, energy in net_energy_dict.items()]
+        net_energy_list = list(net_energy_dict.items())
+        net_energy_list_sorted = sorted(net_energy_list, key=lambda n: n[0].start)
 
-    @staticmethod
-    def maximum_cumulative_deficit(nets: list[HourlyNetEnergy]) -> EnergyKwh:
         cumulative_balance = ENERGY_KWH_ZERO
         min_cumulative_balance = ENERGY_KWH_ZERO
 
-        for net in sorted(nets, key=lambda eb: eb.period.start):
-            cumulative_balance = cumulative_balance + net.energy
+        for net_energy in net_energy_list_sorted:
+            cumulative_balance = cumulative_balance + net_energy[1]
 
             if cumulative_balance < min_cumulative_balance:
                 min_cumulative_balance = cumulative_balance
 
-        return -min_cumulative_balance
+        return max(-min_cumulative_balance, ENERGY_KWH_ZERO)

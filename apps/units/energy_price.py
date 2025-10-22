@@ -26,7 +26,7 @@ class EnergyPrice:
 
     def __sub__(self, other: "EnergyPrice") -> "EnergyPrice":
         if self.currency != other.currency or self.unit != other.unit:
-            raise ValueError("Cannot substract energy prices with different currency or unit")
+            raise ValueError("Cannot subtract energy prices with different currency or unit")
 
         return EnergyPrice(value=self.value - other.value, currency=self.currency, unit=self.unit)
 

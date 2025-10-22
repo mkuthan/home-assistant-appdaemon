@@ -1,38 +1,23 @@
 from datetime import datetime, timedelta
 from typing import Protocol
 
-from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from solar.weather_forecast import WeatherForecast
 from units.energy_kwh import ENERGY_KWH_ZERO, EnergyKwh
 from units.hourly_energy import HourlyConsumptionEnergy
 from units.hourly_period import HourlyPeriod
-from utils.energy_aggregators import EnergyAggregators
 from utils.hvac_estimators import estimate_heating_energy_consumption
 
 
 class ConsumptionForecast(Protocol):
-    def total(self, period_start: datetime, period_hours: int) -> EnergyKwh: ...
     def hourly(self, period_start: datetime, period_hours: int) -> list[HourlyConsumptionEnergy]: ...
 
 
 class ConsumptionForecastComposite:
-    def __init__(self, appdaemon_logger: AppdaemonLogger, *components: ConsumptionForecast) -> None:
-        self.appdaemon_logger = appdaemon_logger
+    def __init__(self, *components: ConsumptionForecast) -> None:
         self.components = components
 
-    def total(self, period_start: datetime, period_hours: int) -> EnergyKwh:
-        total_energy_kwh = ENERGY_KWH_ZERO
-        for component in self.components:
-            energy_kwh = component.total(period_start, period_hours)
-            if energy_kwh > ENERGY_KWH_ZERO:
-                name = component.__class__.__name__
-                self.appdaemon_logger.info(f"Estimated energy consumption ({name}): {energy_kwh}")
-                total_energy_kwh += energy_kwh
-        return total_energy_kwh
-
     def hourly(self, period_start: datetime, period_hours: int) -> list[HourlyConsumptionEnergy]:
-        total = [item for component in self.components for item in component.hourly(period_start, period_hours)]
-        return EnergyAggregators.aggregate_hourly_consumption(total)
+        return [item for component in self.components for item in component.hourly(period_start, period_hours)]
 
 
 class HeatingEnergyEstimator(Protocol):
@@ -71,14 +56,6 @@ class ConsumptionForecastHvacHeating:
         self.humidity_out_fallback = humidity_out_fallback
 
         self.energy_estimator = energy_estimator
-
-    def total(self, period_start: datetime, period_hours: int) -> EnergyKwh:
-        total_energy_kwh = ENERGY_KWH_ZERO
-
-        for period in self.hourly(period_start, period_hours):
-            total_energy_kwh += period.energy
-
-        return total_energy_kwh
 
     def hourly(self, period_start: datetime, period_hours: int) -> list[HourlyConsumptionEnergy]:
         periods = []
@@ -121,14 +98,6 @@ class ConsumptionForecastRegular:
         self.consumption_away = consumption_away
         self.consumption_day = consumption_day
         self.consumption_evening = consumption_evening
-
-    def total(self, period_start: datetime, period_hours: int) -> EnergyKwh:
-        total_energy_kwh = ENERGY_KWH_ZERO
-
-        for period in self.hourly(period_start, period_hours):
-            total_energy_kwh += period.energy
-
-        return total_energy_kwh
 
     def hourly(self, period_start: datetime, period_hours: int) -> list[HourlyConsumptionEnergy]:
         periods = []
