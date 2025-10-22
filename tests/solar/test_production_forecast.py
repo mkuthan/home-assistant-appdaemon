@@ -10,15 +10,15 @@ from units.hourly_period import HourlyPeriod
 class TestForecastProductionComposite:
     def test_estimate_energy_kwh(self, mock_appdaemon_logger: Mock) -> None:
         component_1 = Mock()
-        component_1.estimate_energy_kwh.return_value = EnergyKwh(1.5)
+        component_1.total.return_value = EnergyKwh(1.5)
 
         component_2 = Mock()
-        component_2.estimate_energy_kwh.return_value = EnergyKwh(2.0)
+        component_2.total.return_value = EnergyKwh(2.0)
 
         forecast_consumption = ProductionForecastComposite(mock_appdaemon_logger, component_1, component_2)
         period_start = datetime.fromisoformat("2025-10-03T10:00:00+00:00")
 
-        result = forecast_consumption.estimate_energy_kwh(period_start=period_start, period_hours=3)
+        result = forecast_consumption.total(period_start=period_start, period_hours=3)
 
         # Total: 1.5 + 2.0 = 3.5 kWh
         assert result.value == pytest.approx(3.5)
@@ -78,7 +78,7 @@ class TestForecastProductionDefault:
     ) -> None:
         forecast_production = ProductionForecastDefault(forecast_periods)
 
-        result = forecast_production.estimate_energy_kwh(
+        result = forecast_production.total(
             period_start=datetime.fromisoformat("2025-10-02T06:00:00+00:00"),
             period_hours=2,
         )
@@ -91,7 +91,7 @@ class TestForecastProductionDefault:
     ) -> None:
         forecast_production = ProductionForecastDefault(forecast_periods)
 
-        result = forecast_production.estimate_energy_kwh(
+        result = forecast_production.total(
             period_start=datetime.fromisoformat("2025-10-02T07:00:00+00:00"),
             period_hours=2,
         )
@@ -104,7 +104,7 @@ class TestForecastProductionDefault:
     ) -> None:
         forecast_production = ProductionForecastDefault(forecast_periods)
 
-        result = forecast_production.estimate_energy_kwh(
+        result = forecast_production.total(
             period_start=datetime.fromisoformat("2025-10-02T06:00:00+00:00"),
             period_hours=4,
         )
@@ -117,7 +117,7 @@ class TestForecastProductionDefault:
     ) -> None:
         forecast_production = ProductionForecastDefault(forecast_periods)
 
-        result = forecast_production.estimate_energy_kwh(
+        result = forecast_production.total(
             period_start=datetime.fromisoformat("2025-10-02T10:00:00+00:00"),
             period_hours=2,
         )
@@ -130,7 +130,7 @@ class TestForecastProductionDefault:
     ) -> None:
         forecast_production = ProductionForecastDefault(forecast_periods)
 
-        result = forecast_production.estimate_energy_kwh(
+        result = forecast_production.total(
             period_start=datetime.fromisoformat("2025-10-02T08:00:00+00:00"),
             period_hours=5,
         )

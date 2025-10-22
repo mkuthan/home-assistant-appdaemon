@@ -44,14 +44,14 @@ class StorageModeEstimator:
             return StorageMode.SELF_USE
 
         production_forecast = self.forecast_factory.create_production_forecast(state)
-        production_kwh = production_forecast.estimate_energy_kwh(now, period_hours)
-        self.appdaemon_logger.info(f"Production forecast: {production_kwh}")
+        production_total = production_forecast.total(now, period_hours)
+        self.appdaemon_logger.info(f"Production forecast: {production_total}")
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
-        consumption_kwh = consumption_forecast.estimate_energy_kwh(now, period_hours)
-        self.appdaemon_logger.info(f"Consumption forecast: {consumption_kwh}")
+        consumption_total = consumption_forecast.total(now, period_hours)
+        self.appdaemon_logger.info(f"Consumption forecast: {consumption_total}")
 
-        energy_surplus = max(production_kwh - consumption_kwh, ENERGY_KWH_ZERO)
+        energy_surplus = max(production_total - consumption_total, ENERGY_KWH_ZERO)
         self.appdaemon_logger.info(f"Energy surplus: {energy_surplus}")
 
         estimated_battery_max_soc = estimate_battery_max_soc(

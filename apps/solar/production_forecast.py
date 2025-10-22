@@ -9,7 +9,7 @@ from utils.energy_aggregators import EnergyAggregators
 
 
 class ProductionForecast(Protocol):
-    def estimate_energy_kwh(self, period_start: datetime, period_hours: int) -> EnergyKwh: ...
+    def total(self, period_start: datetime, period_hours: int) -> EnergyKwh: ...
     def hourly(self, period_start: datetime, period_hours: int) -> list[HourlyProductionEnergy]: ...
 
 
@@ -18,10 +18,10 @@ class ProductionForecastComposite:
         self.appdaemon_logger = appdaemon_logger
         self.components = components
 
-    def estimate_energy_kwh(self, period_start: datetime, period_hours: int) -> EnergyKwh:
+    def total(self, period_start: datetime, period_hours: int) -> EnergyKwh:
         total_energy_kwh = ENERGY_KWH_ZERO
         for component in self.components:
-            energy_kwh = component.estimate_energy_kwh(period_start, period_hours)
+            energy_kwh = component.total(period_start, period_hours)
             if energy_kwh > ENERGY_KWH_ZERO:
                 name = component.__class__.__name__
                 self.appdaemon_logger.info(f"Estimated energy production ({name}): {energy_kwh}")
@@ -60,13 +60,10 @@ class ProductionForecastDefault:
     def __init__(self, periods: list[HourlyProductionEnergy]) -> None:
         self.periods = periods
 
-    def estimate_energy_kwh(self, period_start: datetime, period_hours: int) -> EnergyKwh:
-        period_end = period_start + timedelta(hours=period_hours)
+    def total(self, period_start: datetime, period_hours: int) -> EnergyKwh:
         total_energy_kwh = ENERGY_KWH_ZERO
-
-        for period in self.periods:
-            if period_start <= period.period.start < period_end:
-                total_energy_kwh += period.energy
+        for period in self.hourly(period_start, period_hours):
+            total_energy_kwh += period.energy
         return total_energy_kwh
 
     def hourly(self, period_start: datetime, period_hours: int) -> list[HourlyProductionEnergy]:

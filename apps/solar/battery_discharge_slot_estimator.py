@@ -6,6 +6,7 @@ from solar.forecast_factory import ForecastFactory
 from solar.solar_configuration import SolarConfiguration
 from solar.state import State
 from units.battery_current import BATTERY_CURRENT_ZERO
+from units.hourly_energy import HourlyConsumptionEnergy, HourlyNetEnergy, HourlyProductionEnergy
 from utils.battery_converters import current_to_energy_kwh, energy_kwh_to_current
 from utils.battery_estimators import estimate_battery_surplus_energy
 from utils.energy_aggregators import EnergyAggregators
@@ -36,14 +37,14 @@ class BatteryDischargeSlotEstimator:
 
         production_forecast = self.forecast_factory.create_production_forecast(state)
         hourly_productions = production_forecast.hourly(period_start, period_hours)
-        self.appdaemon_logger.info(f"Hourly productions: {hourly_productions}")
+        self.appdaemon_logger.info(f"Hourly productions: {HourlyProductionEnergy.format_list(hourly_productions)}")
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
         hourly_consumptions = consumption_forecast.hourly(period_start, period_hours)
-        self.appdaemon_logger.info(f"Hourly consumptions: {hourly_consumptions}")
+        self.appdaemon_logger.info(f"Hourly consumptions: {HourlyConsumptionEnergy.format_list(hourly_consumptions)}")
 
         hourly_nets = EnergyAggregators.aggregate_hourly_net(hourly_consumptions, hourly_productions)
-        self.appdaemon_logger.info(f"Hourly nets: {hourly_nets}")
+        self.appdaemon_logger.info(f"Hourly nets: {HourlyNetEnergy.format_list(hourly_nets)}")
 
         required_energy_reserve = EnergyAggregators.maximum_cumulative_deficit(hourly_nets)
         self.appdaemon_logger.info(f"Required energy reserve: {required_energy_reserve}")

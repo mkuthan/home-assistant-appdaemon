@@ -11,7 +11,7 @@ from utils.hvac_estimators import estimate_heating_energy_consumption
 
 
 class ConsumptionForecast(Protocol):
-    def estimate_energy_kwh(self, period_start: datetime, period_hours: int) -> EnergyKwh: ...
+    def total(self, period_start: datetime, period_hours: int) -> EnergyKwh: ...
     def hourly(self, period_start: datetime, period_hours: int) -> list[HourlyConsumptionEnergy]: ...
 
 
@@ -20,10 +20,10 @@ class ConsumptionForecastComposite:
         self.appdaemon_logger = appdaemon_logger
         self.components = components
 
-    def estimate_energy_kwh(self, period_start: datetime, period_hours: int) -> EnergyKwh:
+    def total(self, period_start: datetime, period_hours: int) -> EnergyKwh:
         total_energy_kwh = ENERGY_KWH_ZERO
         for component in self.components:
-            energy_kwh = component.estimate_energy_kwh(period_start, period_hours)
+            energy_kwh = component.total(period_start, period_hours)
             if energy_kwh > ENERGY_KWH_ZERO:
                 name = component.__class__.__name__
                 self.appdaemon_logger.info(f"Estimated energy consumption ({name}): {energy_kwh}")
@@ -72,21 +72,11 @@ class ConsumptionForecastHvacHeating:
 
         self.energy_estimator = energy_estimator
 
-    def estimate_energy_kwh(self, period_start: datetime, period_hours: int) -> EnergyKwh:
+    def total(self, period_start: datetime, period_hours: int) -> EnergyKwh:
         total_energy_kwh = ENERGY_KWH_ZERO
 
-        if self.hvac_heating_mode == "heat" and not self.is_eco_mode:
-            for hour_offset in range(period_hours):
-                current = period_start + timedelta(hours=hour_offset)
-                weather_period = self.forecast_weather.find_by_datetime(current)
-                energy = self.energy_estimator(
-                    t_in=self.t_in,
-                    t_out=weather_period.temperature if weather_period else self.temp_out_fallback,
-                    humidity=weather_period.humidity if weather_period else self.humidity_out_fallback,
-                    cop_at_7c=self.cop_at_7c,
-                    h=self.h,
-                )
-                total_energy_kwh += energy
+        for period in self.hourly(period_start, period_hours):
+            total_energy_kwh += period.energy
 
         return total_energy_kwh
 
@@ -132,17 +122,11 @@ class ConsumptionForecastRegular:
         self.consumption_day = consumption_day
         self.consumption_evening = consumption_evening
 
-    def estimate_energy_kwh(self, period_start: datetime, period_hours: int) -> EnergyKwh:
-        if self.is_away_mode:
-            total_energy_kwh = self.consumption_away * period_hours
-        else:
-            total_energy_kwh = ENERGY_KWH_ZERO
-            for hour_offset in range(period_hours):
-                current = period_start + timedelta(hours=hour_offset)
-                if current.hour >= self.evening_start_hour:
-                    total_energy_kwh += self.consumption_evening
-                else:
-                    total_energy_kwh += self.consumption_day
+    def total(self, period_start: datetime, period_hours: int) -> EnergyKwh:
+        total_energy_kwh = ENERGY_KWH_ZERO
+
+        for period in self.hourly(period_start, period_hours):
+            total_energy_kwh += period.energy
 
         return total_energy_kwh
 
