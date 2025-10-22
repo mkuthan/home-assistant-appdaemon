@@ -1,6 +1,5 @@
 import pytest
 from units.battery_soc import BatterySoc
-from units.energy_kwh import EnergyKwh
 
 
 @pytest.mark.parametrize(
@@ -112,34 +111,3 @@ def test_greater_than_or_equal(soc1: float, soc2: float, expected: bool) -> None
 def test_str() -> None:
     soc = BatterySoc(value=75.4567)
     assert f"{soc}" == "75.46%"
-
-
-@pytest.mark.parametrize(
-    ("soc_value", "battery_capacity", "expected_energy"),
-    [
-        (50.0, 10.0, 5.0),
-        (100.0, 10.0, 10.0),
-        (0.0, 10.0, 0.0),
-    ],
-)
-def test_to_energy_kwh(soc_value: float, battery_capacity: float, expected_energy: float) -> None:
-    soc = BatterySoc(value=soc_value)
-    capacity = EnergyKwh(value=battery_capacity)
-    result = soc.to_energy_kwh(capacity)
-    assert result.value == pytest.approx(expected_energy)
-
-
-@pytest.mark.parametrize(
-    ("energy_value", "battery_capacity", "expected_soc"),
-    [
-        (0.0, 10.0, 0.0),
-        (5.0, 10.0, 50.0),
-        (10.0, 10.0, 100.0),
-        (15.0, 10.0, 100.0),  # Caps at 100%
-    ],
-)
-def test_from_energy_kwh(energy_value: float, battery_capacity: float, expected_soc: float) -> None:
-    energy = EnergyKwh(value=energy_value)
-    capacity = EnergyKwh(value=battery_capacity)
-    result = BatterySoc.from_energy_kwh(energy, capacity)
-    assert result.value == pytest.approx(expected_soc)

@@ -6,9 +6,9 @@ from solar.forecast_factory import ForecastFactory
 from solar.solar_configuration import SolarConfiguration
 from solar.state import State
 from units.battery_current import BATTERY_CURRENT_ZERO
-from utils.battery_converters import current_to_energy_kwh, energy_kwh_to_current
+from utils.battery_converters import current_to_energy, energy_to_current
 from utils.battery_estimators import estimate_battery_surplus_energy
-from utils.energy_aggregators import EnergyAggregators
+from utils.energy_aggregators import maximum_cumulative_deficit
 
 
 class BatteryDischargeSlotEstimator:
@@ -40,7 +40,7 @@ class BatteryDischargeSlotEstimator:
         production_forecast = self.forecast_factory.create_production_forecast(state)
         hourly_productions = production_forecast.hourly(period_start, period_hours)
 
-        required_energy_reserve = EnergyAggregators.maximum_cumulative_deficit(hourly_consumptions, hourly_productions)
+        required_energy_reserve = maximum_cumulative_deficit(hourly_consumptions, hourly_productions)
         self.appdaemon_logger.info(f"Required energy reserve: {required_energy_reserve}")
 
         estimated_surplus_energy = estimate_battery_surplus_energy(
@@ -52,7 +52,7 @@ class BatteryDischargeSlotEstimator:
         )
         self.appdaemon_logger.info(f"Estimated surplus energy: {estimated_surplus_energy}")
 
-        estimated_discharge_current = energy_kwh_to_current(estimated_surplus_energy, self.config.battery_voltage)
+        estimated_discharge_current = energy_to_current(estimated_surplus_energy, self.config.battery_voltage)
         self.appdaemon_logger.info(f"Estimated battery discharge current: {estimated_discharge_current}")
 
         sorted_peak_periods = sorted(peak_periods, key=lambda period: period.price.value, reverse=True)
@@ -66,7 +66,7 @@ class BatteryDischargeSlotEstimator:
 
             slot_current = min(remaining_current, self.config.battery_maximum_current)
 
-            slot_energy = current_to_energy_kwh(slot_current, self.config.battery_voltage, duration_hours=1)
+            slot_energy = current_to_energy(slot_current, self.config.battery_voltage, duration_hours=1)
             if slot_energy <= self.config.battery_export_threshold_energy:
                 self.appdaemon_logger.info(
                     f"Skipping slot {period}, estimated energy {slot_energy} <= "

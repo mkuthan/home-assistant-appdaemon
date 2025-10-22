@@ -1,7 +1,6 @@
 from units.battery_soc import BatterySoc
 from units.energy_kwh import EnergyKwh
-
-# TODO: encapsulate in a class
+from utils.battery_converters import energy_to_soc, soc_to_energy
 
 
 def estimate_battery_reserve_soc(
@@ -25,10 +24,10 @@ def estimate_battery_surplus_energy(
     battery_reserve_soc_default: BatterySoc,
     battery_reserve_soc_margin: BatterySoc,
 ) -> EnergyKwh:
-    reserve_soc = BatterySoc.from_energy_kwh(energy_reserve, battery_capacity)
+    reserve_soc = energy_to_soc(energy_reserve, battery_capacity)
     surplus_soc = battery_soc - reserve_soc - battery_reserve_soc_default - battery_reserve_soc_margin
 
-    return surplus_soc.to_energy_kwh(battery_capacity)
+    return soc_to_energy(surplus_soc, battery_capacity)
 
 
 def estimate_battery_max_soc(

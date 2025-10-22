@@ -2,7 +2,7 @@ import pytest
 from units.energy_kwh import EnergyKwh
 from units.hourly_energy import HourlyConsumptionEnergy, HourlyProductionEnergy
 from units.hourly_period import HourlyPeriod
-from utils.energy_aggregators import EnergyAggregators
+from utils.energy_aggregators import maximum_cumulative_deficit, total_surplus
 
 
 @pytest.fixture
@@ -27,9 +27,9 @@ def test_total_surplus() -> None:
         HourlyConsumptionEnergy(period_3, EnergyKwh(1.0)),
     ]
 
-    total_surplus = EnergyAggregators.total_surplus(hourly_consumptions, hourly_productions)
+    result = total_surplus(hourly_consumptions, hourly_productions)
 
-    assert total_surplus == EnergyKwh(0.5)
+    assert result == EnergyKwh(0.5)
 
 
 def test_total_surplus_capped(any_hourly_period: HourlyPeriod) -> None:
@@ -41,9 +41,9 @@ def test_total_surplus_capped(any_hourly_period: HourlyPeriod) -> None:
         HourlyConsumptionEnergy(any_hourly_period, EnergyKwh(2.0)),
     ]
 
-    total_surplus = EnergyAggregators.total_surplus(hourly_consumptions, hourly_productions)
+    result = total_surplus(hourly_consumptions, hourly_productions)
 
-    assert total_surplus == EnergyKwh(0.0)
+    assert result == EnergyKwh(0.0)
 
 
 def test_cumulative_deficit() -> None:
@@ -63,9 +63,9 @@ def test_cumulative_deficit() -> None:
         HourlyConsumptionEnergy(period_3, EnergyKwh(1.0)),
     ]
 
-    max_deficit = EnergyAggregators.maximum_cumulative_deficit(hourly_consumptions, hourly_productions)
+    result = maximum_cumulative_deficit(hourly_consumptions, hourly_productions)
 
-    assert max_deficit == EnergyKwh(1.5)
+    assert result == EnergyKwh(1.5)
 
 
 def test_cumulative_deficit_capped(any_hourly_period: HourlyPeriod) -> None:
@@ -77,6 +77,6 @@ def test_cumulative_deficit_capped(any_hourly_period: HourlyPeriod) -> None:
         HourlyConsumptionEnergy(any_hourly_period, EnergyKwh(1.0)),
     ]
 
-    max_deficit = EnergyAggregators.maximum_cumulative_deficit(hourly_consumptions, hourly_productions)
+    result = maximum_cumulative_deficit(hourly_consumptions, hourly_productions)
 
-    assert max_deficit == EnergyKwh(0.0)
+    assert result == EnergyKwh(0.0)

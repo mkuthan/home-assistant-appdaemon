@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import ClassVar
 
-from units.energy_kwh import EnergyKwh
-
 
 @dataclass(frozen=True)
 class BatterySoc:
@@ -36,14 +34,6 @@ class BatterySoc:
 
     def __str__(self) -> str:
         return f"{self.value:.2f}%"
-
-    def to_energy_kwh(self, battery_capacity_kwh: EnergyKwh) -> EnergyKwh:
-        return battery_capacity_kwh * (self.value / self._MAX_VALUE)
-
-    @classmethod
-    def from_energy_kwh(cls, energy_kwh: EnergyKwh, battery_capacity_kwh: EnergyKwh) -> "BatterySoc":
-        ratio = energy_kwh.ratio(battery_capacity_kwh) * 100.0
-        return cls(min(ratio, cls._MAX_VALUE))
 
 
 BATTERY_SOC_MIN = BatterySoc(BatterySoc._MIN_VALUE)

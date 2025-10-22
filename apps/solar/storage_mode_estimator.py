@@ -7,7 +7,7 @@ from solar.state import State
 from solar.storage_mode import StorageMode
 from units.battery_soc import BATTERY_SOC_MAX
 from utils.battery_estimators import estimate_battery_max_soc
-from utils.energy_aggregators import EnergyAggregators
+from utils.energy_aggregators import total_surplus
 
 
 class StorageModeEstimator:
@@ -49,7 +49,7 @@ class StorageModeEstimator:
         production_forecast = self.forecast_factory.create_production_forecast(state)
         productions = production_forecast.hourly(period_start, period_hours)
 
-        energy_surplus = EnergyAggregators.total_surplus(consumptions, productions)
+        energy_surplus = total_surplus(consumptions, productions)
         self.appdaemon_logger.info(f"Energy surplus: {energy_surplus}")
 
         estimated_battery_max_soc = estimate_battery_max_soc(

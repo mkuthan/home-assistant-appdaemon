@@ -6,7 +6,7 @@ from solar.solar_configuration import SolarConfiguration
 from solar.state import State
 from units.battery_soc import BatterySoc
 from utils.battery_estimators import estimate_battery_reserve_soc
-from utils.energy_aggregators import EnergyAggregators
+from utils.energy_aggregators import maximum_cumulative_deficit
 
 
 class BatteryReserveSocEstimator:
@@ -27,7 +27,7 @@ class BatteryReserveSocEstimator:
         production_forecast = self.forecast_factory.create_production_forecast(state)
         hourly_productions = production_forecast.hourly(period_start, period_hours)
 
-        required_energy_reserve = EnergyAggregators.maximum_cumulative_deficit(hourly_consumptions, hourly_productions)
+        required_energy_reserve = maximum_cumulative_deficit(hourly_consumptions, hourly_productions)
         self.appdaemon_logger.info(f"Required energy reserve: {required_energy_reserve}")
 
         estimated_reserve_soc = estimate_battery_reserve_soc(
