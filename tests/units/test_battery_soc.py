@@ -34,7 +34,7 @@ def test_invalid_soc(soc_value: float) -> None:
     [
         (50.0, 30.0, 80.0),
         (0.0, 50.0, 50.0),
-        (50.0, 60.0, 100.0),  # Caps at 100
+        (50.0, 60.0, 100.0),  # Caps at 100%
     ],
 )
 def test_add(soc1: float, soc2: float, expected: float) -> None:
@@ -47,7 +47,7 @@ def test_add(soc1: float, soc2: float, expected: float) -> None:
     [
         (80.0, 30.0, 50.0),
         (50.0, 0.0, 50.0),
-        (30.0, 50.0, 0.0),  # Caps at 0
+        (30.0, 50.0, 0.0),  # Caps at 0%
     ],
 )
 def test_sub(soc1: float, soc2: float, expected: float) -> None:
@@ -127,3 +127,19 @@ def test_to_energy_kwh(soc_value: float, battery_capacity: float, expected_energ
     capacity = EnergyKwh(value=battery_capacity)
     result = soc.to_energy_kwh(capacity)
     assert result.value == pytest.approx(expected_energy)
+
+
+@pytest.mark.parametrize(
+    ("energy_value", "battery_capacity", "expected_soc"),
+    [
+        (0.0, 10.0, 0.0),
+        (5.0, 10.0, 50.0),
+        (10.0, 10.0, 100.0),
+        (15.0, 10.0, 100.0),  # Caps at 100%
+    ],
+)
+def test_from_energy_kwh(energy_value: float, battery_capacity: float, expected_soc: float) -> None:
+    energy = EnergyKwh(value=energy_value)
+    capacity = EnergyKwh(value=battery_capacity)
+    result = BatterySoc.from_energy_kwh(energy, capacity)
+    assert result.value == pytest.approx(expected_soc)

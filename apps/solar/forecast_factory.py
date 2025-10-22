@@ -16,11 +16,8 @@ from solar.weather_forecast import WeatherForecast
 
 class ForecastFactory(Protocol):
     def create_production_forecast(self, state: State) -> ProductionForecast: ...
-
     def create_consumption_forecast(self, state: State) -> ConsumptionForecast: ...
-
     def create_price_forecast(self, state: State) -> PriceForecast: ...
-
     def create_weather_forecast(self, state: State) -> WeatherForecast: ...
 
 
@@ -34,7 +31,7 @@ class DefaultForecastFactory:
         tomorrow = ProductionForecastDefault.create(state.pv_forecast_tomorrow)
         day_3 = ProductionForecastDefault.create(state.pv_forecast_day_3)
 
-        return ProductionForecastComposite(self.appdaemon_logger, today, tomorrow, day_3)
+        return ProductionForecastComposite(today, tomorrow, day_3)
 
     def create_consumption_forecast(self, state: State) -> ConsumptionForecast:
         weather_forecast = self.create_weather_forecast(state)
@@ -58,7 +55,7 @@ class DefaultForecastFactory:
             humidity_out_fallback=self.config.humidity_out_fallback,
         )
 
-        return ConsumptionForecastComposite(self.appdaemon_logger, regular, hvac_heating)
+        return ConsumptionForecastComposite(regular, hvac_heating)
 
     def create_price_forecast(self, state: State) -> PriceForecast:
         return PriceForecast.create(state.price_forecast_today)
