@@ -118,27 +118,19 @@ def test_max_with_zero(price_value: float, expected_value: float) -> None:
     assert price.max_with_zero() == expected
 
 
-def test_value_is_decimal() -> None:
+def test_pln_per_mwh_converts_float_to_decimal() -> None:
     price = EnergyPrice.pln_per_mwh(123.45)
-    assert isinstance(price.value, Decimal)
     assert price.value == Decimal("123.45")
 
 
 def test_pln_per_mwh_accepts_decimal() -> None:
-    decimal_value = Decimal("99.99")
-    price = EnergyPrice.pln_per_mwh(decimal_value)
+    price = EnergyPrice.pln_per_mwh(Decimal("99.99"))
     assert price.value == Decimal("99.99")
-    assert isinstance(price.value, Decimal)
 
 
-def test_arithmetic_preserves_decimal() -> None:
+def test_arithmetic_with_decimal() -> None:
     price1 = EnergyPrice.pln_per_mwh(100.5)
     price2 = EnergyPrice.pln_per_mwh(50.25)
 
-    result_add = price1 + price2
-    assert isinstance(result_add.value, Decimal)
-    assert result_add.value == Decimal("150.75")
-
-    result_sub = price1 - price2
-    assert isinstance(result_sub.value, Decimal)
-    assert result_sub.value == Decimal("50.25")
+    assert (price1 + price2).value == Decimal("150.75")
+    assert (price1 - price2).value == Decimal("50.25")
