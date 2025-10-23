@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Protocol
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
@@ -148,7 +149,7 @@ class DefaultStateFactory:
             slot2_discharge_time=slot2_discharge_time,
             slot2_discharge_current=BatteryCurrent(slot2_discharge_current),
             hvac_heating_mode=hvac_heating_mode,
-            hourly_price=EnergyPrice.pln_per_mwh(hourly_price),
+            hourly_price=EnergyPrice.pln_per_mwh(Decimal.from_float(hourly_price)),
             pv_forecast_today=pv_forecast_today,
             pv_forecast_tomorrow=pv_forecast_tomorrow,
             pv_forecast_day_3=pv_forecast_day_3,

@@ -1,5 +1,6 @@
 from dataclasses import replace
 from datetime import datetime
+from decimal import Decimal
 from unittest.mock import Mock
 
 import pytest
@@ -24,7 +25,7 @@ def storage_mode_estimator(
         config,
         battery_capacity=EnergyKwh(10.0),
         battery_reserve_soc_min=BatterySoc(20.0),
-        pv_export_min_price_margin=EnergyPrice.pln_per_mwh(200.0),
+        pv_export_min_price_margin=EnergyPrice.pln_per_mwh(Decimal(200)),
     )
 
     return StorageModeEstimator(
@@ -41,7 +42,7 @@ def test_estimator_feed_in_priority(
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_soc=BatterySoc(80.0), hourly_price=EnergyPrice.pln_per_mwh(250.0))
+    state = replace(state, battery_soc=BatterySoc(80.0), hourly_price=EnergyPrice.pln_per_mwh(Decimal(250)))
 
     period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
@@ -50,7 +51,7 @@ def test_estimator_feed_in_priority(
 
     mock_production_forecast.hourly.return_value = [HourlyProductionEnergy(hourly_period, EnergyKwh(8.0))]
     mock_consumption_forecast.hourly.return_value = [HourlyConsumptionEnergy(hourly_period, EnergyKwh(6.0))]
-    mock_price_forecast.find_daily_min_price.return_value = EnergyPrice.pln_per_mwh(30.0)
+    mock_price_forecast.find_daily_min_price.return_value = EnergyPrice.pln_per_mwh(Decimal(30))
 
     storage_mode = storage_mode_estimator(state, period_start, period_hours)
 
@@ -68,7 +69,7 @@ def test_estimator_self_use_when_battery_soc_below_reserve(
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_soc=BatterySoc(20.0), hourly_price=EnergyPrice.pln_per_mwh(250.0))
+    state = replace(state, battery_soc=BatterySoc(20.0), hourly_price=EnergyPrice.pln_per_mwh(Decimal(250)))
 
     period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
@@ -89,7 +90,7 @@ def test_estimator_self_use_when_min_price_not_found(
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_soc=BatterySoc(80.0), hourly_price=EnergyPrice.pln_per_mwh(250.0))
+    state = replace(state, battery_soc=BatterySoc(80.0), hourly_price=EnergyPrice.pln_per_mwh(Decimal(250)))
 
     mock_price_forecast.find_daily_min_price.return_value = None
 
@@ -112,9 +113,9 @@ def test_estimator_self_use_when_current_price_below_threshold(
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_soc=BatterySoc(80.0), hourly_price=EnergyPrice.pln_per_mwh(150.0))
+    state = replace(state, battery_soc=BatterySoc(80.0), hourly_price=EnergyPrice.pln_per_mwh(Decimal(150)))
 
-    mock_price_forecast.find_daily_min_price.return_value = EnergyPrice.pln_per_mwh(30.0)
+    mock_price_forecast.find_daily_min_price.return_value = EnergyPrice.pln_per_mwh(Decimal(30))
 
     period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
@@ -135,7 +136,7 @@ def test_estimator_self_use_when_no_enough_surplus_energy(
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_soc=BatterySoc(80.0), hourly_price=EnergyPrice.pln_per_mwh(250.0))
+    state = replace(state, battery_soc=BatterySoc(80.0), hourly_price=EnergyPrice.pln_per_mwh(Decimal(250)))
 
     period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
@@ -144,7 +145,7 @@ def test_estimator_self_use_when_no_enough_surplus_energy(
 
     mock_production_forecast.hourly.return_value = [HourlyProductionEnergy(hourly_period, EnergyKwh(5.0))]
     mock_consumption_forecast.hourly.return_value = [HourlyConsumptionEnergy(hourly_period, EnergyKwh(6.0))]
-    mock_price_forecast.find_daily_min_price.return_value = EnergyPrice.pln_per_mwh(30.0)
+    mock_price_forecast.find_daily_min_price.return_value = EnergyPrice.pln_per_mwh(Decimal(30))
 
     storage_mode = storage_mode_estimator(state, period_start, period_hours)
 

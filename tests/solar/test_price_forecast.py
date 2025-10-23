@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 
 import pytest
 from solar.price_forecast import HourlyPrice, PriceForecast
@@ -24,11 +25,11 @@ def test_create() -> None:
     assert forecast_price.periods == [
         HourlyPrice(
             period=HourlyPeriod.parse("2025-10-03T14:00:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(426.1),
+            price=EnergyPrice.pln_per_mwh(Decimal("426.1")),
         ),
         HourlyPrice(
             period=HourlyPeriod.parse("2025-10-03T15:00:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(538.2),
+            price=EnergyPrice.pln_per_mwh(Decimal("538.2")),
         ),
     ]
 
@@ -39,19 +40,19 @@ def forecast_price() -> PriceForecast:
         [
             HourlyPrice(
                 period=HourlyPeriod.parse("2025-10-03T16:00:00+00:00"),
-                price=EnergyPrice.pln_per_mwh(426.1),
+                price=EnergyPrice.pln_per_mwh(Decimal(426)),
             ),
             HourlyPrice(
                 period=HourlyPeriod.parse("2025-10-03T17:00:00+00:00"),
-                price=EnergyPrice.pln_per_mwh(538.2),
+                price=EnergyPrice.pln_per_mwh(Decimal(538)),
             ),
             HourlyPrice(
                 period=HourlyPeriod.parse("2025-10-03T18:00:00+00:00"),
-                price=EnergyPrice.pln_per_mwh(538.2),
+                price=EnergyPrice.pln_per_mwh(Decimal(538)),
             ),
             HourlyPrice(
                 period=HourlyPeriod.parse("2025-10-03T19:00:00+00:00"),
-                price=EnergyPrice.pln_per_mwh(825.1),
+                price=EnergyPrice.pln_per_mwh(Decimal(825)),
             ),
         ]
     )
@@ -61,21 +62,21 @@ def test_find_peak_periods_for_4h(forecast_price: PriceForecast) -> None:
     results = forecast_price.find_peak_periods(
         period_start=datetime.fromisoformat("2025-10-03T15:00:00+00:00"),
         period_hours=4,
-        price_threshold=EnergyPrice.pln_per_mwh(500.0),
+        price_threshold=EnergyPrice.pln_per_mwh(Decimal(500)),
     )
 
     assert results == [
         HourlyPrice(
             period=HourlyPeriod.parse("2025-10-03T17:00:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(538.2),
+            price=EnergyPrice.pln_per_mwh(Decimal(538)),
         ),
         HourlyPrice(
             period=HourlyPeriod.parse("2025-10-03T18:00:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(538.2),
+            price=EnergyPrice.pln_per_mwh(Decimal(538)),
         ),
         HourlyPrice(
             period=HourlyPeriod.parse("2025-10-03T19:00:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(825.1),
+            price=EnergyPrice.pln_per_mwh(Decimal(825)),
         ),
     ]
 
@@ -84,17 +85,17 @@ def test_find_peak_periods_for_3h(forecast_price: PriceForecast) -> None:
     results = forecast_price.find_peak_periods(
         period_start=datetime.fromisoformat("2025-10-03T15:00:00+00:00"),
         period_hours=3,
-        price_threshold=EnergyPrice.pln_per_mwh(500.0),
+        price_threshold=EnergyPrice.pln_per_mwh(Decimal(500.0)),
     )
 
     assert results == [
         HourlyPrice(
             period=HourlyPeriod.parse("2025-10-03T17:00:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(538.2),
+            price=EnergyPrice.pln_per_mwh(Decimal(538)),
         ),
         HourlyPrice(
             period=HourlyPeriod.parse("2025-10-03T18:00:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(538.2),
+            price=EnergyPrice.pln_per_mwh(Decimal(538)),
         ),
     ]
 
@@ -103,7 +104,7 @@ def test_find_peak_periods_with_threshold_too_high(forecast_price: PriceForecast
     results = forecast_price.find_peak_periods(
         period_start=datetime.fromisoformat("2025-10-03T15:00:00+00:00"),
         period_hours=4,
-        price_threshold=EnergyPrice.pln_per_mwh(1000.0),
+        price_threshold=EnergyPrice.pln_per_mwh(Decimal(1000)),
     )
 
     assert results == []
@@ -112,7 +113,7 @@ def test_find_peak_periods_with_threshold_too_high(forecast_price: PriceForecast
 def test_find_daily_min_price_for_4h(forecast_price: PriceForecast) -> None:
     min_price = forecast_price.find_daily_min_price(datetime.fromisoformat("2025-10-03T15:00:00+00:00"), 4)
 
-    assert min_price == EnergyPrice.pln_per_mwh(426.1)
+    assert min_price == EnergyPrice.pln_per_mwh(Decimal(426))
 
 
 def test_find_daily_min_price_no_data(forecast_price: PriceForecast) -> None:
