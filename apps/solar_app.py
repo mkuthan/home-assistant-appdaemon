@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from base_app import BaseApp
 from solar.battery_discharge_slot_estimator import BatteryDischargeSlotEstimator
 from solar.battery_reserve_soc_estimator import BatteryReserveSocEstimator
@@ -34,8 +36,8 @@ class SolarApp(BaseApp):
             regular_consumption_away=EnergyKwh(0.35),
             regular_consumption_day=EnergyKwh(0.6),
             regular_consumption_evening=EnergyKwh(0.8),
-            pv_export_min_price_margin=EnergyPrice.pln_per_mwh(200),
-            battery_export_threshold_price=EnergyPrice.pln_per_mwh(1200),
+            pv_export_min_price_margin=EnergyPrice.pln_per_mwh(Decimal(200)),
+            battery_export_threshold_price=EnergyPrice.pln_per_mwh(Decimal(1200)),
             battery_export_threshold_energy=EnergyKwh(1.0),
         )
 

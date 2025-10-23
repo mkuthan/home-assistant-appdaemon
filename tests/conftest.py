@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest.mock import Mock
 
 import pytest
@@ -43,8 +44,8 @@ def config() -> SolarConfiguration:
         regular_consumption_away=ENERGY_KWH_ZERO,
         regular_consumption_day=ENERGY_KWH_ZERO,
         regular_consumption_evening=ENERGY_KWH_ZERO,
-        pv_export_min_price_margin=EnergyPrice.pln_per_mwh(0.0),
-        battery_export_threshold_price=EnergyPrice.pln_per_mwh(0.0),
+        pv_export_min_price_margin=EnergyPrice.pln_per_mwh(Decimal(0)),
+        battery_export_threshold_price=EnergyPrice.pln_per_mwh(Decimal(0)),
         battery_export_threshold_energy=ENERGY_KWH_ZERO,
     )
 
@@ -66,7 +67,7 @@ def state() -> State:
         slot2_discharge_time="",
         slot2_discharge_current=BATTERY_CURRENT_ZERO,
         hvac_heating_mode="",
-        hourly_price=EnergyPrice.pln_per_mwh(0.0),
+        hourly_price=EnergyPrice.pln_per_mwh(Decimal(0)),
         pv_forecast_today=[],
         pv_forecast_tomorrow=[],
         pv_forecast_day_3=[],

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest.mock import Mock
 
 import pytest
@@ -122,7 +123,7 @@ def test_create(
     assert result.slot2_discharge_time == "20:00-21:00"
     assert result.slot2_discharge_current == BatteryCurrent(30.0)
     assert result.hvac_heating_mode == "heat"
-    assert result.hourly_price == EnergyPrice.pln_per_mwh(500.0)
+    assert result.hourly_price == EnergyPrice.pln_per_mwh(Decimal(500))
     assert result.pv_forecast_today == pv_forecast_today
     assert result.pv_forecast_tomorrow == pv_forecast_tomorrow
     assert result.pv_forecast_day_3 == pv_forecast_day_3

@@ -1,5 +1,6 @@
 from dataclasses import replace
 from datetime import datetime, time
+from decimal import Decimal
 from unittest.mock import Mock
 
 import pytest
@@ -30,7 +31,7 @@ def battery_discharge_slot_estimator(
         battery_maximum_current=BatteryCurrent(80.0),
         battery_reserve_soc_min=BatterySoc(20.0),
         battery_reserve_soc_margin=BatterySoc(5.0),
-        battery_export_threshold_price=EnergyPrice.pln_per_mwh(1200.0),
+        battery_export_threshold_price=EnergyPrice.pln_per_mwh(Decimal(1200)),
         battery_export_threshold_energy=EnergyKwh(1.0),
     )
 
@@ -64,11 +65,11 @@ def test_estimator_when_surplus_energy_for_two_slots(
 
     peak_period_1 = HourlyPrice(
         period=HourlyPeriod.parse("2025-10-10T19:00:00+00:00"),
-        price=EnergyPrice.pln_per_mwh(1250.0),
+        price=EnergyPrice.pln_per_mwh(Decimal(1250)),
     )
     peak_period_2 = HourlyPrice(
         period=HourlyPeriod.parse("2025-10-10T20:00:00+00:00"),
-        price=EnergyPrice.pln_per_mwh(1600.0),
+        price=EnergyPrice.pln_per_mwh(Decimal(1600)),
     )
     mock_price_forecast.find_peak_periods.return_value = [peak_period_1, peak_period_2]
 
@@ -114,11 +115,11 @@ def test_estimator_when_surplus_energy_for_one_slot(
 
     peak_period_1 = HourlyPrice(
         period=HourlyPeriod.parse("2025-10-10T19:00:00+00:00"),
-        price=EnergyPrice.pln_per_mwh(1250.0),
+        price=EnergyPrice.pln_per_mwh(Decimal(1250)),
     )
     peak_period_2 = HourlyPrice(
         period=HourlyPeriod.parse("2025-10-10T20:00:00+00:00"),
-        price=EnergyPrice.pln_per_mwh(1600.0),
+        price=EnergyPrice.pln_per_mwh(Decimal(1600)),
     )
     mock_price_forecast.find_peak_periods.return_value = [peak_period_1, peak_period_2]
 
@@ -164,11 +165,11 @@ def test_estimator_when_surplus_energy_for_no_slots(
 
     peak_period_1 = HourlyPrice(
         period=HourlyPeriod.parse("2025-10-10T19:00:00+00:00"),
-        price=EnergyPrice.pln_per_mwh(1250.0),
+        price=EnergyPrice.pln_per_mwh(Decimal(1250)),
     )
     peak_period_2 = HourlyPrice(
         period=HourlyPeriod.parse("2025-10-10T20:00:00+00:00"),
-        price=EnergyPrice.pln_per_mwh(1600.0),
+        price=EnergyPrice.pln_per_mwh(Decimal(1600)),
     )
     mock_price_forecast.find_peak_periods.return_value = [peak_period_1, peak_period_2]
 

@@ -9,6 +9,7 @@ Home Assistant AppDaemon applications for solar energy optimization.
 - Install dependencies: `uv sync`
 - Run tests: `uv run pytest`
 - Run linter: `uv run ruff check`
+- Run type checker: `uv run pyright`
 - Format code: `uv run ruff format`
 
 ## General rules

@@ -53,9 +53,9 @@ class EnergyPrice:
     def __str__(self) -> str:
         return f"{self.value:.2f}{self.currency}/{self.unit}"
 
-    def max_with_zero(self) -> "EnergyPrice":
-        return EnergyPrice(value=max(Decimal(0), self.value), currency=self.currency, unit=self.unit)
-
     @classmethod
-    def pln_per_mwh(cls, value: float | Decimal) -> "EnergyPrice":
-        return cls(value=Decimal(str(value)), currency=EnergyPrice._CURRENCY_PLN, unit=EnergyPrice._UNIT_MWH)
+    def pln_per_mwh(cls, value: Decimal) -> "EnergyPrice":
+        return cls(value=value, currency=EnergyPrice._CURRENCY_PLN, unit=EnergyPrice._UNIT_MWH)
+
+
+ENERGY_PRICE_ZERO = EnergyPrice.pln_per_mwh(Decimal(0))

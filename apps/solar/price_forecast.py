@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from decimal import Decimal
 
 from units.energy_price import EnergyPrice
 from units.hourly_period import HourlyPeriod
@@ -21,7 +22,7 @@ class PriceForecast:
                     periods.append(
                         HourlyPrice(
                             period=HourlyPeriod.parse(item["hour"]),
-                            price=EnergyPrice.pln_per_mwh(item["price"]),
+                            price=EnergyPrice.pln_per_mwh(Decimal(str(item["price"]))),
                         )
                     )
                 except (ValueError, TypeError, KeyError):
