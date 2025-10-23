@@ -34,6 +34,8 @@ Home Assistant AppDaemon applications for solar energy optimization.
 
 - Tests located in `tests/` directory
 - Test files should follow `test_*.py` naming convention
+- Keep tests in the same order as tested code
+- Ensure consistency across tests
 - Use pytest with `pythonpath = ["apps"]` configuration
 - Mock dependencies using `unittest.mock.Mock`
 - Define Shared fixtures in `conftest.py` for cross-module reuse
@@ -52,5 +54,5 @@ Home Assistant AppDaemon applications for solar energy optimization.
   - `*_forecast.py` - Forecast data models and factories
   - `state.py` / `state_factory.py` - Home Assistant state management
 - `apps/units/` - Type-safe value objects for domain concepts (energy, power, SOC, etc.)
-- `apps/utils/` - Shared utilities and safe type converters
+- `apps/utils/` - Shared utilities including safe type converters, battery converters/estimators, energy aggregators, and HVAC estimators
 - `apps/appdaemon_protocols/` - Protocol interfaces for AppDaemon dependency injection and testability
