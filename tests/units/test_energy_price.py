@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from units.energy_price import EnergyPrice
 
@@ -114,3 +116,39 @@ def test_max_with_zero(price_value: float, expected_value: float) -> None:
     price = EnergyPrice.pln_per_mwh(price_value)
     expected = EnergyPrice.pln_per_mwh(expected_value)
     assert price.max_with_zero() == expected
+
+
+def test_pln_per_mwh_converts_float_to_decimal() -> None:
+    price = EnergyPrice.pln_per_mwh(123.45)
+    assert price.value == Decimal("123.45")
+
+
+def test_pln_per_mwh_accepts_decimal() -> None:
+    price = EnergyPrice.pln_per_mwh(Decimal("99.99"))
+    assert price.value == Decimal("99.99")
+
+
+@pytest.mark.parametrize(
+    ("price1", "price2", "expected"),
+    [
+        (100.5, 50.25, 150.75),
+        (0.0, 0.0, 0.0),
+        (123.45, 67.89, 191.34),
+    ],
+)
+def test_add(price1: float, price2: float, expected: float) -> None:
+    result = EnergyPrice.pln_per_mwh(price1) + EnergyPrice.pln_per_mwh(price2)
+    assert result == EnergyPrice.pln_per_mwh(expected)
+
+
+@pytest.mark.parametrize(
+    ("price1", "price2", "expected"),
+    [
+        (100.5, 50.25, 50.25),
+        (0.0, 0.0, 0.0),
+        (191.34, 67.89, 123.45),
+    ],
+)
+def test_sub(price1: float, price2: float, expected: float) -> None:
+    result = EnergyPrice.pln_per_mwh(price1) - EnergyPrice.pln_per_mwh(price2)
+    assert result == EnergyPrice.pln_per_mwh(expected)
