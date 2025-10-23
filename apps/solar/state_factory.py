@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Protocol
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
@@ -134,8 +135,8 @@ class DefaultStateFactory:
         assert price_forecast_today is not None
 
         solar_state = State(
-            battery_soc=BatterySoc(battery_soc),
-            battery_reserve_soc=BatterySoc(battery_reserve_soc),
+            battery_soc=BatterySoc(Decimal(str(battery_soc))),
+            battery_reserve_soc=BatterySoc(Decimal(str(battery_reserve_soc))),
             indoor_temperature=indoor_temperature,
             outdoor_temperature=outdoor_temperature,
             is_away_mode=is_away_mode,

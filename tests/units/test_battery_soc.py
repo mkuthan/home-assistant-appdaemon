@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from units.battery_soc import BatterySoc
 
@@ -111,3 +113,17 @@ def test_greater_than_or_equal(soc1: float, soc2: float, expected: bool) -> None
 def test_str() -> None:
     soc = BatterySoc(value=75.4567)
     assert f"{soc}" == "75.46%"
+
+
+@pytest.mark.parametrize(
+    "input_value",
+    [
+        50.0,  # float
+        Decimal("50.0"),  # Decimal
+        "50.0",  # string
+    ],
+)
+def test_accepts_different_input_types(input_value: float | Decimal | str) -> None:
+    soc = BatterySoc(value=input_value)
+    assert isinstance(soc.value, Decimal)
+    assert soc.value == Decimal("50.0")

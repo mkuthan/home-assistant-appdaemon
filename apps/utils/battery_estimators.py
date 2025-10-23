@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from units.battery_soc import BatterySoc
 from units.energy_kwh import EnergyKwh
 from utils.battery_converters import energy_to_soc, soc_to_energy
@@ -11,7 +13,7 @@ def estimate_battery_reserve_soc(
     battery_reserve_soc_max: BatterySoc,
 ) -> BatterySoc:
     reserve_ratio = energy_reserve.ratio(battery_capacity) * 100.0
-    reserve_soc = BatterySoc(min(reserve_ratio, 100.0))
+    reserve_soc = BatterySoc(Decimal(str(min(reserve_ratio, 100.0))))
     reserve_soc_plus_margin = battery_reserve_soc_default + battery_reserve_soc_margin + reserve_soc
 
     return min(reserve_soc_plus_margin, battery_reserve_soc_max)
@@ -36,5 +38,5 @@ def estimate_battery_max_soc(
     battery_capacity: EnergyKwh,
 ) -> BatterySoc:
     surplus_ratio = energy_surplus.ratio(battery_capacity) * 100.0
-    surplus_soc = BatterySoc(min(surplus_ratio, 100.0))
+    surplus_soc = BatterySoc(Decimal(str(min(surplus_ratio, 100.0))))
     return battery_soc + surplus_soc

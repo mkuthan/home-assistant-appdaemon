@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from base_app import BaseApp
 from solar.battery_discharge_slot_estimator import BatteryDischargeSlotEstimator
 from solar.battery_reserve_soc_estimator import BatteryReserveSocEstimator
@@ -23,9 +25,9 @@ class SolarApp(BaseApp):
             battery_capacity=EnergyKwh(10.0),
             battery_voltage=BatteryVoltage(50.0),
             battery_maximum_current=BatteryCurrent(80.0),
-            battery_reserve_soc_min=BatterySoc(20.0),
-            battery_reserve_soc_margin=BatterySoc(10.0),
-            battery_reserve_soc_max=BatterySoc(95.0),
+            battery_reserve_soc_min=BatterySoc(Decimal("20.0")),
+            battery_reserve_soc_margin=BatterySoc(Decimal("10.0")),
+            battery_reserve_soc_max=BatterySoc(Decimal("95.0")),
             heating_cop_at_7c=4.0,  # ratio
             heating_h=0.15,  # kW/°C
             temp_out_fallback=5.0,  # °C
