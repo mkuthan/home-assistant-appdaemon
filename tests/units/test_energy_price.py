@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from units.energy_price import EnergyPrice
 
@@ -114,3 +116,29 @@ def test_max_with_zero(price_value: float, expected_value: float) -> None:
     price = EnergyPrice.pln_per_mwh(price_value)
     expected = EnergyPrice.pln_per_mwh(expected_value)
     assert price.max_with_zero() == expected
+
+
+def test_value_is_decimal() -> None:
+    price = EnergyPrice.pln_per_mwh(123.45)
+    assert isinstance(price.value, Decimal)
+    assert price.value == Decimal("123.45")
+
+
+def test_pln_per_mwh_accepts_decimal() -> None:
+    decimal_value = Decimal("99.99")
+    price = EnergyPrice.pln_per_mwh(decimal_value)
+    assert price.value == Decimal("99.99")
+    assert isinstance(price.value, Decimal)
+
+
+def test_arithmetic_preserves_decimal() -> None:
+    price1 = EnergyPrice.pln_per_mwh(100.5)
+    price2 = EnergyPrice.pln_per_mwh(50.25)
+
+    result_add = price1 + price2
+    assert isinstance(result_add.value, Decimal)
+    assert result_add.value == Decimal("150.75")
+
+    result_sub = price1 - price2
+    assert isinstance(result_sub.value, Decimal)
+    assert result_sub.value == Decimal("50.25")
