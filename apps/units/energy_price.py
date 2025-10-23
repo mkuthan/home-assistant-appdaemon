@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import ClassVar
 
 
@@ -7,8 +8,7 @@ class EnergyPrice:
     _CURRENCY_PLN: ClassVar[str] = "PLN"
     _UNIT_MWH: ClassVar[str] = "MWh"
 
-    # TODO: use Decimal
-    value: float
+    value: Decimal
     currency: str
     unit: str
 
@@ -54,8 +54,8 @@ class EnergyPrice:
         return f"{self.value:.2f}{self.currency}/{self.unit}"
 
     def max_with_zero(self) -> "EnergyPrice":
-        return EnergyPrice(value=max(0.0, self.value), currency=self.currency, unit=self.unit)
+        return EnergyPrice(value=max(Decimal(0), self.value), currency=self.currency, unit=self.unit)
 
     @classmethod
-    def pln_per_mwh(cls, value: float) -> "EnergyPrice":
-        return cls(value=value, currency=EnergyPrice._CURRENCY_PLN, unit=EnergyPrice._UNIT_MWH)
+    def pln_per_mwh(cls, value: float | Decimal) -> "EnergyPrice":
+        return cls(value=Decimal(str(value)), currency=EnergyPrice._CURRENCY_PLN, unit=EnergyPrice._UNIT_MWH)
