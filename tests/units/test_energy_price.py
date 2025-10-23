@@ -128,9 +128,27 @@ def test_pln_per_mwh_accepts_decimal() -> None:
     assert price.value == Decimal("99.99")
 
 
-def test_arithmetic_with_decimal() -> None:
-    price1 = EnergyPrice.pln_per_mwh(100.5)
-    price2 = EnergyPrice.pln_per_mwh(50.25)
+@pytest.mark.parametrize(
+    ("price1", "price2", "expected"),
+    [
+        (100.5, 50.25, 150.75),
+        (0.0, 0.0, 0.0),
+        (123.45, 67.89, 191.34),
+    ],
+)
+def test_add(price1: float, price2: float, expected: float) -> None:
+    result = EnergyPrice.pln_per_mwh(price1) + EnergyPrice.pln_per_mwh(price2)
+    assert result == EnergyPrice.pln_per_mwh(expected)
 
-    assert (price1 + price2).value == Decimal("150.75")
-    assert (price1 - price2).value == Decimal("50.25")
+
+@pytest.mark.parametrize(
+    ("price1", "price2", "expected"),
+    [
+        (100.5, 50.25, 50.25),
+        (0.0, 0.0, 0.0),
+        (191.34, 67.89, 123.45),
+    ],
+)
+def test_sub(price1: float, price2: float, expected: float) -> None:
+    result = EnergyPrice.pln_per_mwh(price1) - EnergyPrice.pln_per_mwh(price2)
+    assert result == EnergyPrice.pln_per_mwh(expected)
