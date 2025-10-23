@@ -7,12 +7,12 @@ from units.battery_soc import BatterySoc
 @pytest.mark.parametrize(
     "soc_value",
     [
-        0.0,
-        50.5,
-        100.0,
+        Decimal("0.0"),
+        Decimal("50.5"),
+        Decimal("100.0"),
     ],
 )
-def test_valid_soc(soc_value: float) -> None:
+def test_valid_soc(soc_value: Decimal) -> None:
     soc = BatterySoc(value=soc_value)
     assert soc.value == soc_value
 
@@ -20,12 +20,12 @@ def test_valid_soc(soc_value: float) -> None:
 @pytest.mark.parametrize(
     "soc_value",
     [
-        -1.0,
-        100.1,
-        200.0,
+        Decimal("-1.0"),
+        Decimal("100.1"),
+        Decimal("200.0"),
     ],
 )
-def test_invalid_soc(soc_value: float) -> None:
+def test_invalid_soc(soc_value: Decimal) -> None:
     with pytest.raises(ValueError, match=f"Battery SOC must be between 0.0 and 100.0, got {soc_value}"):
         BatterySoc(value=soc_value)
 
@@ -33,12 +33,12 @@ def test_invalid_soc(soc_value: float) -> None:
 @pytest.mark.parametrize(
     ("soc1", "soc2", "expected"),
     [
-        (50.0, 30.0, 80.0),
-        (0.0, 50.0, 50.0),
-        (50.0, 60.0, 100.0),  # Caps at 100%
+        (Decimal("50.0"), Decimal("30.0"), Decimal("80.0")),
+        (Decimal("0.0"), Decimal("50.0"), Decimal("50.0")),
+        (Decimal("50.0"), Decimal("60.0"), Decimal("100.0")),  # Caps at 100%
     ],
 )
-def test_add(soc1: float, soc2: float, expected: float) -> None:
+def test_add(soc1: Decimal, soc2: Decimal, expected: Decimal) -> None:
     result = BatterySoc(value=soc1) + BatterySoc(value=soc2)
     assert result.value == expected
 
@@ -46,12 +46,12 @@ def test_add(soc1: float, soc2: float, expected: float) -> None:
 @pytest.mark.parametrize(
     ("soc1", "soc2", "expected"),
     [
-        (80.0, 30.0, 50.0),
-        (50.0, 0.0, 50.0),
-        (30.0, 50.0, 0.0),  # Caps at 0%
+        (Decimal("80.0"), Decimal("30.0"), Decimal("50.0")),
+        (Decimal("50.0"), Decimal("0.0"), Decimal("50.0")),
+        (Decimal("30.0"), Decimal("50.0"), Decimal("0.0")),  # Caps at 0%
     ],
 )
-def test_sub(soc1: float, soc2: float, expected: float) -> None:
+def test_sub(soc1: Decimal, soc2: Decimal, expected: Decimal) -> None:
     result = BatterySoc(value=soc1) - BatterySoc(value=soc2)
     assert result.value == expected
 
@@ -59,12 +59,12 @@ def test_sub(soc1: float, soc2: float, expected: float) -> None:
 @pytest.mark.parametrize(
     ("soc1", "soc2", "expected"),
     [
-        (50.0, 100.0, True),
-        (50.0, 50.0, False),
-        (100.0, 50.0, False),
+        (Decimal("50.0"), Decimal("100.0"), True),
+        (Decimal("50.0"), Decimal("50.0"), False),
+        (Decimal("100.0"), Decimal("50.0"), False),
     ],
 )
-def test_less_than(soc1: float, soc2: float, expected: bool) -> None:
+def test_less_than(soc1: Decimal, soc2: Decimal, expected: bool) -> None:
     result = BatterySoc(value=soc1) < BatterySoc(value=soc2)
     assert result == expected
 
@@ -72,13 +72,13 @@ def test_less_than(soc1: float, soc2: float, expected: bool) -> None:
 @pytest.mark.parametrize(
     ("soc1", "soc2", "expected"),
     [
-        (50.0, 100.0, True),
-        (0.0, 50.0, True),
-        (50.0, 50.0, True),
-        (100.0, 50.0, False),
+        (Decimal("50.0"), Decimal("100.0"), True),
+        (Decimal("0.0"), Decimal("50.0"), True),
+        (Decimal("50.0"), Decimal("50.0"), True),
+        (Decimal("100.0"), Decimal("50.0"), False),
     ],
 )
-def test_less_than_or_equal(soc1: float, soc2: float, expected: bool) -> None:
+def test_less_than_or_equal(soc1: Decimal, soc2: Decimal, expected: bool) -> None:
     result = BatterySoc(value=soc1) <= BatterySoc(value=soc2)
     assert result == expected
 
@@ -86,12 +86,12 @@ def test_less_than_or_equal(soc1: float, soc2: float, expected: bool) -> None:
 @pytest.mark.parametrize(
     ("soc1", "soc2", "expected"),
     [
-        (100.0, 50.0, True),
-        (50.0, 50.0, False),
-        (50.0, 100.0, False),
+        (Decimal("100.0"), Decimal("50.0"), True),
+        (Decimal("50.0"), Decimal("50.0"), False),
+        (Decimal("50.0"), Decimal("100.0"), False),
     ],
 )
-def test_greater_than(soc1: float, soc2: float, expected: bool) -> None:
+def test_greater_than(soc1: Decimal, soc2: Decimal, expected: bool) -> None:
     result = BatterySoc(value=soc1) > BatterySoc(value=soc2)
     assert result == expected
 
@@ -99,31 +99,23 @@ def test_greater_than(soc1: float, soc2: float, expected: bool) -> None:
 @pytest.mark.parametrize(
     ("soc1", "soc2", "expected"),
     [
-        (100.0, 50.0, True),
-        (50.0, 0.0, True),
-        (50.0, 50.0, True),
-        (50.0, 100.0, False),
+        (Decimal("100.0"), Decimal("50.0"), True),
+        (Decimal("50.0"), Decimal("0.0"), True),
+        (Decimal("50.0"), Decimal("50.0"), True),
+        (Decimal("50.0"), Decimal("100.0"), False),
     ],
 )
-def test_greater_than_or_equal(soc1: float, soc2: float, expected: bool) -> None:
+def test_greater_than_or_equal(soc1: Decimal, soc2: Decimal, expected: bool) -> None:
     result = BatterySoc(value=soc1) >= BatterySoc(value=soc2)
     assert result == expected
 
 
 def test_str() -> None:
-    soc = BatterySoc(value=75.4567)
+    soc = BatterySoc(value=Decimal("75.4567"))
     assert f"{soc}" == "75.46%"
 
 
-@pytest.mark.parametrize(
-    "input_value",
-    [
-        50.0,  # float
-        Decimal("50.0"),  # Decimal
-        "50.0",  # string
-    ],
-)
-def test_accepts_different_input_types(input_value: float | Decimal | str) -> None:
-    soc = BatterySoc(value=input_value)
+def test_value_is_decimal() -> None:
+    soc = BatterySoc(value=Decimal("50.0"))
     assert isinstance(soc.value, Decimal)
     assert soc.value == Decimal("50.0")

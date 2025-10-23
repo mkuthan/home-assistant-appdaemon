@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from units.battery_soc import BatterySoc
 from units.energy_kwh import EnergyKwh
@@ -19,13 +21,41 @@ from utils.battery_estimators import (
     ),
     [
         # Energy reserve is half of capacity, no default or margin
-        (EnergyKwh(5.0), EnergyKwh(10.0), BatterySoc(20.0), BatterySoc(15.0), BatterySoc(100.0), BatterySoc(85.0)),
+        (
+            EnergyKwh(5.0),
+            EnergyKwh(10.0),
+            BatterySoc(Decimal("20.0")),
+            BatterySoc(Decimal("15.0")),
+            BatterySoc(Decimal("100.0")),
+            BatterySoc(Decimal("85.0")),
+        ),
         # Energy reserve exceeds capacity (should be clamped to 100%)
-        (EnergyKwh(10.0), EnergyKwh(10.0), BatterySoc(20.0), BatterySoc(15.0), BatterySoc(100.0), BatterySoc(100.0)),
+        (
+            EnergyKwh(10.0),
+            EnergyKwh(10.0),
+            BatterySoc(Decimal("20.0")),
+            BatterySoc(Decimal("15.0")),
+            BatterySoc(Decimal("100.0")),
+            BatterySoc(Decimal("100.0")),
+        ),
         # No energy reserve, only default and margin
-        (EnergyKwh(0.0), EnergyKwh(10.0), BatterySoc(20.0), BatterySoc(15.0), BatterySoc(100.0), BatterySoc(35.0)),
+        (
+            EnergyKwh(0.0),
+            EnergyKwh(10.0),
+            BatterySoc(Decimal("20.0")),
+            BatterySoc(Decimal("15.0")),
+            BatterySoc(Decimal("100.0")),
+            BatterySoc(Decimal("35.0")),
+        ),
         # Energy reserve + default + margin exceeds max (should be clamped to max)
-        (EnergyKwh(8.0), EnergyKwh(10.0), BatterySoc(20.0), BatterySoc(15.0), BatterySoc(80.0), BatterySoc(80.0)),
+        (
+            EnergyKwh(8.0),
+            EnergyKwh(10.0),
+            BatterySoc(Decimal("20.0")),
+            BatterySoc(Decimal("15.0")),
+            BatterySoc(Decimal("80.0")),
+            BatterySoc(Decimal("80.0")),
+        ),
     ],
 )
 def test_estimate_battery_reserve_soc(
@@ -57,13 +87,41 @@ def test_estimate_battery_reserve_soc(
     ),
     [
         # 2.5 kWh → 25%, surplus 80% - (25% + 20% + 15%) → 2.0 kWh
-        (EnergyKwh(2.5), BatterySoc(80.0), EnergyKwh(10.0), BatterySoc(20.0), BatterySoc(15.0), EnergyKwh(2.0)),
+        (
+            EnergyKwh(2.5),
+            BatterySoc(Decimal("80.0")),
+            EnergyKwh(10.0),
+            BatterySoc(Decimal("20.0")),
+            BatterySoc(Decimal("15.0")),
+            EnergyKwh(2.0),
+        ),
         # No surplus, exactly at reserve + default + margin
-        (EnergyKwh(2.5), BatterySoc(60.0), EnergyKwh(10.0), BatterySoc(20.0), BatterySoc(15.0), EnergyKwh(0.0)),
+        (
+            EnergyKwh(2.5),
+            BatterySoc(Decimal("60.0")),
+            EnergyKwh(10.0),
+            BatterySoc(Decimal("20.0")),
+            BatterySoc(Decimal("15.0")),
+            EnergyKwh(0.0),
+        ),
         # No surplus, below reserve + default + margin
-        (EnergyKwh(2.5), BatterySoc(50.0), EnergyKwh(10.0), BatterySoc(20.0), BatterySoc(15.0), EnergyKwh(0.0)),
+        (
+            EnergyKwh(2.5),
+            BatterySoc(Decimal("50.0")),
+            EnergyKwh(10.0),
+            BatterySoc(Decimal("20.0")),
+            BatterySoc(Decimal("15.0")),
+            EnergyKwh(0.0),
+        ),
         # 5.0 kWh → 25%, surplus 80% - (25% + 20% + 15%) → 4.0 kWh
-        (EnergyKwh(5.0), BatterySoc(80.0), EnergyKwh(20.0), BatterySoc(20.0), BatterySoc(15.0), EnergyKwh(4.0)),
+        (
+            EnergyKwh(5.0),
+            BatterySoc(Decimal("80.0")),
+            EnergyKwh(20.0),
+            BatterySoc(Decimal("20.0")),
+            BatterySoc(Decimal("15.0")),
+            EnergyKwh(4.0),
+        ),
     ],
 )
 def test_estimate_battery_surplus_energy(
@@ -88,13 +146,13 @@ def test_estimate_battery_surplus_energy(
     ("energy_surplus", "battery_soc", "battery_capacity", "expected"),
     [
         # 5.0 kWh surplus + 30% battery (10kWh) → 80%
-        (EnergyKwh(5.0), BatterySoc(30.0), EnergyKwh(10.0), BatterySoc(80.0)),
+        (EnergyKwh(5.0), BatterySoc(Decimal("30.0")), EnergyKwh(10.0), BatterySoc(Decimal("80.0"))),
         # 10.0 kWh surplus + 30% battery (10kWh) → clamped to 100%
-        (EnergyKwh(10.0), BatterySoc(30.0), EnergyKwh(10.0), BatterySoc(100.0)),
+        (EnergyKwh(10.0), BatterySoc(Decimal("30.0")), EnergyKwh(10.0), BatterySoc(Decimal("100.0"))),
         # No surplus, battery stays the same
-        (EnergyKwh(0.0), BatterySoc(50.0), EnergyKwh(10.0), BatterySoc(50.0)),
+        (EnergyKwh(0.0), BatterySoc(Decimal("50.0")), EnergyKwh(10.0), BatterySoc(Decimal("50.0"))),
         # 5.0 kWh surplus + 20% battery (20kWh) → 45%
-        (EnergyKwh(5.0), BatterySoc(20.0), EnergyKwh(20.0), BatterySoc(45.0)),
+        (EnergyKwh(5.0), BatterySoc(Decimal("20.0")), EnergyKwh(20.0), BatterySoc(Decimal("45.0"))),
     ],
 )
 def test_estimate_battery_max_soc(

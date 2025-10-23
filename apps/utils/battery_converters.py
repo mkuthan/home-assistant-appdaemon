@@ -7,8 +7,8 @@ from units.energy_kwh import EnergyKwh
 
 
 def energy_to_soc(energy_kwh: EnergyKwh, battery_capacity_kwh: EnergyKwh) -> BatterySoc:
-    ratio = energy_kwh.ratio(battery_capacity_kwh) * 100.0
-    return BatterySoc(Decimal(str(min(ratio, float(BatterySoc._MAX_VALUE)))))
+    ratio = Decimal(str(energy_kwh.ratio(battery_capacity_kwh))) * Decimal("100")
+    return BatterySoc(value=min(ratio, BatterySoc._MAX_VALUE))
 
 
 def soc_to_energy(battery_soc: BatterySoc, battery_capacity_kwh: EnergyKwh) -> EnergyKwh:

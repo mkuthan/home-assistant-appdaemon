@@ -1,5 +1,6 @@
 from dataclasses import replace
 from datetime import datetime, time
+from decimal import Decimal
 from unittest.mock import Mock
 
 import pytest
@@ -60,8 +61,8 @@ def test_align_battery_reserve_soc(
     mock_state_factory: Mock,
     mock_battery_reserve_soc_estimator: Mock,
 ) -> None:
-    current_battery_reserve_soc = BatterySoc(30.0)
-    new_battery_reserve_soc = BatterySoc(40.0)
+    current_battery_reserve_soc = BatterySoc(value=Decimal("30.0"))
+    new_battery_reserve_soc = BatterySoc(value=Decimal("40.0"))
 
     state = replace(state, battery_reserve_soc=current_battery_reserve_soc)
 
@@ -89,8 +90,8 @@ def test_reset_battery_reserve_soc(
     mock_appdaemon_service: Mock,
     mock_state_factory: Mock,
 ) -> None:
-    battery_reserve_soc_current = BatterySoc(50.0)
-    battery_reserve_soc_min = BatterySoc(20.0)
+    battery_reserve_soc_current = BatterySoc(value=Decimal("50.0"))
+    battery_reserve_soc_min = BatterySoc(value=Decimal("20.0"))
 
     # Modify the config on the solar instance directly
     solar.config = replace(config, battery_reserve_soc_min=battery_reserve_soc_min)

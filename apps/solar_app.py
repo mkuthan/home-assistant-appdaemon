@@ -25,9 +25,9 @@ class SolarApp(BaseApp):
             battery_capacity=EnergyKwh(10.0),
             battery_voltage=BatteryVoltage(50.0),
             battery_maximum_current=BatteryCurrent(80.0),
-            battery_reserve_soc_min=BatterySoc(Decimal("20.0")),
-            battery_reserve_soc_margin=BatterySoc(Decimal("10.0")),
-            battery_reserve_soc_max=BatterySoc(Decimal("95.0")),
+            battery_reserve_soc_min=BatterySoc(value=Decimal("20.0")),
+            battery_reserve_soc_margin=BatterySoc(value=Decimal("10.0")),
+            battery_reserve_soc_max=BatterySoc(value=Decimal("95.0")),
             heating_cop_at_7c=4.0,  # ratio
             heating_h=0.15,  # kW/°C
             temp_out_fallback=5.0,  # °C

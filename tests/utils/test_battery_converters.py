@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from units.battery_current import BatteryCurrent
 from units.battery_soc import BatterySoc
@@ -25,12 +27,12 @@ def test_energy_to_soc(energy_value: float, battery_capacity: float, expected_so
 @pytest.mark.parametrize(
     ("soc_value", "battery_capacity", "expected_energy"),
     [
-        (50.0, 10.0, 5.0),
-        (100.0, 10.0, 10.0),
-        (0.0, 10.0, 0.0),
+        (Decimal("50.0"), 10.0, 5.0),
+        (Decimal("100.0"), 10.0, 10.0),
+        (Decimal("0.0"), 10.0, 0.0),
     ],
 )
-def test_soc_to_energy(soc_value: float, battery_capacity: float, expected_energy: float) -> None:
+def test_soc_to_energy(soc_value: Decimal, battery_capacity: float, expected_energy: float) -> None:
     soc = BatterySoc(value=soc_value)
     capacity = EnergyKwh(value=battery_capacity)
     result = soc_to_energy(soc, capacity)

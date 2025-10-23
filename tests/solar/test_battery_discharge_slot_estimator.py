@@ -1,5 +1,6 @@
 from dataclasses import replace
 from datetime import datetime, time
+from decimal import Decimal
 from unittest.mock import Mock
 
 import pytest
@@ -28,8 +29,8 @@ def battery_discharge_slot_estimator(
         battery_capacity=EnergyKwh(10.0),
         battery_voltage=BatteryVoltage(50.0),
         battery_maximum_current=BatteryCurrent(80.0),
-        battery_reserve_soc_min=BatterySoc(20.0),
-        battery_reserve_soc_margin=BatterySoc(5.0),
+        battery_reserve_soc_min=BatterySoc(value=Decimal("20.0")),
+        battery_reserve_soc_margin=BatterySoc(value=Decimal("5.0")),
         battery_export_threshold_price=EnergyPrice.pln_per_mwh(1200.0),
         battery_export_threshold_energy=EnergyKwh(1.0),
     )
@@ -48,7 +49,7 @@ def test_estimator_when_surplus_energy_for_two_slots(
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_soc=BatterySoc(100.0))
+    state = replace(state, battery_soc=BatterySoc(value=Decimal("100.0")))
 
     period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
@@ -98,7 +99,7 @@ def test_estimator_when_surplus_energy_for_one_slot(
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_soc=BatterySoc(90.0))
+    state = replace(state, battery_soc=BatterySoc(value=Decimal("90.0")))
 
     period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
@@ -148,7 +149,7 @@ def test_estimator_when_surplus_energy_for_no_slots(
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_soc=BatterySoc(50.0))
+    state = replace(state, battery_soc=BatterySoc(value=Decimal("50.0")))
 
     period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6

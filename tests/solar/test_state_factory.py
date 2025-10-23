@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest.mock import Mock
 
 import pytest
@@ -108,8 +109,8 @@ def test_create(
     result = DefaultStateFactory(mock_appdaemon_logger, mock_appdaemon_state, mock_appdaemon_service).create()
 
     assert result is not None
-    assert result.battery_soc == BatterySoc(75.5)
-    assert result.battery_reserve_soc == BatterySoc(20.0)
+    assert result.battery_soc == BatterySoc(value=Decimal("75.5"))
+    assert result.battery_reserve_soc == BatterySoc(value=Decimal("20.0"))
     assert result.indoor_temperature == 21.5
     assert result.outdoor_temperature == 10.0
     assert result.is_away_mode is False

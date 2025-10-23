@@ -1,5 +1,6 @@
 from dataclasses import replace
 from datetime import datetime
+from decimal import Decimal
 from unittest.mock import Mock
 
 import pytest
@@ -21,9 +22,9 @@ def battery_reserve_soc_estimator(
     config = replace(
         config,
         battery_capacity=EnergyKwh(10.0),
-        battery_reserve_soc_min=BatterySoc(20.0),
-        battery_reserve_soc_margin=BatterySoc(5.0),
-        battery_reserve_soc_max=BatterySoc(100.0),
+        battery_reserve_soc_min=BatterySoc(value=Decimal("20.0")),
+        battery_reserve_soc_margin=BatterySoc(value=Decimal("5.0")),
+        battery_reserve_soc_max=BatterySoc(value=Decimal("100.0")),
     )
 
     return BatteryReserveSocEstimator(
@@ -39,7 +40,7 @@ def test_estimator_when_higher_than_current(
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_reserve_soc=BatterySoc(30.0))
+    state = replace(state, battery_reserve_soc=BatterySoc(value=Decimal("30.0")))
 
     period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
@@ -58,7 +59,7 @@ def test_estimator_when_higher_than_current(
     mock_production_forecast.hourly.assert_called_once_with(period_start, period_hours)
     mock_consumption_forecast.hourly.assert_called_once_with(period_start, period_hours)
 
-    assert battery_reserve_soc == BatterySoc(65.0)
+    assert battery_reserve_soc == BatterySoc(value=Decimal("65.0"))
 
 
 def test_estimator_when_lower_than_current(
@@ -67,7 +68,7 @@ def test_estimator_when_lower_than_current(
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_reserve_soc=BatterySoc(50.0))
+    state = replace(state, battery_reserve_soc=BatterySoc(value=Decimal("50.0")))
 
     period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6

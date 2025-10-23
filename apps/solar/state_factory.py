@@ -135,8 +135,8 @@ class DefaultStateFactory:
         assert price_forecast_today is not None
 
         solar_state = State(
-            battery_soc=BatterySoc(Decimal(str(battery_soc))),
-            battery_reserve_soc=BatterySoc(Decimal(str(battery_reserve_soc))),
+            battery_soc=BatterySoc(value=Decimal(str(battery_soc))),
+            battery_reserve_soc=BatterySoc(value=Decimal(str(battery_reserve_soc))),
             indoor_temperature=indoor_temperature,
             outdoor_temperature=outdoor_temperature,
             is_away_mode=is_away_mode,

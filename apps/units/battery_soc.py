@@ -12,15 +12,7 @@ class BatterySoc:
 
     value: Decimal
 
-    def __init__(self, value: Decimal | float | str) -> None:
-        # Convert value to Decimal if it's not already
-        if not isinstance(value, Decimal):
-            value = Decimal(str(value))
-
-        # Use object.__setattr__ since we're frozen
-        object.__setattr__(self, "value", value)
-
-        # Validate
+    def __post_init__(self) -> None:
         if not self._MIN_VALUE <= self.value <= self._MAX_VALUE:
             raise ValueError(f"Battery SOC must be between {self._MIN_VALUE} and {self._MAX_VALUE}, got {self.value}")
 
