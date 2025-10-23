@@ -6,7 +6,6 @@ from typing import ClassVar
 class EnergyKwh:
     _ZERO_VALUE: ClassVar[float] = 0.0
 
-    # TODO: use decimal
     value: float
 
     def __add__(self, other: "EnergyKwh") -> "EnergyKwh":
