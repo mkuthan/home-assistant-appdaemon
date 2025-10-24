@@ -41,36 +41,17 @@ def test_sub(energy1: float, energy2: float, expected: float) -> None:
     assert result.value == expected
 
 
-@pytest.mark.parametrize(
-    ("energy_value", "multiplier", "expected"),
-    [
-        (-50.0, 2.0, -100.0),
-        (0.0, 0.5, 0.0),
-        (25.5, 2.0, 51.0),
-    ],
-)
-def test_multiply_energy_by_float(energy_value: float, multiplier: float, expected: float) -> None:
-    result = EnergyKwh(energy_value) * multiplier
-    assert result.value == expected
+def test_div() -> None:
+    energy1 = EnergyKwh(10.0)
+    energy2 = EnergyKwh(2.0)
+    assert energy1 / energy2 == 5.0
 
 
-@pytest.mark.parametrize(
-    ("energy_value", "divisor", "expected"),
-    [
-        (-50.0, 2.0, -25.0),
-        (0.0, 0.5, 0.0),
-        (25.5, 2.0, 12.75),
-    ],
-)
-def test_divide_energy_by_float(energy_value: float, divisor: float, expected: float) -> None:
-    result = EnergyKwh(energy_value) / divisor
-    assert result.value == expected
-
-
-def test_divide_by_invalid_float() -> None:
-    energy = EnergyKwh(50.0)
-    with pytest.raises(ValueError, match="Cannot divide by zero"):
-        energy / 0  # pyright: ignore[reportUnusedExpression]
+def test_div_by_zero() -> None:
+    energy1 = EnergyKwh(10.0)
+    energy2 = EnergyKwh(0.0)
+    with pytest.raises(ValueError, match="Cannot divide by zero energy"):
+        energy1 / energy2  # pyright: ignore[reportUnusedExpression]
 
 
 @pytest.mark.parametrize(
@@ -132,16 +113,3 @@ def test_greater_than_or_equal(energy1: float, energy2: float, expected: bool) -
 def test_str() -> None:
     energy = EnergyKwh(75.4567)
     assert f"{energy}" == "75.46kWh"
-
-
-def test_ratio() -> None:
-    energy1 = EnergyKwh(10.0)
-    energy2 = EnergyKwh(2.0)
-    assert energy1.ratio(energy2) == 5.0
-
-
-def test_ratio_divide_by_zero() -> None:
-    energy1 = EnergyKwh(10.0)
-    energy2 = EnergyKwh(0.0)
-    with pytest.raises(ValueError, match="Cannot divide by zero energy"):
-        energy1.ratio(energy2)
