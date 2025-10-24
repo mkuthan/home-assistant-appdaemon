@@ -56,6 +56,32 @@ class Solar:
         if estimated_battery_reserve_soc is not None:
             self._set_battery_reserve_soc(state, estimated_battery_reserve_soc)
 
+    def align_battery_reserve_soc_tomorrow_at_7_am(self, now: datetime) -> None:
+        self.appdaemon_logger.info("Align battery reserve SoC for tomorrow at 7 AM")
+
+        state = self.state_factory.create()
+        if state is None:
+            self.appdaemon_logger.warn("Unknown state, cannot estimate battery reserve SoC")
+            return
+
+        target_soc = self.battery_reserve_soc_estimator.estimate_soc_tomorrow_at_7_am(state, now)
+
+        if target_soc is not None:
+            self._set_battery_reserve_soc(state, target_soc)
+
+    def align_battery_reserve_soc_today_at_4_pm(self, now: datetime) -> None:
+        self.appdaemon_logger.info("Align battery reserve SoC for today at 4 PM")
+
+        state = self.state_factory.create()
+        if state is None:
+            self.appdaemon_logger.warn("Unknown state, cannot estimate battery reserve SoC")
+            return
+
+        target_soc = self.battery_reserve_soc_estimator.estimate_soc_today_at_4_pm(state, now)
+
+        if target_soc is not None:
+            self._set_battery_reserve_soc(state, target_soc)
+
     def reset_battery_reserve_soc(self) -> None:
         battery_reserve_soc_default = self.config.battery_reserve_soc_min
         self.appdaemon_logger.info(f"Reset battery reserve SoC to {battery_reserve_soc_default}")

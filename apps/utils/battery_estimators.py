@@ -1,6 +1,10 @@
+from datetime import timedelta
+
+from units.battery_current import BATTERY_CURRENT_ZERO, BatteryCurrent
 from units.battery_soc import BatterySoc
+from units.battery_voltage import BatteryVoltage
 from units.energy_kwh import EnergyKwh
-from utils.battery_converters import energy_to_soc, soc_to_energy
+from utils.battery_converters import current_to_energy, energy_to_soc, soc_to_energy
 
 
 def estimate_battery_reserve_soc(
@@ -38,3 +42,19 @@ def estimate_battery_max_soc(
     surplus_ratio = (energy_surplus / battery_capacity) * 100.0
     surplus_soc = BatterySoc(min(surplus_ratio, 100.0))
     return battery_soc + surplus_soc
+
+
+def estimate_time_to_charge(
+    soc_deficit: BatterySoc,
+    battery_capacity: EnergyKwh,
+    battery_current: BatteryCurrent,
+    battery_voltage: BatteryVoltage,
+) -> timedelta:
+    if battery_current == BATTERY_CURRENT_ZERO:
+        raise ValueError("Battery current must be greater than zero to estimate charging time.")
+
+    energy_needed = soc_to_energy(soc_deficit, battery_capacity)
+    power_kw = current_to_energy(battery_current, battery_voltage)
+    hours_needed = energy_needed / power_kw
+
+    return timedelta(hours=hours_needed)
