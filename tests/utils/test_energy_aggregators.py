@@ -52,15 +52,17 @@ def test_cumulative_deficit() -> None:
     period_3 = HourlyPeriod.parse("2025-10-21T09:00:00+00:00")
 
     hourly_productions = [
-        HourlyProductionEnergy(period_1, EnergyKwh(0.5)),
+        HourlyProductionEnergy(period_1, EnergyKwh(0.25)),
         HourlyProductionEnergy(period_2, EnergyKwh(1.0)),
         HourlyProductionEnergy(period_3, EnergyKwh(2.0)),
+        HourlyProductionEnergy(period_1, EnergyKwh(0.25)),
     ]
 
     hourly_consumptions = [
-        HourlyConsumptionEnergy(period_1, EnergyKwh(1.0)),
+        HourlyConsumptionEnergy(period_1, EnergyKwh(0.5)),
         HourlyConsumptionEnergy(period_2, EnergyKwh(2.0)),
         HourlyConsumptionEnergy(period_3, EnergyKwh(1.0)),
+        HourlyConsumptionEnergy(period_1, EnergyKwh(0.5)),
     ]
 
     result = maximum_cumulative_deficit(hourly_consumptions, hourly_productions)

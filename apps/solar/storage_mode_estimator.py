@@ -6,7 +6,6 @@ from solar.solar_configuration import SolarConfiguration
 from solar.state import State
 from solar.storage_mode import StorageMode
 from units.battery_soc import BATTERY_SOC_MAX
-from units.energy_price import ENERGY_PRICE_ZERO
 from utils.battery_estimators import estimate_battery_max_soc
 from utils.energy_aggregators import total_surplus
 
@@ -45,8 +44,8 @@ class StorageModeEstimator:
             self.appdaemon_logger.info(f"Use {StorageMode.SELF_USE}, minimum price not found in the forecast")
             return StorageMode.SELF_USE
 
-        current_price = max(state.hourly_price, ENERGY_PRICE_ZERO)
-        price_threshold = max(min_price, ENERGY_PRICE_ZERO) + self.config.pv_export_min_price_margin
+        current_price = state.hourly_price.non_negative()
+        price_threshold = min_price.non_negative() + self.config.pv_export_min_price_margin
         if current_price <= price_threshold:
             self.appdaemon_logger.info(
                 f"Use {StorageMode.SELF_USE}, current price {current_price} <= {price_threshold}"
