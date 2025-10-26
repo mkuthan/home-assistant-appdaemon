@@ -32,7 +32,7 @@ class SolarApp(BaseApp):
             heating_h=0.15,  # kW/°C
             temp_out_fallback=5.0,  # °C
             humidity_out_fallback=80.0,  # %
-            evening_start_hour=16,  # hour
+            evening_start_hour=16,
             regular_consumption_away=EnergyKwh(0.35),
             regular_consumption_day=EnergyKwh(0.6),
             regular_consumption_evening=EnergyKwh(0.8),
