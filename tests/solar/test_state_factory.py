@@ -126,7 +126,6 @@ def test_create(
     assert result.hourly_price == EnergyPrice.pln_per_mwh(Decimal(500))
     assert result.pv_forecast_today == pv_forecast_today
     assert result.pv_forecast_tomorrow == pv_forecast_tomorrow
-    assert result.pv_forecast_day_3 == pv_forecast_day_3
     assert result.weather_forecast == weather_forecast
     assert result.price_forecast_today == price_forecast
 
@@ -151,7 +150,6 @@ def test_create(
         ("sensor.rce:", "Missing: hourly_price"),
         ("sensor.solcast_pv_forecast_forecast_today:detailedHourly", "Missing: pv_forecast_today"),
         ("sensor.solcast_pv_forecast_forecast_tomorrow:detailedHourly", "Missing: pv_forecast_tomorrow"),
-        ("sensor.solcast_pv_forecast_forecast_day_3:detailedHourly", "Missing: pv_forecast_day_3"),
         ("weather/get_forecasts", "Missing: weather_forecast"),
         ("sensor.rce:raw_today", "Missing: price_forecast_today"),
     ],

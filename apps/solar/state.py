@@ -25,6 +25,5 @@ class State:
     hourly_price: EnergyPrice
     pv_forecast_today: list
     pv_forecast_tomorrow: list
-    pv_forecast_day_3: list
     weather_forecast: dict
     price_forecast_today: list
