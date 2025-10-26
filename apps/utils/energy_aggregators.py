@@ -19,17 +19,17 @@ def maximum_cumulative_deficit(
 ) -> EnergyKwh:
     net_energy_dict = {}
 
-    for production in productions:
-        if production.period in net_energy_dict:
-            net_energy_dict[production.period] += production.energy
-        else:
-            net_energy_dict[production.period] = production.energy
-
     for consumption in consumptions:
         if consumption.period in net_energy_dict:
             net_energy_dict[consumption.period] -= consumption.energy
         else:
             net_energy_dict[consumption.period] = -consumption.energy
+
+    for production in productions:
+        if production.period in net_energy_dict:
+            net_energy_dict[production.period] += production.energy
+        else:
+            net_energy_dict[production.period] = production.energy
 
     net_energy_list = list(net_energy_dict.items())
     net_energy_list_sorted = sorted(net_energy_list, key=lambda n: n[0].start)
