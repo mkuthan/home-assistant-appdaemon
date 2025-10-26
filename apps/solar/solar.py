@@ -114,16 +114,15 @@ class Solar:
         for slot in range(1, self._NUM_DISCHARGE_SLOTS + 1):
             self._disable_slot_discharge(state, slot)
 
-    # TODO: change signature to (now, sunrise, sunset)
-    def align_storage_mode(self, period_start: datetime, period_hours: int) -> None:
-        self.appdaemon_logger.info(f"Align storage mode at {period_start} for {period_hours} hours")
+    def align_storage_mode(self, now: datetime) -> None:
+        self.appdaemon_logger.info(f"Align storage mode at {now}")
 
         state = self.state_factory.create()
         if state is None:
             self.appdaemon_logger.warn("Unknown state, cannot align storage mode")
             return
 
-        estimated_storage_mode = self.storage_mode_estimator(state, period_start, period_hours)
+        estimated_storage_mode = self.storage_mode_estimator.estimate_storage_mode(state, now)
 
         self._set_storage_mode(state, estimated_storage_mode)
 

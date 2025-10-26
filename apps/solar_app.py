@@ -113,7 +113,4 @@ class SolarApp(BaseApp):
         self.solar.disable_battery_discharge()
 
     def align_storage_mode(self, entity, attribute, old, new, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
-        now = self.get_now()
-        end = self.parse_time("sunset")  # 1 hour after constrain_end_time
-        period_hours = end.hour - now.hour
-        self.solar.align_storage_mode(self.today_at_hour(now.hour), period_hours)
+        self.solar.align_storage_mode(self.get_now())
