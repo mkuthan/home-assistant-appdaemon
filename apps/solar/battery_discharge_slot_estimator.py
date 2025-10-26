@@ -22,14 +22,13 @@ class BatteryDischargeSlotEstimator:
         self.config = config
         self.forecast_factory = forecast_factory
 
-    def schedule_battery_discharge_at_4_pm(
-        self, state: State, now: datetime, period_hours: int
-    ) -> list[BatteryDischargeSlot]:
+    def schedule_battery_discharge_at_4_pm(self, state: State, now: datetime) -> list[BatteryDischargeSlot]:
         today_4_pm = now.replace(hour=16, minute=0, second=0, microsecond=0)
+        low_tariff_hours = 6
 
         price_forecast = self.forecast_factory.create_price_forecast(state)
         peak_periods = price_forecast.find_peak_periods(
-            today_4_pm, period_hours, self.config.battery_export_threshold_price
+            today_4_pm, low_tariff_hours, self.config.battery_export_threshold_price
         )
         if not peak_periods:
             self.appdaemon_logger.info(
@@ -39,10 +38,10 @@ class BatteryDischargeSlotEstimator:
             return []
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
-        hourly_consumptions = consumption_forecast.hourly(today_4_pm, period_hours)
+        hourly_consumptions = consumption_forecast.hourly(today_4_pm, low_tariff_hours)
 
         production_forecast = self.forecast_factory.create_production_forecast(state)
-        hourly_productions = production_forecast.hourly(today_4_pm, period_hours)
+        hourly_productions = production_forecast.hourly(today_4_pm, low_tariff_hours)
 
         energy_reserve = maximum_cumulative_deficit(hourly_consumptions, hourly_productions)
         self.appdaemon_logger.info(f"Energy reserve: {energy_reserve}")

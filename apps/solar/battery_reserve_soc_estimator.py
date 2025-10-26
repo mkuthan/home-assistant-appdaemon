@@ -20,14 +20,15 @@ class BatteryReserveSocEstimator:
         self.config = config
         self.forecast_factory = forecast_factory
 
-    def estimate_soc_tomorrow_at_7_am(self, state: State, now: datetime, period_hours: int) -> BatterySoc | None:
+    def estimate_soc_tomorrow_at_7_am(self, state: State, now: datetime) -> BatterySoc | None:
         tomorrow_7_am = now.replace(hour=7, minute=0, second=0, microsecond=0) + timedelta(days=1)
+        low_tariff_hours = 6
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
         production_forecast = self.forecast_factory.create_production_forecast(state)
 
-        morning_consumptions = consumption_forecast.hourly(tomorrow_7_am, period_hours)
-        morning_productions = production_forecast.hourly(tomorrow_7_am, period_hours)
+        morning_consumptions = consumption_forecast.hourly(tomorrow_7_am, low_tariff_hours)
+        morning_productions = production_forecast.hourly(tomorrow_7_am, low_tariff_hours)
 
         energy_reserve = maximum_cumulative_deficit(morning_consumptions, morning_productions)
         self.appdaemon_logger.info(f"Energy reserve: {energy_reserve}")
@@ -50,14 +51,15 @@ class BatteryReserveSocEstimator:
         return soc_target
 
     # TODO: implement tests for this method
-    def estimate_soc_today_at_4_pm(self, state: State, now: datetime, period_hours: int) -> BatterySoc | None:
+    def estimate_soc_today_at_4_pm(self, state: State, now: datetime) -> BatterySoc | None:
         today_4_pm = now.replace(hour=16, minute=0, second=0, microsecond=0)
+        low_tariff_hours = 6
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
         production_forecast = self.forecast_factory.create_production_forecast(state)
 
-        evening_consumptions = consumption_forecast.hourly(today_4_pm, period_hours)
-        evening_productions = production_forecast.hourly(today_4_pm, period_hours)
+        evening_consumptions = consumption_forecast.hourly(today_4_pm, low_tariff_hours)
+        evening_productions = production_forecast.hourly(today_4_pm, low_tariff_hours)
 
         energy_reserve = maximum_cumulative_deficit(evening_consumptions, evening_productions)
         self.appdaemon_logger.info(f"Energy reserve: {energy_reserve}")
@@ -95,8 +97,5 @@ class BatteryReserveSocEstimator:
             self.appdaemon_logger.info(f"Skip, estimated SoC {soc_solar_only} >= target SoC {soc_target}")
             return None
 
-        soc_grid_charging = soc_target - soc_solar_only
-        self.appdaemon_logger.info(
-            f"Target SoC after surplus energy alignment: {soc_grid_charging}, original target SoC: {soc_target}"
-        )
-        return soc_grid_charging
+        self.appdaemon_logger.info(f"Target SoC: {soc_target}")
+        return soc_target

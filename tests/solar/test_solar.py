@@ -72,7 +72,7 @@ def test_align_battery_reserve_soc_tomorrow_at_7_am(
     now = datetime.now()
     solar.align_battery_reserve_soc_tomorrow_at_7_am(now)
 
-    mock_battery_reserve_soc_estimator.estimate_soc_tomorrow_at_7_am.assert_called_once_with(state, now, 6)
+    mock_battery_reserve_soc_estimator.estimate_soc_tomorrow_at_7_am.assert_called_once_with(state, now)
 
     mock_appdaemon_service.call_service.assert_called_once_with(
         "number/set_value",
@@ -101,7 +101,7 @@ def test_align_battery_reserve_soc_today_at_4_pm(
     now = datetime.now()
     solar.align_battery_reserve_soc_today_at_4_pm(now)
 
-    mock_battery_reserve_soc_estimator.estimate_soc_today_at_4_pm.assert_called_once_with(state, now, 6)
+    mock_battery_reserve_soc_estimator.estimate_soc_today_at_4_pm.assert_called_once_with(state, now)
 
     mock_appdaemon_service.call_service.assert_called_once_with(
         "number/set_value",
@@ -181,7 +181,7 @@ def test_schedule_battery_discharge_at_4_pm(
     now = datetime.now()
     solar.schedule_battery_discharge_at_4_pm(now)
 
-    mock_battery_discharge_slot_estimator.schedule_battery_discharge_at_4_pm.assert_called_once_with(state, now, 6)
+    mock_battery_discharge_slot_estimator.schedule_battery_discharge_at_4_pm.assert_called_once_with(state, now)
 
     assert mock_appdaemon_service.call_service.call_count == 6
     mock_appdaemon_service.call_service.assert_any_call(
