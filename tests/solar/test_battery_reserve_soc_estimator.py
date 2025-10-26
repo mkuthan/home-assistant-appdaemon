@@ -122,3 +122,68 @@ def test_estimate_soc_today_at_4_pm_when_grid_charging_needed(
     # Net deficit (after solar): 5.5 kWh - 0.5 kWh = 5.0 kWh
     # Required SoC from battery: 5.0 kWh / 10.0 kWh = 50% + 20% min + 5% margin = 75%
     assert battery_reserve_soc == BatterySoc(75.0)
+
+
+def test_estimate_soc_today_at_4_pm_when_reserve_soc_already_above_target(
+    battery_reserve_soc_estimator: BatteryReserveSocEstimator,
+    state: State,
+    mock_production_forecast: Mock,
+    mock_consumption_forecast: Mock,
+) -> None:
+    state = replace(state, battery_soc=BatterySoc(40.0), battery_reserve_soc=BatterySoc(80.0))
+
+    now = datetime.fromisoformat("2025-10-10T15:00:00+00:00")
+
+    today_4_pm = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
+
+    afternoon_period = HourlyPeriod(now)
+    evening_period = HourlyPeriod(today_4_pm)
+
+    mock_consumption_forecast.hourly.side_effect = [
+        [HourlyProductionEnergy(afternoon_period, energy=EnergyKwh(1.0))],
+        [HourlyProductionEnergy(evening_period, energy=EnergyKwh(6.0))],
+    ]
+    mock_production_forecast.hourly.side_effect = [
+        [HourlyProductionEnergy(afternoon_period, energy=EnergyKwh(1.5))],
+        [HourlyProductionEnergy(evening_period, energy=EnergyKwh(0.5))],
+    ]
+
+    battery_reserve_soc = battery_reserve_soc_estimator.estimate_soc_today_at_4_pm(state, now)
+
+    # Battery reserve SoC (80%) is already above the target (75%)
+    assert battery_reserve_soc is None
+
+
+def test_estimate_soc_today_at_4_pm_when_solar_only_charging_sufficient(
+    battery_reserve_soc_estimator: BatteryReserveSocEstimator,
+    state: State,
+    mock_production_forecast: Mock,
+    mock_consumption_forecast: Mock,
+) -> None:
+    state = replace(state, battery_soc=BatterySoc(20.0), battery_reserve_soc=BatterySoc(20.0))
+
+    now = datetime.fromisoformat("2025-10-10T15:00:00+00:00")
+
+    today_4_pm = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
+
+    afternoon_period = HourlyPeriod(now)
+    evening_period = HourlyPeriod(today_4_pm)
+
+    mock_consumption_forecast.hourly.side_effect = [
+        [HourlyProductionEnergy(afternoon_period, energy=EnergyKwh(1.0))],
+        [HourlyProductionEnergy(evening_period, energy=EnergyKwh(6.0))],
+    ]
+    mock_production_forecast.hourly.side_effect = [
+        [HourlyProductionEnergy(afternoon_period, energy=EnergyKwh(5.0))],
+        [HourlyProductionEnergy(evening_period, energy=EnergyKwh(0.5))],
+    ]
+
+    battery_reserve_soc = battery_reserve_soc_estimator.estimate_soc_today_at_4_pm(state, now)
+
+    # Evening deficit: 6.0 kWh - 0.5 kWh = 5.5 kWh
+    # Afternoon surplus: 5.0 kWh - 1.0 kWh = 4.0 kWh
+    # Net deficit (after solar): 5.5 kWh - 4.0 kWh = 1.5 kWh
+    # SoC target: (1.5 kWh / 10.0 kWh) = 15% + 20% min + 5% margin = 40%
+    # SoC solar only: 20% + (4.0 kWh / 10.0 kWh) = 20% + 40% = 60%
+    # Since soc_solar_only (60%) >= soc_target (40%), no grid charging needed
+    assert battery_reserve_soc is None
