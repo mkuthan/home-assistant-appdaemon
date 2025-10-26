@@ -29,9 +29,8 @@ class DefaultForecastFactory:
     def create_production_forecast(self, state: State) -> ProductionForecast:
         today = ProductionForecastDefault.create(state.pv_forecast_today)
         tomorrow = ProductionForecastDefault.create(state.pv_forecast_tomorrow)
-        day_3 = ProductionForecastDefault.create(state.pv_forecast_day_3)
 
-        return ProductionForecastComposite(today, tomorrow, day_3)
+        return ProductionForecastComposite(today, tomorrow)
 
     def create_consumption_forecast(self, state: State) -> ConsumptionForecast:
         weather_forecast = self.create_weather_forecast(state)

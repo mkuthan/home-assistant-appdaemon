@@ -22,7 +22,7 @@ def test_create_production_forecast(
     production_forecast = forecast_factory.create_production_forecast(state)
 
     assert isinstance(production_forecast, ProductionForecastComposite)
-    assert len(production_forecast.components) == 3
+    assert len(production_forecast.components) == 2
 
 
 def test_create_consumption_forecast(

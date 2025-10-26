@@ -70,7 +70,6 @@ def state() -> State:
         hourly_price=EnergyPrice.pln_per_mwh(Decimal(0)),
         pv_forecast_today=[],
         pv_forecast_tomorrow=[],
-        pv_forecast_day_3=[],
         weather_forecast={},
         price_forecast_today=[],
     )

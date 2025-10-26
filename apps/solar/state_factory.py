@@ -55,9 +55,6 @@ class DefaultStateFactory:
         pv_forecast_tomorrow = safe_list(
             self.appdaemon_state.get_state("sensor.solcast_pv_forecast_forecast_tomorrow", "detailedHourly")
         )
-        pv_forecast_day_3 = safe_list(
-            self.appdaemon_state.get_state("sensor.solcast_pv_forecast_forecast_day_3", "detailedHourly")
-        )
 
         weather_forecast = safe_dict(
             self.appdaemon_service.call_service(
@@ -102,8 +99,6 @@ class DefaultStateFactory:
             missing.append("pv_forecast_today")
         if pv_forecast_tomorrow is None:
             missing.append("pv_forecast_tomorrow")
-        if pv_forecast_day_3 is None:
-            missing.append("pv_forecast_day_3")
         if weather_forecast is None:
             missing.append("weather_forecast")
         if price_forecast_today is None:
@@ -130,7 +125,6 @@ class DefaultStateFactory:
         assert hourly_price is not None
         assert pv_forecast_today is not None
         assert pv_forecast_tomorrow is not None
-        assert pv_forecast_day_3 is not None
         assert weather_forecast is not None
         assert price_forecast_today is not None
 
@@ -152,7 +146,6 @@ class DefaultStateFactory:
             hourly_price=EnergyPrice.pln_per_mwh(Decimal.from_float(hourly_price)),
             pv_forecast_today=pv_forecast_today,
             pv_forecast_tomorrow=pv_forecast_tomorrow,
-            pv_forecast_day_3=pv_forecast_day_3,
             weather_forecast=weather_forecast,
             price_forecast_today=price_forecast_today,
         )
