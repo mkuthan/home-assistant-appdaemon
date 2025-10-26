@@ -1,7 +1,6 @@
 # Home Assistant AppDaemon Applications
 
 [![CI](https://github.com/mkuthan/home-assistant-appdaemon/actions/workflows/ci.yml/badge.svg)](https://github.com/mkuthan/home-assistant-appdaemon/actions/workflows/ci.yml)
-
 [![codecov](https://codecov.io/gh/mkuthan/home-assistant-appdaemon/graph/badge.svg?token=OIJ3MV1L8G)](https://codecov.io/gh/mkuthan/home-assistant-appdaemon)
 
 This project provides intelligent automation for solar-powered homes, optimizing energy usage and battery management to maximize self-consumption and minimize grid costs. By integrating real-time solar production data, household consumption patterns, weather forecasts, and dynamic electricity pricing, the system makes autonomous decisions about when to store, consume, or discharge battery energy.
@@ -22,7 +21,7 @@ The project follows a clean architecture pattern with clear separation of concer
   - `*_estimator.py` - Specialized estimators for energy usage and battery management decisions
   - `*_forecast.py` - Forecast data models and factories
   - `state.py` / `state_factory.py` - Home Assistant state management
-- `apps/units/` - Type-safe value objects for domain concepts (energy, power, SOC, etc.)
+- `apps/units/` - Type-safe value objects for domain concepts (energy, power, battery SoC, etc.)
 - `apps/utils/` - Shared utilities and safe type converters
 - `apps/appdaemon_protocols/` - Protocol interfaces for dependency injection and testability
 
@@ -30,7 +29,7 @@ The project follows a clean architecture pattern with clear separation of concer
 
 - *Dependency Injection* - Protocol classes enable testing without the AppDaemon runtime
 - *Immutable Data* - Frozen dataclasses prevent accidental state mutations
-- *Type Safety* - Full type hints enforced by ruff configuration
+- *Type Safety* - Full type hints enforced by ruff and pyright configurations
 - *Testability* - Core logic is framework-agnostic and easily unit-testable
 
 ## Configuration
