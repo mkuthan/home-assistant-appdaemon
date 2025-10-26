@@ -41,6 +41,7 @@ class BatteryReserveSocEstimator:
             self.config.battery_reserve_soc_margin,
             self.config.battery_reserve_soc_max,
         )
+        self.appdaemon_logger.info(f"SoC target: {soc_target}")
 
         if state.battery_reserve_soc >= soc_target:
             self.appdaemon_logger.info(
@@ -48,7 +49,6 @@ class BatteryReserveSocEstimator:
             )
             return None
 
-        self.appdaemon_logger.info(f"Estimate battery reserve SoC target: {soc_target}")
         return soc_target
 
     def estimate_soc_today_at_4_pm(self, state: State, now: datetime) -> BatterySoc | None:
@@ -83,6 +83,7 @@ class BatteryReserveSocEstimator:
             self.config.battery_reserve_soc_margin,
             self.config.battery_reserve_soc_max,
         )
+        self.appdaemon_logger.info(f"SoC target: {soc_target}")
 
         if state.battery_reserve_soc >= soc_target:
             self.appdaemon_logger.info(
@@ -100,5 +101,4 @@ class BatteryReserveSocEstimator:
             self.appdaemon_logger.info(f"Skip, estimated SoC max {soc_solar_only} >= SoC target {soc_target}")
             return None
 
-        self.appdaemon_logger.info(f"Estimate battery reserve SoC target: {soc_target}")
         return soc_target
