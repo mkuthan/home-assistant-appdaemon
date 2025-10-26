@@ -86,7 +86,7 @@ class Solar:
             self.appdaemon_logger.warn("Unknown state, cannot schedule battery discharge")
             return
 
-        estimated_battery_discharge_slots = self.battery_discharge_slot_estimator.schedule_battery_discharge_at_4_pm(
+        estimated_battery_discharge_slots = self.battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm(
             state, now
         )
 

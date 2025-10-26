@@ -176,12 +176,12 @@ def test_schedule_battery_discharge_at_4_pm(
     )
     estimated_discharge_slots = [estimated_discharge_slot1, estimated_discharge_slot2]
 
-    mock_battery_discharge_slot_estimator.schedule_battery_discharge_at_4_pm.return_value = estimated_discharge_slots
+    mock_battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm.return_value = estimated_discharge_slots
 
     now = datetime.now()
     solar.schedule_battery_discharge_at_4_pm(now)
 
-    mock_battery_discharge_slot_estimator.schedule_battery_discharge_at_4_pm.assert_called_once_with(state, now)
+    mock_battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm.assert_called_once_with(state, now)
 
     assert mock_appdaemon_service.call_service.call_count == 6
     mock_appdaemon_service.call_service.assert_any_call(

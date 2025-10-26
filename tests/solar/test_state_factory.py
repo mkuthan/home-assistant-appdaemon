@@ -95,7 +95,6 @@ def test_create(
     service_call_values: dict,
     pv_forecast_today: list[dict],
     pv_forecast_tomorrow: list[dict],
-    pv_forecast_day_3: list[dict],
     weather_forecast: dict,
     price_forecast: list[dict],
 ) -> None:
