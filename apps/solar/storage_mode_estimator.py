@@ -12,6 +12,8 @@ from utils.energy_aggregators import total_surplus
 
 
 class StorageModeEstimator:
+    END_HOUR: int = 16
+
     def __init__(
         self,
         appdaemon_logger: AppdaemonLogger,
@@ -22,8 +24,15 @@ class StorageModeEstimator:
         self.config = config
         self.forecast_factory = forecast_factory
 
-    def __call__(self, state: State, period_start: datetime, period_hours: int) -> StorageMode:
+    def estimate_storage_mode(self, state: State, now: datetime) -> StorageMode:
+        remaining_hours = self.END_HOUR - now.hour
+        if remaining_hours <= 0:
+            self.appdaemon_logger.info(f"Use {StorageMode.SELF_USE}, no remaining hours in the day")
+            return StorageMode.SELF_USE
+
         required_battery_reserve_soc = self.config.battery_reserve_soc_min + self.config.battery_reserve_soc_margin
+        self.appdaemon_logger.info("Required battery reserve SoC: {required_battery_reserve_soc}")
+
         if state.battery_soc <= required_battery_reserve_soc:
             self.appdaemon_logger.info(
                 f"Use {StorageMode.SELF_USE}, battery SoC {state.battery_soc} <= {required_battery_reserve_soc}"
@@ -31,7 +40,7 @@ class StorageModeEstimator:
             return StorageMode.SELF_USE
 
         price_forecast = self.forecast_factory.create_price_forecast(state)
-        min_price = price_forecast.find_daily_min_price(period_start, period_hours)
+        min_price = price_forecast.find_daily_min_price(now, remaining_hours)
         if min_price is None:
             self.appdaemon_logger.info(f"Use {StorageMode.SELF_USE}, minimum price not found in the forecast")
             return StorageMode.SELF_USE
@@ -45,21 +54,20 @@ class StorageModeEstimator:
             return StorageMode.SELF_USE
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
-        consumptions = consumption_forecast.hourly(period_start, period_hours)
+        consumptions = consumption_forecast.hourly(now, remaining_hours)
 
         production_forecast = self.forecast_factory.create_production_forecast(state)
-        productions = production_forecast.hourly(period_start, period_hours)
+        productions = production_forecast.hourly(now, remaining_hours)
 
         energy_surplus = total_surplus(consumptions, productions)
         self.appdaemon_logger.info(f"Energy surplus: {energy_surplus}")
 
-        estimated_battery_max_soc = estimate_battery_max_soc(
-            energy_surplus, state.battery_soc, self.config.battery_capacity
-        )
+        battery_soc_max = estimate_battery_max_soc(energy_surplus, state.battery_soc, self.config.battery_capacity)
+        self.appdaemon_logger.info(f"Battery SoC max: {battery_soc_max}")
 
-        if estimated_battery_max_soc < BATTERY_SOC_MAX:
+        if battery_soc_max < BATTERY_SOC_MAX:
             self.appdaemon_logger.info(
-                f"Use {StorageMode.SELF_USE}, estimated battery max SoC {estimated_battery_max_soc} < {BATTERY_SOC_MAX}"
+                f"Use {StorageMode.SELF_USE}, battery SoC max {battery_soc_max} < {BATTERY_SOC_MAX}"
             )
             return StorageMode.SELF_USE
 

@@ -253,12 +253,12 @@ def test_align_storage_mode(
     state = replace(state, inverter_storage_mode=current_storage_mode)
     mock_state_factory.create.return_value = state
 
-    mock_storage_mode_estimator.return_value = new_storage_mode
+    mock_storage_mode_estimator.estimate_storage_mode.return_value = new_storage_mode
 
-    start_period = datetime.now()
-    solar.align_storage_mode(start_period, period_hours=6)
+    now = datetime.now()
+    solar.align_storage_mode(now)
 
-    mock_storage_mode_estimator.assert_called_once_with(state, start_period, 6)
+    mock_storage_mode_estimator.estimate_storage_mode.assert_called_once_with(state, now)
 
     mock_appdaemon_service.call_service.assert_called_once_with(
         "select/select_option",
