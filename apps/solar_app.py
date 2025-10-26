@@ -57,30 +57,31 @@ class SolarApp(BaseApp):
         self.listen_event(self.solar_debug, "SOLAR_DEBUG")
 
         self.info("Scheduling battery reserve SOC alignment for tomorrow at 7 AM")
-        self.run_daily(self.align_battery_reserve_soc_tomorrow_at_7_am, self.schedule_at(22, 5))
-        self.run_daily(self.align_battery_reserve_soc_tomorrow_at_7_am, self.schedule_at(22, 35))  # backup call
+        self.run_daily(self.align_battery_reserve_soc_tomorrow_at_7_am, "22:05:00")
+        self.run_daily(self.align_battery_reserve_soc_tomorrow_at_7_am, "22:35:00")  # backup call
 
         self.info("Scheduling battery reserve SOC reset before morning usage")
-        self.run_daily(self.reset_battery_reserve_soc, self.schedule_at(6, 55))
-        self.run_daily(self.reset_battery_reserve_soc, self.schedule_at(7, 5))  # backup call
+        self.run_daily(self.reset_battery_reserve_soc, "6:55:00")
+        self.run_daily(self.reset_battery_reserve_soc, "7:05:00")  # backup call
 
         self.info("Scheduling battery reserve SOC alignment for today at 4 PM")
-        self.run_daily(self.align_battery_reserve_soc_today_at_4_pm, self.schedule_at(13, 5))
-        self.run_daily(self.align_battery_reserve_soc_today_at_4_pm, self.schedule_at(14, 0))
-        self.run_daily(self.align_battery_reserve_soc_today_at_4_pm, self.schedule_at(14, 30))
-        self.run_daily(self.align_battery_reserve_soc_today_at_4_pm, self.schedule_at(15, 0))
-        self.run_daily(self.align_battery_reserve_soc_today_at_4_pm, self.schedule_at(15, 30))
+        self.run_daily(self.align_battery_reserve_soc_today_at_4_pm, "13:05:00")
+        self.run_daily(self.align_battery_reserve_soc_today_at_4_pm, "14:00:00")
+        self.run_daily(self.align_battery_reserve_soc_today_at_4_pm, "14:30:00")
+        self.run_daily(self.align_battery_reserve_soc_today_at_4_pm, "15:00:00")
+        self.run_daily(self.align_battery_reserve_soc_today_at_4_pm, "15:30:00")
 
         self.info("Scheduling battery reserve SOC reset before evening usage")
-        self.run_daily(self.reset_battery_reserve_soc, self.schedule_at(15, 55))
-        self.run_daily(self.reset_battery_reserve_soc, self.schedule_at(16, 5))  # backup call
+        self.run_daily(self.reset_battery_reserve_soc, "15:55:00")
+        self.run_daily(self.reset_battery_reserve_soc, "16:05:00")  # backup call
 
         self.info("Scheduling battery discharge schedule")
-        self.run_daily(self.schedule_battery_discharge, self.schedule_at(16, 0), 16, 6)
+        self.run_daily(self.schedule_battery_discharge_at_4_pm, "15:30:00")
+        self.run_daily(self.schedule_battery_discharge_at_4_pm, "16:00:00")  # backup call
 
         self.info("Scheduling battery discharge disable")
-        self.run_daily(self.disable_battery_discharge, self.schedule_at(22, 0))
-        self.run_daily(self.disable_battery_discharge, self.schedule_at(22, 5))  # backup call
+        self.run_daily(self.disable_battery_discharge, "22:00:00")
+        self.run_daily(self.disable_battery_discharge, "22:05:00")  # backup call
 
         self.info("Listening to: [Battery SoC, Hourly price] changes and align storage mode")
         self.listen_state(
@@ -105,8 +106,8 @@ class SolarApp(BaseApp):
     def reset_battery_reserve_soc(self, **_kwargs: object) -> None:
         self.solar.reset_battery_reserve_soc()
 
-    def schedule_battery_discharge(self, start_hour: int, hours: int, **_kwargs: object) -> None:
-        self.solar.schedule_battery_discharge(self.today_at_hour(start_hour), hours)
+    def schedule_battery_discharge_at_4_pm(self, **_kwargs: object) -> None:
+        self.solar.schedule_battery_discharge_at_4_pm(self.get_now())
 
     def disable_battery_discharge(self, **_kwargs: object) -> None:
         self.solar.disable_battery_discharge()

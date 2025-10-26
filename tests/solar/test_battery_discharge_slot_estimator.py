@@ -42,7 +42,7 @@ def battery_discharge_slot_estimator(
     )
 
 
-def test_estimator_when_surplus_energy_for_two_slots(
+def test_schedule_battery_discharge_at_4_pm_when_surplus_energy_for_two_slots(
     battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
     state: State,
     mock_production_forecast: Mock,
@@ -51,10 +51,11 @@ def test_estimator_when_surplus_energy_for_two_slots(
 ) -> None:
     state = replace(state, battery_soc=BatterySoc(100.0))
 
-    period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
+    this_day = datetime.fromisoformat("2025-10-10T13:30:00+00:00")
+    this_day_4_pm = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
 
-    hourly_period = HourlyPeriod.parse("2025-10-10T16:00:00+00:00")
+    hourly_period = HourlyPeriod(this_day_4_pm)
 
     mock_production_forecast.hourly.return_value = [
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(2.0)),
@@ -73,15 +74,17 @@ def test_estimator_when_surplus_energy_for_two_slots(
     )
     mock_price_forecast.find_peak_periods.return_value = [peak_period_1, peak_period_2]
 
-    battery_discharge_slot = battery_discharge_slot_estimator(state, period_start, period_hours)
+    battery_discharge_slot = battery_discharge_slot_estimator.schedule_battery_discharge_at_4_pm(
+        state, this_day, period_hours
+    )
 
     mock_price_forecast.find_peak_periods.assert_called_once_with(
-        period_start,
+        this_day_4_pm,
         period_hours,
         battery_discharge_slot_estimator.config.battery_export_threshold_price,
     )
-    mock_production_forecast.hourly.assert_called_once_with(period_start, period_hours)
-    mock_consumption_forecast.hourly.assert_called_once_with(period_start, period_hours)
+    mock_production_forecast.hourly.assert_called_once_with(this_day_4_pm, period_hours)
+    mock_consumption_forecast.hourly.assert_called_once_with(this_day_4_pm, period_hours)
 
     assert len(battery_discharge_slot) == 2
     assert battery_discharge_slot[0] == BatteryDischargeSlot(
@@ -92,7 +95,7 @@ def test_estimator_when_surplus_energy_for_two_slots(
     )
 
 
-def test_estimator_when_surplus_energy_for_one_slot(
+def test_schedule_battery_discharge_at_4_pm_when_surplus_energy_for_one_slot(
     battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
     state: State,
     mock_production_forecast: Mock,
@@ -101,10 +104,11 @@ def test_estimator_when_surplus_energy_for_one_slot(
 ) -> None:
     state = replace(state, battery_soc=BatterySoc(90.0))
 
-    period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
+    this_day = datetime.fromisoformat("2025-10-10T13:30:00+00:00")
+    this_day_4_pm = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
 
-    hourly_period = HourlyPeriod.parse("2025-10-10T16:00:00+00:00")
+    hourly_period = HourlyPeriod(this_day_4_pm)
 
     mock_production_forecast.hourly.return_value = [
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(2.0)),
@@ -123,18 +127,17 @@ def test_estimator_when_surplus_energy_for_one_slot(
     )
     mock_price_forecast.find_peak_periods.return_value = [peak_period_1, peak_period_2]
 
-    period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
-    period_hours = 6
-
-    battery_discharge_slot = battery_discharge_slot_estimator(state, period_start, period_hours)
+    battery_discharge_slot = battery_discharge_slot_estimator.schedule_battery_discharge_at_4_pm(
+        state, this_day, period_hours
+    )
 
     mock_price_forecast.find_peak_periods.assert_called_once_with(
-        period_start,
+        this_day_4_pm,
         period_hours,
         battery_discharge_slot_estimator.config.battery_export_threshold_price,
     )
-    mock_production_forecast.hourly.assert_called_once_with(period_start, period_hours)
-    mock_consumption_forecast.hourly.assert_called_once_with(period_start, period_hours)
+    mock_production_forecast.hourly.assert_called_once_with(this_day_4_pm, period_hours)
+    mock_consumption_forecast.hourly.assert_called_once_with(this_day_4_pm, period_hours)
 
     assert len(battery_discharge_slot) == 1
     assert battery_discharge_slot[0] == BatteryDischargeSlot(
@@ -142,7 +145,7 @@ def test_estimator_when_surplus_energy_for_one_slot(
     )
 
 
-def test_estimator_when_surplus_energy_for_no_slots(
+def test_schedule_battery_discharge_at_4_pm_when_surplus_energy_for_no_slots(
     battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
     state: State,
     mock_production_forecast: Mock,
@@ -151,10 +154,11 @@ def test_estimator_when_surplus_energy_for_no_slots(
 ) -> None:
     state = replace(state, battery_soc=BatterySoc(50.0))
 
-    period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
+    this_day = datetime.fromisoformat("2025-10-10T13:30:00+00:00")
+    this_day_4_pm = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
 
-    hourly_period = HourlyPeriod.parse("2025-10-10T16:00:00+00:00")
+    hourly_period = HourlyPeriod(this_day_4_pm)
 
     mock_production_forecast.hourly.return_value = [
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(2.0)),
@@ -173,33 +177,38 @@ def test_estimator_when_surplus_energy_for_no_slots(
     )
     mock_price_forecast.find_peak_periods.return_value = [peak_period_1, peak_period_2]
 
-    battery_discharge_slot = battery_discharge_slot_estimator(state, period_start, period_hours)
+    battery_discharge_slot = battery_discharge_slot_estimator.schedule_battery_discharge_at_4_pm(
+        state, this_day, period_hours
+    )
 
     mock_price_forecast.find_peak_periods.assert_called_once_with(
-        period_start,
+        this_day_4_pm,
         period_hours,
         battery_discharge_slot_estimator.config.battery_export_threshold_price,
     )
-    mock_production_forecast.hourly.assert_called_once_with(period_start, period_hours)
-    mock_consumption_forecast.hourly.assert_called_once_with(period_start, period_hours)
+    mock_production_forecast.hourly.assert_called_once_with(this_day_4_pm, period_hours)
+    mock_consumption_forecast.hourly.assert_called_once_with(this_day_4_pm, period_hours)
 
     assert len(battery_discharge_slot) == 0
 
 
-def test_estimator_when_no_peak_periods(
+def test_schedule_battery_discharge_at_4_pm_when_no_peak_periods(
     battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
     state: State,
     mock_price_forecast: Mock,
 ) -> None:
     mock_price_forecast.find_peak_periods.return_value = []
 
-    period_start = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
+    this_day = datetime.fromisoformat("2025-10-10T13:30:00+00:00")
+    this_day_4_pm = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     period_hours = 6
 
-    battery_discharge_slot = battery_discharge_slot_estimator(state, period_start, period_hours)
+    battery_discharge_slot = battery_discharge_slot_estimator.schedule_battery_discharge_at_4_pm(
+        state, this_day, period_hours
+    )
 
     mock_price_forecast.find_peak_periods.assert_called_once_with(
-        period_start,
+        this_day_4_pm,
         period_hours,
         battery_discharge_slot_estimator.config.battery_export_threshold_price,
     )

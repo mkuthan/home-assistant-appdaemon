@@ -22,43 +22,47 @@ class BatteryDischargeSlotEstimator:
         self.config = config
         self.forecast_factory = forecast_factory
 
-    def __call__(self, state: State, period_start: datetime, period_hours: int) -> list[BatteryDischargeSlot]:
+    def schedule_battery_discharge_at_4_pm(
+        self, state: State, now: datetime, period_hours: int
+    ) -> list[BatteryDischargeSlot]:
+        today_4_pm = now.replace(hour=16, minute=0, second=0, microsecond=0)
+
         price_forecast = self.forecast_factory.create_price_forecast(state)
         peak_periods = price_forecast.find_peak_periods(
-            period_start, period_hours, self.config.battery_export_threshold_price
+            today_4_pm, period_hours, self.config.battery_export_threshold_price
         )
         if not peak_periods:
             self.appdaemon_logger.info(
-                f"No peak periods above the threshold {self.config.battery_export_threshold_price} "
+                f"Skip, no peak periods above the threshold {self.config.battery_export_threshold_price} "
                 + "found in the price forecast"
             )
             return []
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
-        hourly_consumptions = consumption_forecast.hourly(period_start, period_hours)
+        hourly_consumptions = consumption_forecast.hourly(today_4_pm, period_hours)
 
         production_forecast = self.forecast_factory.create_production_forecast(state)
-        hourly_productions = production_forecast.hourly(period_start, period_hours)
+        hourly_productions = production_forecast.hourly(today_4_pm, period_hours)
 
-        required_energy_reserve = maximum_cumulative_deficit(hourly_consumptions, hourly_productions)
-        self.appdaemon_logger.info(f"Required energy reserve: {required_energy_reserve}")
+        energy_reserve = maximum_cumulative_deficit(hourly_consumptions, hourly_productions)
+        self.appdaemon_logger.info(f"Energy reserve: {energy_reserve}")
 
-        estimated_surplus_energy = estimate_battery_surplus_energy(
-            required_energy_reserve,
+        energy_surplus = estimate_battery_surplus_energy(
+            energy_reserve,
             state.battery_soc,
             self.config.battery_capacity,
             self.config.battery_reserve_soc_min,
             self.config.battery_reserve_soc_margin,
         )
-        self.appdaemon_logger.info(f"Estimated surplus energy: {estimated_surplus_energy}")
+        self.appdaemon_logger.info(f"Energy surplus: {energy_surplus}")
 
-        estimated_discharge_current = energy_to_current(estimated_surplus_energy, self.config.battery_voltage)
-        self.appdaemon_logger.info(f"Estimated battery discharge current: {estimated_discharge_current}")
+        battery_discharge_current = energy_to_current(energy_surplus, self.config.battery_voltage)
+        self.appdaemon_logger.info(f"Battery discharge current: {battery_discharge_current}")
 
         sorted_peak_periods = sorted(peak_periods, key=lambda period: period.price.value, reverse=True)
 
         discharge_slots = []
-        remaining_current = estimated_discharge_current
+        remaining_current = battery_discharge_current
 
         for period in sorted_peak_periods:
             if remaining_current == BATTERY_CURRENT_ZERO:
@@ -69,7 +73,7 @@ class BatteryDischargeSlotEstimator:
             slot_energy = current_to_energy(slot_current, self.config.battery_voltage, duration_hours=1)
             if slot_energy <= self.config.battery_export_threshold_energy:
                 self.appdaemon_logger.info(
-                    f"Skipping slot {period}, estimated energy {slot_energy} <= "
+                    f"Skip slot {period}, estimated energy {slot_energy} <= "
                     + f"{self.config.battery_export_threshold_energy}"
                 )
                 continue
@@ -80,7 +84,7 @@ class BatteryDischargeSlotEstimator:
                 current=slot_current,
             )
             discharge_slots.append(discharge_slot)
-            self.appdaemon_logger.info(f"Estimated battery discharge slot: {discharge_slot}")
+            self.appdaemon_logger.info(f"Battery discharge slot: {discharge_slot}")
 
             remaining_current = remaining_current - slot_current
 
