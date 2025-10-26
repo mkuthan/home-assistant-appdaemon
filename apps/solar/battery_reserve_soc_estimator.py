@@ -93,12 +93,12 @@ class BatteryReserveSocEstimator:
 
         # Optimization to skip unnecessary Inverter register writes
         if state.battery_soc >= soc_target:
-            self.appdaemon_logger.info(f"Skip, battery SoC {state.battery_soc} >= SoC target {soc_target}")
+            self.appdaemon_logger.info(f"Skip, battery SoC current {state.battery_soc} >= SoC target {soc_target}")
             return None
 
         soc_solar_only = estimate_battery_max_soc(energy_surplus, state.battery_soc, self.config.battery_capacity)
         if soc_solar_only >= soc_target:
-            self.appdaemon_logger.info(f"Skip, estimated SoC max {soc_solar_only} >= SoC target {soc_target}")
+            self.appdaemon_logger.info(f"Skip, estimated battery SoC max {soc_solar_only} >= SoC target {soc_target}")
             return None
 
         return soc_target
