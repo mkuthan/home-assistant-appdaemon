@@ -22,7 +22,7 @@ class BatteryDischargeSlotEstimator:
         self.config = config
         self.forecast_factory = forecast_factory
 
-    def schedule_battery_discharge_at_4_pm(self, state: State, now: datetime) -> list[BatteryDischargeSlot]:
+    def estimate_battery_discharge_at_4_pm(self, state: State, now: datetime) -> list[BatteryDischargeSlot]:
         today_4_pm = now.replace(hour=16, minute=0, second=0, microsecond=0)
         low_tariff_hours = 6
 

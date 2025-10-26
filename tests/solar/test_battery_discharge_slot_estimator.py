@@ -42,7 +42,7 @@ def battery_discharge_slot_estimator(
     )
 
 
-def test_schedule_battery_discharge_at_4_pm_when_surplus_energy_for_two_slots(
+def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_for_two_slots(
     battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
     state: State,
     mock_production_forecast: Mock,
@@ -74,7 +74,7 @@ def test_schedule_battery_discharge_at_4_pm_when_surplus_energy_for_two_slots(
     )
     mock_price_forecast.find_peak_periods.return_value = [peak_period_1, peak_period_2]
 
-    battery_discharge_slot = battery_discharge_slot_estimator.schedule_battery_discharge_at_4_pm(state, this_day)
+    battery_discharge_slot = battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm(state, this_day)
 
     mock_price_forecast.find_peak_periods.assert_called_once_with(
         this_day_4_pm,
@@ -93,7 +93,7 @@ def test_schedule_battery_discharge_at_4_pm_when_surplus_energy_for_two_slots(
     )
 
 
-def test_schedule_battery_discharge_at_4_pm_when_surplus_energy_for_one_slot(
+def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_for_one_slot(
     battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
     state: State,
     mock_production_forecast: Mock,
@@ -125,7 +125,7 @@ def test_schedule_battery_discharge_at_4_pm_when_surplus_energy_for_one_slot(
     )
     mock_price_forecast.find_peak_periods.return_value = [peak_period_1, peak_period_2]
 
-    battery_discharge_slot = battery_discharge_slot_estimator.schedule_battery_discharge_at_4_pm(state, this_day)
+    battery_discharge_slot = battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm(state, this_day)
 
     mock_price_forecast.find_peak_periods.assert_called_once_with(
         this_day_4_pm,
@@ -141,7 +141,7 @@ def test_schedule_battery_discharge_at_4_pm_when_surplus_energy_for_one_slot(
     )
 
 
-def test_schedule_battery_discharge_at_4_pm_when_surplus_energy_for_no_slots(
+def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_for_no_slots(
     battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
     state: State,
     mock_production_forecast: Mock,
@@ -173,7 +173,7 @@ def test_schedule_battery_discharge_at_4_pm_when_surplus_energy_for_no_slots(
     )
     mock_price_forecast.find_peak_periods.return_value = [peak_period_1, peak_period_2]
 
-    battery_discharge_slot = battery_discharge_slot_estimator.schedule_battery_discharge_at_4_pm(state, this_day)
+    battery_discharge_slot = battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm(state, this_day)
 
     mock_price_forecast.find_peak_periods.assert_called_once_with(
         this_day_4_pm,
@@ -186,7 +186,7 @@ def test_schedule_battery_discharge_at_4_pm_when_surplus_energy_for_no_slots(
     assert len(battery_discharge_slot) == 0
 
 
-def test_schedule_battery_discharge_at_4_pm_when_no_peak_periods(
+def test_estimate_battery_discharge_at_4_pm_when_no_peak_periods(
     battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
     state: State,
     mock_price_forecast: Mock,
@@ -197,7 +197,7 @@ def test_schedule_battery_discharge_at_4_pm_when_no_peak_periods(
     this_day_4_pm = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     low_tariff_hours = 6
 
-    battery_discharge_slot = battery_discharge_slot_estimator.schedule_battery_discharge_at_4_pm(state, this_day)
+    battery_discharge_slot = battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm(state, this_day)
 
     mock_price_forecast.find_peak_periods.assert_called_once_with(
         this_day_4_pm,
