@@ -53,7 +53,7 @@ def solar(
     )
 
 
-def test_align_battery_reserve_soc(
+def test_align_battery_reserve_soc_tomorrow_at_7_am(
     solar: Solar,
     state: State,
     mock_appdaemon_service: Mock,
@@ -67,12 +67,41 @@ def test_align_battery_reserve_soc(
 
     mock_state_factory.create.return_value = state
 
-    mock_battery_reserve_soc_estimator.return_value = new_battery_reserve_soc
+    mock_battery_reserve_soc_estimator.estimate_soc_tomorrow_at_7_am.return_value = new_battery_reserve_soc
 
-    start_period = datetime.now()
-    solar.align_battery_reserve_soc(start_period, period_hours=6)
+    now = datetime.now()
+    solar.align_battery_reserve_soc_tomorrow_at_7_am(now)
 
-    mock_battery_reserve_soc_estimator.assert_called_once_with(state, start_period, 6)
+    mock_battery_reserve_soc_estimator.estimate_soc_tomorrow_at_7_am.assert_called_once_with(state, now)
+
+    mock_appdaemon_service.call_service.assert_called_once_with(
+        "number/set_value",
+        callback=mock_appdaemon_service.service_call_callback,
+        entity_id="number.solis_control_battery_reserve_soc",
+        value=new_battery_reserve_soc.value,
+    )
+
+
+def test_align_battery_reserve_soc_today_at_4_pm(
+    solar: Solar,
+    state: State,
+    mock_appdaemon_service: Mock,
+    mock_state_factory: Mock,
+    mock_battery_reserve_soc_estimator: Mock,
+) -> None:
+    current_battery_reserve_soc = BatterySoc(30.0)
+    new_battery_reserve_soc = BatterySoc(40.0)
+
+    state = replace(state, battery_reserve_soc=current_battery_reserve_soc)
+
+    mock_state_factory.create.return_value = state
+
+    mock_battery_reserve_soc_estimator.estimate_soc_today_at_4_pm.return_value = new_battery_reserve_soc
+
+    now = datetime.now()
+    solar.align_battery_reserve_soc_today_at_4_pm(now)
+
+    mock_battery_reserve_soc_estimator.estimate_soc_today_at_4_pm.assert_called_once_with(state, now)
 
     mock_appdaemon_service.call_service.assert_called_once_with(
         "number/set_value",
@@ -92,7 +121,6 @@ def test_reset_battery_reserve_soc(
     battery_reserve_soc_current = BatterySoc(50.0)
     battery_reserve_soc_min = BatterySoc(20.0)
 
-    # Modify the config on the solar instance directly
     solar.config = replace(config, battery_reserve_soc_min=battery_reserve_soc_min)
     state = replace(state, battery_reserve_soc=battery_reserve_soc_current)
 
@@ -108,7 +136,7 @@ def test_reset_battery_reserve_soc(
     )
 
 
-def test_schedule_battery_discharge(
+def test_schedule_battery_discharge_at_4_pm(
     solar: Solar,
     state: State,
     mock_appdaemon_service: Mock,
@@ -148,12 +176,12 @@ def test_schedule_battery_discharge(
     )
     estimated_discharge_slots = [estimated_discharge_slot1, estimated_discharge_slot2]
 
-    mock_battery_discharge_slot_estimator.return_value = estimated_discharge_slots
+    mock_battery_discharge_slot_estimator.schedule_battery_discharge_at_4_pm.return_value = estimated_discharge_slots
 
-    start_period = datetime.now()
-    solar.schedule_battery_discharge(start_period, period_hours=6)
+    now = datetime.now()
+    solar.schedule_battery_discharge_at_4_pm(now)
 
-    mock_battery_discharge_slot_estimator.assert_called_once_with(state, start_period, 6)
+    mock_battery_discharge_slot_estimator.schedule_battery_discharge_at_4_pm.assert_called_once_with(state, now)
 
     assert mock_appdaemon_service.call_service.call_count == 6
     mock_appdaemon_service.call_service.assert_any_call(

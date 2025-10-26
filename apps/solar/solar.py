@@ -41,20 +41,31 @@ class Solar:
         else:
             self.appdaemon_logger.info(f"Current state: {state}")
 
-    def align_battery_reserve_soc(self, period_start: datetime, period_hours: int) -> None:
-        self.appdaemon_logger.info(
-            f"Align battery reserve SoC based on forecast starting at {period_start} for {period_hours} hours"
-        )
+    def align_battery_reserve_soc_tomorrow_at_7_am(self, now: datetime) -> None:
+        self.appdaemon_logger.info("Align battery reserve SoC for tomorrow at 7 AM")
 
         state = self.state_factory.create()
         if state is None:
             self.appdaemon_logger.warn("Unknown state, cannot estimate battery reserve SoC")
             return
 
-        estimated_battery_reserve_soc = self.battery_reserve_soc_estimator(state, period_start, period_hours)
+        target_soc = self.battery_reserve_soc_estimator.estimate_soc_tomorrow_at_7_am(state, now)
 
-        if estimated_battery_reserve_soc is not None:
-            self._set_battery_reserve_soc(state, estimated_battery_reserve_soc)
+        if target_soc is not None:
+            self._set_battery_reserve_soc(state, target_soc)
+
+    def align_battery_reserve_soc_today_at_4_pm(self, now: datetime) -> None:
+        self.appdaemon_logger.info("Align battery reserve SoC for today at 4 PM")
+
+        state = self.state_factory.create()
+        if state is None:
+            self.appdaemon_logger.warn("Unknown state, cannot estimate battery reserve SoC")
+            return
+
+        target_soc = self.battery_reserve_soc_estimator.estimate_soc_today_at_4_pm(state, now)
+
+        if target_soc is not None:
+            self._set_battery_reserve_soc(state, target_soc)
 
     def reset_battery_reserve_soc(self) -> None:
         battery_reserve_soc_default = self.config.battery_reserve_soc_min
@@ -67,17 +78,18 @@ class Solar:
 
         self._set_battery_reserve_soc(state, battery_reserve_soc_default)
 
-    def schedule_battery_discharge(self, period_start: datetime, period_hours: int) -> None:
-        self.appdaemon_logger.info(
-            f"Schedule battery discharge based on forecast starting at {period_start} for {period_hours} hours"
-        )
+    def schedule_battery_discharge_at_4_pm(self, now: datetime) -> None:
+        self.appdaemon_logger.info("Schedule battery discharge at 4 PM")
 
         state = self.state_factory.create()
         if state is None:
             self.appdaemon_logger.warn("Unknown state, cannot schedule battery discharge")
             return
 
-        estimated_battery_discharge_slots = self.battery_discharge_slot_estimator(state, period_start, period_hours)
+        estimated_battery_discharge_slots = self.battery_discharge_slot_estimator.schedule_battery_discharge_at_4_pm(
+            state, now
+        )
+
         for slot in range(1, self._NUM_DISCHARGE_SLOTS + 1):
             if len(estimated_battery_discharge_slots) >= slot:
                 estimated_battery_discharge_slot = estimated_battery_discharge_slots[slot - 1]
@@ -102,6 +114,7 @@ class Solar:
         for slot in range(1, self._NUM_DISCHARGE_SLOTS + 1):
             self._disable_slot_discharge(state, slot)
 
+    # TODO: change signature to (now, sunrise, sunset)
     def align_storage_mode(self, period_start: datetime, period_hours: int) -> None:
         self.appdaemon_logger.info(f"Align storage mode at {period_start} for {period_hours} hours")
 
