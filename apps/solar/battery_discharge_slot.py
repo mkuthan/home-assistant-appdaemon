@@ -15,5 +15,5 @@ class BatteryDischargeSlot:
         end_time_str = self.end_time.strftime("%H:%M")
         return f"{start_time_str}-{end_time_str}"
 
-    def __format__(self, _format_spec: str) -> str:
+    def __str__(self) -> str:
         return f"{self.time_str()}@{self.current}"
