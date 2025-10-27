@@ -30,7 +30,7 @@ class SolarApp(BaseApp):
             battery_reserve_soc_max=BatterySoc(95.0),
             temp_in=21.0,  # °C
             heating_cop_at_7c=4.0,  # ratio
-            heating_h=0.15,  # kW/°C
+            heating_h=0.18,  # kW/°C
             temp_out_fallback=5.0,  # °C
             humidity_out_fallback=80.0,  # %
             regular_consumption_away=EnergyKwh(0.35),
