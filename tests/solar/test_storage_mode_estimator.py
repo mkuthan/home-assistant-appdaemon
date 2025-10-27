@@ -72,12 +72,15 @@ def test_estimator_self_use_when_battery_soc_below_reserve(
     state = replace(state, battery_soc=BatterySoc(20.0), hourly_price=EnergyPrice.pln_per_mwh(Decimal(250)))
 
     now = datetime.fromisoformat("2025-10-10T12:00:00+00:00")
+    remaining_hours = StorageModeEstimator.END_HOUR - now.hour
+
+    mock_price_forecast.find_daily_min_price.return_value = EnergyPrice.pln_per_mwh(Decimal(30))
 
     storage_mode = storage_mode_estimator.estimate_storage_mode(state, now)
 
     mock_production_forecast.hourly.assert_not_called()
     mock_consumption_forecast.hourly.assert_not_called()
-    mock_price_forecast.find_daily_min_price.assert_not_called()
+    mock_price_forecast.find_daily_min_price.assert_called_once_with(now, remaining_hours)
 
     assert storage_mode == StorageMode.SELF_USE
 
