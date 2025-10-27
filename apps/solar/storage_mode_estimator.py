@@ -30,7 +30,7 @@ class StorageModeEstimator:
             return StorageMode.SELF_USE
 
         required_battery_reserve_soc = self.config.battery_reserve_soc_min + self.config.battery_reserve_soc_margin
-        self.appdaemon_logger.info("Required battery reserve SoC: {required_battery_reserve_soc}")
+        self.appdaemon_logger.info(f"Required battery reserve SoC: {required_battery_reserve_soc}")
 
         if state.battery_soc <= required_battery_reserve_soc:
             self.appdaemon_logger.info(
