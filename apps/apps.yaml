@@ -1,4 +1,7 @@
 ---
+hvac_app:
+  module: hvac_app
+  class: HvacApp
 solar_app:
   module: solar_app
   class: SolarApp
