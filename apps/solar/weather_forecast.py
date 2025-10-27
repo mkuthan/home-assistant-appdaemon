@@ -5,8 +5,8 @@ from units.hourly_weather import HourlyWeather
 
 
 class WeatherForecast:
-    @staticmethod
-    def create(raw_forecast: object) -> "WeatherForecast":
+    @classmethod
+    def create(cls, raw_forecast: object) -> "WeatherForecast":
         periods = []
 
         if raw_forecast and isinstance(raw_forecast, dict):
@@ -31,7 +31,7 @@ class WeatherForecast:
                         except (ValueError, TypeError, KeyError):
                             continue
 
-        return WeatherForecast(periods)
+        return cls(periods)
 
     def __init__(self, periods: list[HourlyWeather]) -> None:
         self.periods = periods
