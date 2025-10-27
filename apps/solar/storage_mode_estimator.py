@@ -29,15 +29,6 @@ class StorageModeEstimator:
             self.appdaemon_logger.info(f"Use {StorageMode.SELF_USE}, no remaining hours in the day")
             return StorageMode.SELF_USE
 
-        required_battery_reserve_soc = self.config.battery_reserve_soc_min + self.config.battery_reserve_soc_margin
-        self.appdaemon_logger.info(f"Required battery reserve SoC: {required_battery_reserve_soc}")
-
-        if state.battery_soc <= required_battery_reserve_soc:
-            self.appdaemon_logger.info(
-                f"Use {StorageMode.SELF_USE}, battery SoC {state.battery_soc} <= {required_battery_reserve_soc}"
-            )
-            return StorageMode.SELF_USE
-
         price_forecast = self.forecast_factory.create_price_forecast(state)
         min_price = price_forecast.find_daily_min_price(now, remaining_hours)
         if min_price is None:
@@ -49,6 +40,13 @@ class StorageModeEstimator:
         if current_price <= price_threshold:
             self.appdaemon_logger.info(
                 f"Use {StorageMode.SELF_USE}, current price {current_price} <= {price_threshold}"
+            )
+            return StorageMode.SELF_USE
+
+        required_battery_reserve_soc = self.config.battery_reserve_soc_min + self.config.battery_reserve_soc_margin
+        if state.battery_soc <= required_battery_reserve_soc:
+            self.appdaemon_logger.info(
+                f"Use {StorageMode.SELF_USE}, battery SoC {state.battery_soc} <= {required_battery_reserve_soc}"
             )
             return StorageMode.SELF_USE
 
@@ -74,5 +72,4 @@ class StorageModeEstimator:
             f"Use {StorageMode.FEED_IN_PRIORITY}, current price: {current_price}, "
             + f"current battery SoC: {state.battery_soc}"
         )
-
         return StorageMode.FEED_IN_PRIORITY

@@ -65,13 +65,13 @@ class BatteryReserveSocEstimator:
         afternoon_productions = production_forecast.hourly(current_hour, remaining_hours)
 
         energy_surplus = total_surplus(afternoon_consumptions, afternoon_productions)
-        self.appdaemon_logger.info(f"Energy surplus: {energy_surplus}")
+        self.appdaemon_logger.info(f"Energy surplus before 4PM: {energy_surplus}")
 
         evening_consumptions = consumption_forecast.hourly(today_4_pm, low_tariff_hours)
         evening_productions = production_forecast.hourly(today_4_pm, low_tariff_hours)
 
         evening_deficit = maximum_cumulative_deficit(evening_consumptions, evening_productions)
-        self.appdaemon_logger.info(f"Energy deficit: {evening_deficit}")
+        self.appdaemon_logger.info(f"Energy deficit after 4PM: {evening_deficit}")
 
         energy_reserve = max(evening_deficit - energy_surplus, ENERGY_KWH_ZERO)
         self.appdaemon_logger.info(f"Energy reserve: {energy_reserve}")
@@ -83,7 +83,7 @@ class BatteryReserveSocEstimator:
             self.config.battery_reserve_soc_margin,
             self.config.battery_reserve_soc_max,
         )
-        self.appdaemon_logger.info(f"SoC target: {soc_target}")
+        self.appdaemon_logger.info(f"Battery reserve SoC target: {soc_target}")
 
         if state.battery_reserve_soc >= soc_target:
             self.appdaemon_logger.info(

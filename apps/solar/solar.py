@@ -115,7 +115,7 @@ class Solar:
             self._disable_slot_discharge(state, slot)
 
     def align_storage_mode(self, now: datetime) -> None:
-        self.appdaemon_logger.info(f"Align storage mode at {now}")
+        self.appdaemon_logger.info("Align storage mode")
 
         state = self.state_factory.create()
         if state is None:
