@@ -6,9 +6,10 @@ from units.hourly_period import HourlyPeriod
 from units.hourly_price import HourlyPrice
 
 
+# Electricity price forecast based on external integration
 class PriceForecast:
-    @staticmethod
-    def create(raw_forecast: object) -> "PriceForecast":
+    @classmethod
+    def create(cls, raw_forecast: object) -> "PriceForecast":
         periods = []
 
         if raw_forecast and isinstance(raw_forecast, list):
@@ -28,7 +29,7 @@ class PriceForecast:
                 except (ValueError, TypeError, KeyError):
                     continue
 
-        return PriceForecast(periods)
+        return cls(periods)
 
     def __init__(self, periods: list[HourlyPrice]) -> None:
         self.periods = periods

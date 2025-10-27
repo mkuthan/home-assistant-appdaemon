@@ -21,8 +21,6 @@ class ConsumptionForecastComposite:
 
 
 class HeatingEnergyEstimator(Protocol):
-    """Protocol for heating energy estimation function."""
-
     def __call__(
         self,
         t_out: float,
@@ -33,6 +31,10 @@ class HeatingEnergyEstimator(Protocol):
     ) -> EnergyKwh: ...
 
 
+# Heating energy consumption forecast excluding energy consumption
+# during low-tariff periods (outside forecasted hours):
+# - Domestic Hot Water (DHW)
+# - HVAC heating in eco mode
 class ConsumptionForecastHvacHeating:
     def __init__(
         self,
@@ -84,6 +86,7 @@ class ConsumptionForecastHvacHeating:
         return periods
 
 
+# Lights, appliances, etc. consumption forecast using simple time-of-day model.
 class ConsumptionForecastRegular:
     EVENING_START_HOUR = 16
 

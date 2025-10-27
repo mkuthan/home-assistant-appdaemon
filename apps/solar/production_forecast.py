@@ -18,9 +18,10 @@ class ProductionForecastComposite:
         return [item for component in self.components for item in component.hourly(period_start, period_hours)]
 
 
+# Solar production forecast based on Solcast integration
 class ProductionForecastDefault:
-    @staticmethod
-    def create(raw_forecast: object) -> "ProductionForecastDefault":
+    @classmethod
+    def create(cls, raw_forecast: object) -> "ProductionForecastDefault":
         periods = []
 
         if raw_forecast and isinstance(raw_forecast, list):
@@ -40,7 +41,7 @@ class ProductionForecastDefault:
                 except (ValueError, TypeError, KeyError):
                     continue
 
-        return ProductionForecastDefault(periods)
+        return cls(periods)
 
     def __init__(self, periods: list[HourlyProductionEnergy]) -> None:
         self.periods = periods
