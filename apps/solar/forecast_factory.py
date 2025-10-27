@@ -37,7 +37,6 @@ class DefaultForecastFactory:
 
         regular = ConsumptionForecastRegular(
             is_away_mode=state.is_away_mode or False,
-            evening_start_hour=self.config.evening_start_hour,
             consumption_away=self.config.regular_consumption_away,
             consumption_day=self.config.regular_consumption_day,
             consumption_evening=self.config.regular_consumption_evening,
@@ -47,7 +46,7 @@ class DefaultForecastFactory:
             forecast_weather=weather_forecast,
             is_eco_mode=state.is_eco_mode,
             hvac_heating_mode=state.hvac_heating_mode,
-            t_in=state.indoor_temperature,
+            t_in=self.config.temp_in,
             cop_at_7c=self.config.heating_cop_at_7c,
             h=self.config.heating_h,
             temp_out_fallback=self.config.temp_out_fallback,

@@ -31,7 +31,6 @@ class DefaultStateFactory:
     def create(self) -> State | None:
         battery_soc = safe_float(self.appdaemon_state.get_state(self.BATTERY_SOC_ENTITY))
         battery_reserve_soc = safe_float(self.appdaemon_state.get_state(self.BATTERY_RESERVE_SOC_ENTITY))
-        indoor_temperature = safe_float(self.appdaemon_state.get_state("sensor.heishamon_z1_actual_temperature"))
         outdoor_temperature = safe_float(self.appdaemon_state.get_state("sensor.heishamon_outside_ambient_temperature"))
         is_away_mode = safe_bool(self.appdaemon_state.get_state("input_boolean.away_mode"))
         is_eco_mode = safe_bool(self.appdaemon_state.get_state("input_boolean.eco_mode"))
@@ -69,8 +68,6 @@ class DefaultStateFactory:
             missing.append("battery_soc")
         if battery_reserve_soc is None:
             missing.append("battery_reserve_soc")
-        if indoor_temperature is None:
-            missing.append("indoor_temperature")
         if outdoor_temperature is None:
             missing.append("outdoor_temperature")
         if is_away_mode is None:
@@ -110,7 +107,6 @@ class DefaultStateFactory:
 
         assert battery_soc is not None
         assert battery_reserve_soc is not None
-        assert indoor_temperature is not None
         assert outdoor_temperature is not None
         assert is_away_mode is not None
         assert is_eco_mode is not None
@@ -131,7 +127,6 @@ class DefaultStateFactory:
         solar_state = State(
             battery_soc=BatterySoc(battery_soc),
             battery_reserve_soc=BatterySoc(battery_reserve_soc),
-            indoor_temperature=indoor_temperature,
             outdoor_temperature=outdoor_temperature,
             is_away_mode=is_away_mode,
             is_eco_mode=is_eco_mode,

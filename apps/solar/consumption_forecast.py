@@ -85,16 +85,16 @@ class ConsumptionForecastHvacHeating:
 
 
 class ConsumptionForecastRegular:
+    EVENING_START_HOUR = 16
+
     def __init__(
         self,
         is_away_mode: bool,
-        evening_start_hour: int,
         consumption_away: EnergyKwh,
         consumption_day: EnergyKwh,
         consumption_evening: EnergyKwh,
     ) -> None:
         self.is_away_mode = is_away_mode
-        self.evening_start_hour = evening_start_hour
         self.consumption_away = consumption_away
         self.consumption_day = consumption_day
         self.consumption_evening = consumption_evening
@@ -107,7 +107,7 @@ class ConsumptionForecastRegular:
             if self.is_away_mode:
                 energy = self.consumption_away
             else:
-                if current.hour >= self.evening_start_hour:
+                if current.hour >= self.EVENING_START_HOUR:
                     energy = self.consumption_evening
                 else:
                     energy = self.consumption_day

@@ -110,7 +110,6 @@ def test_create(
     assert result is not None
     assert result.battery_soc == BatterySoc(75.5)
     assert result.battery_reserve_soc == BatterySoc(20.0)
-    assert result.indoor_temperature == 21.5
     assert result.outdoor_temperature == 10.0
     assert result.is_away_mode is False
     assert result.is_eco_mode is True
@@ -134,7 +133,6 @@ def test_create(
     [
         ("sensor.solis_remaining_battery_capacity:", "Missing: battery_soc"),
         ("number.solis_control_battery_reserve_soc:", "Missing: battery_reserve_soc"),
-        ("sensor.heishamon_z1_actual_temperature:", "Missing: indoor_temperature"),
         ("sensor.heishamon_outside_ambient_temperature:", "Missing: outdoor_temperature"),
         ("input_boolean.away_mode:", "Missing: is_away_mode"),
         ("input_boolean.eco_mode:", "Missing: is_eco_mode"),

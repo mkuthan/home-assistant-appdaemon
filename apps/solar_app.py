@@ -23,16 +23,16 @@ class SolarApp(BaseApp):
 
         config = SolarConfiguration(
             battery_capacity=EnergyKwh(10.0),
-            battery_voltage=BatteryVoltage(50.0),
+            battery_voltage=BatteryVoltage(52.0),
             battery_maximum_current=BatteryCurrent(80.0),
             battery_reserve_soc_min=BatterySoc(20.0),
-            battery_reserve_soc_margin=BatterySoc(10.0),
+            battery_reserve_soc_margin=BatterySoc(8.0),
             battery_reserve_soc_max=BatterySoc(95.0),
+            temp_in=21.0,  # °C
             heating_cop_at_7c=4.0,  # ratio
             heating_h=0.15,  # kW/°C
             temp_out_fallback=5.0,  # °C
             humidity_out_fallback=80.0,  # %
-            evening_start_hour=16,
             regular_consumption_away=EnergyKwh(0.35),
             regular_consumption_day=EnergyKwh(0.6),
             regular_consumption_evening=EnergyKwh(0.8),

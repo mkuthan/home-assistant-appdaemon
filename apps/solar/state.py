@@ -10,7 +10,6 @@ from units.energy_price import EnergyPrice
 class State:
     battery_soc: BatterySoc
     battery_reserve_soc: BatterySoc
-    indoor_temperature: float
     outdoor_temperature: float
     is_away_mode: bool
     is_eco_mode: bool
