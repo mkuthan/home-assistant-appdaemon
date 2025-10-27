@@ -46,7 +46,6 @@ class TestForecastConsumptionRegular:
     def any_consumption_forecast_regular(self) -> ConsumptionForecastRegular:
         return ConsumptionForecastRegular(
             is_away_mode=False,
-            evening_start_hour=16,
             consumption_away=EnergyKwh(0.5),
             consumption_day=EnergyKwh(0.6),
             consumption_evening=EnergyKwh(0.8),

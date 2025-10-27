@@ -16,16 +16,17 @@ class SolarConfiguration:
     battery_reserve_soc_margin: BatterySoc  # margin above minimum reserve SOC
     battery_reserve_soc_max: BatterySoc  # maximum reserve SOC
 
+    temp_in: float  # indoor temperature setpoint
+
     heating_cop_at_7c: float  # coefficient of heat-pump performance at 7 degrees Celsius
     heating_h: float  # coefficient representing building heat loss rate in kW/°C
 
     temp_out_fallback: float  # outdoor temperature if no forecast available
     humidity_out_fallback: float  # outdoor humidity if no forecast available
 
-    evening_start_hour: int  # hour when evening consumption rate begins
     regular_consumption_away: EnergyKwh  # consumption when in away mode
-    regular_consumption_day: EnergyKwh  # consumption during daytime (before evening_start_hour)
-    regular_consumption_evening: EnergyKwh  # consumption during evening (evening_start_hour onwards)
+    regular_consumption_day: EnergyKwh  # consumption during daytime
+    regular_consumption_evening: EnergyKwh  # consumption during evening
 
     pv_export_min_price_margin: EnergyPrice  # margin above minimum price to export PV energy to grid
 
