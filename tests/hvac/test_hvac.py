@@ -23,3 +23,12 @@ def hvac(
         config,
         mock_state_factory,
     )
+
+
+def test_control(
+    hvac: Hvac,
+) -> None:
+    from datetime import datetime
+
+    now = datetime.now()
+    hvac.control(now)

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from appdaemon_protocols.appdaemon_service import AppdaemonService
 from hvac.hvac_configuration import HvacConfiguration
@@ -16,3 +18,6 @@ class Hvac:
         self.appdaemon_service = appdaemon_service
         self.config = config
         self.state_factory = state_factory
+
+    def control(self, now: datetime) -> None:
+        self.appdaemon_logger.info(f"Controlling HVAC system at {now}")

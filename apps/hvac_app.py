@@ -1,3 +1,5 @@
+from datetime import time
+
 from base_app import BaseApp
 from hvac.hvac import Hvac
 from hvac.hvac_configuration import HvacConfiguration
@@ -16,14 +18,24 @@ class HvacApp(BaseApp):
             dhw_temp_eco=Celsius(40.0),
             dhw_boost_delta_temp=Celsius(8.0),
             dhw_boost_delta_temp_eco=Celsius(4.0),
+            dhw_boost_start=time.fromisoformat("13:05:00"),
+            dhw_boost_end=time.fromisoformat("15:55:00"),
             heating_temp=Celsius(21.0),
             heating_temp_eco=Celsius(20.0),
-            heating_reduced_delta_temp=Celsius(1.0),
-            heating_reduced_delta_temp_eco=Celsius(2.0),
+            heating_boost_delta_temp=Celsius(1.0),
+            heating_boost_delta_temp_eco=Celsius(2.0),
+            heating_boost_time_start_eco_on=time.fromisoformat("22:05:00"),
+            heating_boost_time_end_eco_on=time.fromisoformat("06:55:00"),
+            heating_boost_time_start_eco_off=time.fromisoformat("05:00:00"),
+            heating_boost_time_end_eco_off=time.fromisoformat("21:00:00"),
             cooling_temp=Celsius(24.0),
             cooling_temp_eco=Celsius(26.0),
             cooling_reduced_delta_temp=Celsius(2.0),
             cooling_reduced_delta_temp_eco=Celsius(2.0),
+            cooling_reduced_time_start_eco_on=time.fromisoformat("12:00:00"),
+            cooling_reduced_time_end_eco_on=time.fromisoformat("16:00:00"),
+            cooling_reduced_time_start_eco_off=time.fromisoformat("10:00:00"),
+            cooling_reduced_time_end_eco_off=time.fromisoformat("18:00:00"),
         )
 
         state_factory = DefaultHvacStateFactory(
@@ -38,3 +50,19 @@ class HvacApp(BaseApp):
             config=config,
             state_factory=state_factory,
         )
+
+        self.run_every(self.control_scheduled, "00:00:00", 5 * 60)
+        self.listen_state(
+            self.control_triggered,
+            [
+                "input_boolean.eco_mode",
+                "climate.panasonic_heat_pump_main_z1_temp",
+                "climate.panasonic_heat_pump_main_z1_temp_cooling",
+            ],
+        )
+
+    def control_scheduled(self, kwargs: dict) -> None:  # noqa: ARG002
+        self.hvac.control(self.get_now())
+
+    def control_triggered(self, entity, attribute, old, new, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
+        self.hvac.control(self.get_now())
