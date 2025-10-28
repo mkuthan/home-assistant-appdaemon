@@ -51,7 +51,10 @@ class HvacApp(BaseApp):
             state_factory=state_factory,
         )
 
+        self.info("Scheduling HVAC control every 5 minutes")
         self.run_every(self.control_scheduled, "00:00:00", 5 * 60)
+
+        self.info("Setting up HVAC control triggers on relevant state changes")
         self.listen_state(
             self.control_triggered,
             [
