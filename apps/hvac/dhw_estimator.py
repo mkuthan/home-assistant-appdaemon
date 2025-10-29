@@ -3,7 +3,7 @@ from datetime import datetime
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from hvac.hvac_configuration import HvacConfiguration
 from hvac.hvac_state import HvacState
-from units.celsius import Celsius
+from units.celsius import CELSIUS_ZERO, Celsius
 
 
 class DhwEstimator:
@@ -15,7 +15,7 @@ class DhwEstimator:
         self.appdaemon_logger = appdaemon_logger
         self.configuration = configuration
 
-    def estimate_temperature(self, state: HvacState, now: datetime) -> Celsius:
+    def estimate_temperature(self, state: HvacState, now: datetime) -> Celsius | None:
         if state.is_eco_mode:
             temperature_target = self.configuration.dhw_temp_eco
             temperature_boost = self.configuration.dhw_boost_delta_temp_eco
@@ -25,7 +25,11 @@ class DhwEstimator:
 
         if self.configuration.dhw_boost_start <= now.time() <= self.configuration.dhw_boost_end:
             temperature_target += temperature_boost
-            self.appdaemon_logger.info(f"Boost DHW temperature by {temperature_boost} to {temperature_target}")
-            return temperature_target
+        else:
+            temperature_boost = CELSIUS_ZERO
 
-        return temperature_target
+        if temperature_target != state.dhw_temperature:
+            self.appdaemon_logger.info(f"DHW temperature target: {temperature_target}, boost: {temperature_boost}")
+            return temperature_target
+        else:
+            return None
