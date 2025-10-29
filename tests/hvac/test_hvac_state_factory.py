@@ -9,7 +9,7 @@ from units.celsius import Celsius
 def state_values() -> dict:
     return {
         "input_boolean.eco_mode:": "off",
-        "water_heater.panasonic_heat_pump_main_dhw_target_temp:": "40.0",
+        "water_heater.panasonic_heat_pump_main_dhw_target_temp:temperature": "40.0",
     }
 
 
@@ -34,7 +34,7 @@ def test_create(
     ("missing_entity_or_service", "expected_message"),
     [
         ("input_boolean.eco_mode:", "Missing: is_eco_mode"),
-        ("water_heater.panasonic_heat_pump_main_dhw_target_temp:", "Missing: dhw_temperature"),
+        ("water_heater.panasonic_heat_pump_main_dhw_target_temp:temperature", "Missing: dhw_temperature"),
     ],
 )
 def test_create_missing_field(
