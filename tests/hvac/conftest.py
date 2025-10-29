@@ -7,7 +7,7 @@ from units.celsius import CELSIUS_ZERO
 
 
 @pytest.fixture
-def config() -> HvacConfiguration:
+def configuration() -> HvacConfiguration:
     return HvacConfiguration(
         dhw_temp=CELSIUS_ZERO,
         dhw_temp_eco=CELSIUS_ZERO,
@@ -36,4 +36,7 @@ def config() -> HvacConfiguration:
 
 @pytest.fixture
 def state() -> HvacState:
-    return HvacState()
+    return HvacState(
+        is_eco_mode=False,
+        dhw_temperature=CELSIUS_ZERO,
+    )

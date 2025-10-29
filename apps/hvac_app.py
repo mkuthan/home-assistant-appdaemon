@@ -1,6 +1,7 @@
 from datetime import time
 
 from base_app import BaseApp
+from hvac.dhw_estimator import DhwEstimator
 from hvac.hvac import Hvac
 from hvac.hvac_configuration import HvacConfiguration
 from hvac.hvac_state_factory import DefaultHvacStateFactory
@@ -13,7 +14,7 @@ class HvacApp(BaseApp):
         appdaemon_state = self
         appdaemon_service = self
 
-        config = HvacConfiguration(
+        configuration = HvacConfiguration(
             dhw_temp=Celsius(48.0),
             dhw_temp_eco=Celsius(40.0),
             dhw_boost_delta_temp=Celsius(8.0),
@@ -47,8 +48,9 @@ class HvacApp(BaseApp):
         self.hvac = Hvac(
             appdaemon_logger=appdaemon_logger,
             appdaemon_service=appdaemon_service,
-            config=config,
+            configuration=configuration,
             state_factory=state_factory,
+            dhw_estimator=DhwEstimator(appdaemon_logger, configuration),
         )
 
         self.info("Scheduling HVAC control every 5 minutes")
