@@ -17,6 +17,9 @@ class HeatingEstimator:
         self.configuration = configuration
 
     def estimate_temperature(self, state: HvacState, now: datetime) -> Celsius | None:
+        if state.heating_mode != "heat":
+            return None
+
         if state.is_eco_mode:
             temperature_target = self.configuration.heating_temp_eco
             temperature_boost = self.configuration.heating_boost_delta_temp_eco

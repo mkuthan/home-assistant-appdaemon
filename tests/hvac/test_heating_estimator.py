@@ -38,7 +38,7 @@ def test_estimate_temperature_normal_mode(
     )
     heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
 
-    state = replace(state, is_eco_mode=False)
+    state = replace(state, heating_mode="heat", is_eco_mode=False)
 
     result = heating_estimator.estimate_temperature(state, datetime.fromisoformat(now))
 
@@ -74,7 +74,7 @@ def test_estimate_temperature_eco_mode(
     )
     heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
 
-    state = replace(state, is_eco_mode=True)
+    state = replace(state, heating_mode="heat", is_eco_mode=True)
 
     result = heating_estimator.estimate_temperature(state, datetime.fromisoformat(now))
 
@@ -94,7 +94,21 @@ def test_estimate_temperature_no_change(
     )
     heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
 
-    state = replace(state, is_eco_mode=False, heating_temperature=Celsius(21.0))
+    state = replace(state, heating_mode="heat", is_eco_mode=False, heating_temperature=Celsius(21.0))
+
+    result = heating_estimator.estimate_temperature(state, datetime.fromisoformat("2025-10-29T04:00:00+00:00"))
+
+    assert result is None
+
+
+def test_estimate_temperature_heating_mode_off(
+    mock_appdaemon_logger: Mock,
+    configuration: HvacConfiguration,
+    state: HvacState,
+) -> None:
+    heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
+
+    state = replace(state, heating_mode="off")
 
     result = heating_estimator.estimate_temperature(state, datetime.fromisoformat("2025-10-29T04:00:00+00:00"))
 
