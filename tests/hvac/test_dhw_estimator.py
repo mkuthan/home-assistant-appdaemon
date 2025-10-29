@@ -50,3 +50,23 @@ def test_estimate_temperature(
     result = dhw_estimator.estimate_temperature(state, datetime.fromisoformat(now))
 
     assert result == expected_temp
+
+
+def test_estimate_temperature_no_change(
+    mock_appdaemon_logger: Mock,
+    configuration: HvacConfiguration,
+    state: HvacState,
+) -> None:
+    configuration = replace(
+        configuration,
+        dhw_temp=Celsius(48.0),
+        dhw_boost_start=time.fromisoformat("13:05:00"),
+        dhw_boost_end=time.fromisoformat("15:55:00"),
+    )
+    dhw_estimator = DhwEstimator(mock_appdaemon_logger, configuration)
+
+    state = replace(state, is_eco_mode=False, dhw_temperature=Celsius(48.0))
+
+    result = dhw_estimator.estimate_temperature(state, datetime.fromisoformat("2025-10-29T08:00:00+00:00"))
+
+    assert result is None

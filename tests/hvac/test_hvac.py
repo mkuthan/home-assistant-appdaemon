@@ -62,3 +62,25 @@ def test_control(
         entity_id="water_heater.panasonic_heat_pump_main_dhw_target_temp",
         value=new_dhw_temperature.value,
     )
+
+
+def test_control_no_change(
+    hvac: Hvac,
+    state: HvacState,
+    mock_appdaemon_service: Mock,
+    mock_state_factory: Mock,
+    mock_dhw_estimator: Mock,
+) -> None:
+    current_dhw_temperature = Celsius(35.0)
+
+    state = replace(state, dhw_temperature=current_dhw_temperature)
+    mock_state_factory.create.return_value = state
+
+    mock_dhw_estimator.estimate_temperature.return_value = None
+
+    now = datetime.now()
+    hvac.control(now)
+
+    mock_dhw_estimator.estimate_temperature.assert_called_once_with(state, now)
+
+    mock_appdaemon_service.call_service.assert_not_called()
