@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Home Assistant AppDaemon applications for solar energy optimization.
+Home Assistant AppDaemon applications for solar and HVAC energy optimization.
 
 ## Setup Commands
 
@@ -48,11 +48,15 @@ Home Assistant AppDaemon applications for solar energy optimization.
 
 ## Architecture Patterns
 
-- `apps/solar_app.py` - AppDaemon integration layer that wires dependencies and handles framework interactions
-- `apps/solar/` - Core business logic isolated from the AppDaemon framework
-  - `solar.py` - Main orchestration logic
+- `apps/*_app.py` - AppDaemon integration layer that wires dependencies and handles framework interactions
+- `apps/solar/` - Core solar related business logic isolated from the AppDaemon framework
+  - `solar.py` - Main solar orchestration logic
   - `*_estimator.py` - Specialized estimators for energy usage and battery management decisions
   - `*_forecast.py` - Forecast data models and factories
+  - `state.py` / `state_factory.py` - Home Assistant state management
+- `apps/hvac/` - Core HVAC related business logic isolated from the AppDaemon framework
+  - `hvac.py` - Main HVAC orchestration logic
+  - `*_estimator.py` - Specialized estimators for DHW, heating and cooling temperatures
   - `state.py` / `state_factory.py` - Home Assistant state management
 - `apps/units/` - Type-safe value objects for domain concepts (energy, power, SOC, etc.)
 - `apps/utils/` - Shared utilities including safe type converters, battery converters/estimators, energy aggregators, and HVAC estimators

@@ -7,3 +7,7 @@ from units.celsius import Celsius
 class HvacState:
     is_eco_mode: bool
     dhw_temperature: Celsius
+    heating_temperature: Celsius
+    heating_mode: str
+    cooling_temperature: Celsius
+    cooling_mode: str
