@@ -24,7 +24,7 @@ class DefaultHvacStateFactory:
         is_eco_mode = safe_bool(self.appdaemon_state.get_state("input_boolean.eco_mode"))
 
         dhw_temperature = safe_float(
-            self.appdaemon_state.get_state("water_heater.panasonic_heat_pump_main_dhw_target_temp")
+            self.appdaemon_state.get_state("water_heater.panasonic_heat_pump_main_dhw_target_temp", "temperature")
         )
 
         missing = []
