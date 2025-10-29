@@ -10,6 +10,10 @@ def state_values() -> dict:
     return {
         "input_boolean.eco_mode:": "off",
         "water_heater.panasonic_heat_pump_main_dhw_target_temp:temperature": "40.0",
+        "climate.panasonic_heat_pump_main_z1_temp:temperature": "21",
+        "climate.panasonic_heat_pump_main_z1_temp:": "heat",
+        "climate.panasonic_heat_pump_main_z1_temp_cooling:temperature": "24",
+        "climate.panasonic_heat_pump_main_z1_temp_cooling:": "cool",
     }
 
 
@@ -28,6 +32,10 @@ def test_create(
     assert result is not None
     assert result.is_eco_mode is False
     assert result.dhw_temperature == Celsius(40.0)
+    assert result.heating_temperature == Celsius(21.0)
+    assert result.heating_mode == "heat"
+    assert result.cooling_temperature == Celsius(24.0)
+    assert result.cooling_mode == "cool"
 
 
 @pytest.mark.parametrize(
@@ -35,6 +43,10 @@ def test_create(
     [
         ("input_boolean.eco_mode:", "Missing: is_eco_mode"),
         ("water_heater.panasonic_heat_pump_main_dhw_target_temp:temperature", "Missing: dhw_temperature"),
+        ("climate.panasonic_heat_pump_main_z1_temp:temperature", "Missing: heating_temperature"),
+        ("climate.panasonic_heat_pump_main_z1_temp:", "Missing: heating_mode"),
+        ("climate.panasonic_heat_pump_main_z1_temp_cooling:temperature", "Missing: cooling_temperature"),
+        ("climate.panasonic_heat_pump_main_z1_temp_cooling:", "Missing: cooling_mode"),
     ],
 )
 def test_create_missing_field(

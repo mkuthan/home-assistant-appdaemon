@@ -2,6 +2,7 @@ from datetime import time
 
 from base_app import BaseApp
 from hvac.dhw_estimator import DhwEstimator
+from hvac.heating_estimator import HeatingEstimator
 from hvac.hvac import Hvac
 from hvac.hvac_configuration import HvacConfiguration
 from hvac.hvac_state_factory import DefaultHvacStateFactory
@@ -22,7 +23,7 @@ class HvacApp(BaseApp):
             dhw_boost_start=time.fromisoformat("13:05:00"),
             dhw_boost_end=time.fromisoformat("15:55:00"),
             heating_temp=Celsius(21.0),
-            heating_temp_eco=Celsius(20.0),
+            heating_temp_eco=Celsius(18.0),
             heating_boost_delta_temp=Celsius(1.0),
             heating_boost_delta_temp_eco=Celsius(2.0),
             heating_boost_time_start_eco_on=time.fromisoformat("22:05:00"),
@@ -51,6 +52,7 @@ class HvacApp(BaseApp):
             configuration=configuration,
             state_factory=state_factory,
             dhw_estimator=DhwEstimator(appdaemon_logger, configuration),
+            heating_estimator=HeatingEstimator(appdaemon_logger, configuration),
         )
 
         self.info("Scheduling HVAC control every 5 minutes")

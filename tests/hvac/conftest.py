@@ -39,4 +39,8 @@ def state() -> HvacState:
     return HvacState(
         is_eco_mode=False,
         dhw_temperature=CELSIUS_ZERO,
+        heating_temperature=CELSIUS_ZERO,
+        heating_mode="",
+        cooling_temperature=CELSIUS_ZERO,
+        cooling_mode="",
     )
