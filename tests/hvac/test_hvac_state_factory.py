@@ -1,17 +1,57 @@
 from unittest.mock import Mock
 
+import pytest
 from hvac.hvac_state_factory import DefaultHvacStateFactory
+from units.celsius import Celsius
+
+
+@pytest.fixture
+def state_values() -> dict:
+    return {
+        "input_boolean.eco_mode:": "off",
+        "water_heater.panasonic_heat_pump_main_dhw_target_temp:": "40.0",
+    }
 
 
 def test_create(
     mock_appdaemon_logger: Mock,
     mock_appdaemon_state: Mock,
     mock_appdaemon_service: Mock,
+    state_values: dict,
 ) -> None:
-    state = DefaultHvacStateFactory(
-        appdaemon_logger=mock_appdaemon_logger,
-        appdaemon_state=mock_appdaemon_state,
-        appdaemon_service=mock_appdaemon_service,
-    ).create()
+    mock_appdaemon_state.get_state.side_effect = lambda entity_id, attribute="", *_args, **_kwargs: state_values.get(
+        f"{entity_id}:{attribute}"
+    )
 
-    assert state is not None
+    result = DefaultHvacStateFactory(mock_appdaemon_logger, mock_appdaemon_state, mock_appdaemon_service).create()
+
+    assert result is not None
+    assert result.is_eco_mode is False
+    assert result.dhw_temperature == Celsius(40.0)
+
+
+@pytest.mark.parametrize(
+    ("missing_entity_or_service", "expected_message"),
+    [
+        ("input_boolean.eco_mode:", "Missing: is_eco_mode"),
+        ("water_heater.panasonic_heat_pump_main_dhw_target_temp:", "Missing: dhw_temperature"),
+    ],
+)
+def test_create_missing_field(
+    mock_appdaemon_logger: Mock,
+    mock_appdaemon_state: Mock,
+    mock_appdaemon_service: Mock,
+    state_values: dict,
+    missing_entity_or_service: str,
+    expected_message: str,
+) -> None:
+    mock_appdaemon_state.get_state.side_effect = (
+        lambda entity_id, attribute="", *_args, **_kwargs: state_values.get(f"{entity_id}:{attribute}")
+        if f"{entity_id}:{attribute}" != missing_entity_or_service
+        else None
+    )
+
+    result = DefaultHvacStateFactory(mock_appdaemon_logger, mock_appdaemon_state, mock_appdaemon_service).create()
+
+    assert result is None
+    mock_appdaemon_logger.warn.assert_called_once_with(expected_message)

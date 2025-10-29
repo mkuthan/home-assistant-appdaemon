@@ -1,6 +1,9 @@
-from attr import dataclass
+from dataclasses import dataclass
+
+from units.celsius import Celsius
 
 
-@dataclass
+@dataclass(frozen=True)
 class HvacState:
-    pass  # Placeholder for HVAC state attributes
+    is_eco_mode: bool
+    dhw_temperature: Celsius
