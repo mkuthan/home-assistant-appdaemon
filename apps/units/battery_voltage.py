@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import ClassVar
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class BatteryVoltage:
     _ZERO_VALUE: ClassVar[float] = 0.0
 
@@ -11,18 +11,6 @@ class BatteryVoltage:
     def __post_init__(self) -> None:
         if self.value < self._ZERO_VALUE:
             raise ValueError(f"Battery voltage must be non-negative, got {self.value}")
-
-    def __lt__(self, other: "BatteryVoltage") -> bool:
-        return self.value < other.value
-
-    def __le__(self, other: "BatteryVoltage") -> bool:
-        return self.value <= other.value
-
-    def __gt__(self, other: "BatteryVoltage") -> bool:
-        return self.value > other.value
-
-    def __ge__(self, other: "BatteryVoltage") -> bool:
-        return self.value >= other.value
 
     def __str__(self) -> str:
         return f"{self.value:.2f}V"

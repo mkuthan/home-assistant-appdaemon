@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import ClassVar
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class EnergyKwh:
     _ZERO_VALUE: ClassVar[float] = 0.0
 
@@ -21,18 +21,6 @@ class EnergyKwh:
 
     def __neg__(self) -> "EnergyKwh":
         return EnergyKwh(value=-self.value)
-
-    def __lt__(self, other: "EnergyKwh") -> bool:
-        return self.value < other.value
-
-    def __le__(self, other: "EnergyKwh") -> bool:
-        return self.value <= other.value
-
-    def __gt__(self, other: "EnergyKwh") -> bool:
-        return self.value > other.value
-
-    def __ge__(self, other: "EnergyKwh") -> bool:
-        return self.value >= other.value
 
     def __str__(self) -> str:
         return f"{self.value:.2f}kWh"

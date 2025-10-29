@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import ClassVar
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class BatterySoc:
     _MIN_VALUE: ClassVar[float] = 0.0
     _MAX_VALUE: ClassVar[float] = 100.0
@@ -18,18 +18,6 @@ class BatterySoc:
 
     def __sub__(self, other: "BatterySoc") -> "BatterySoc":
         return BatterySoc(value=max(self.value - other.value, self._MIN_VALUE))
-
-    def __lt__(self, other: "BatterySoc") -> bool:
-        return self.value < other.value
-
-    def __le__(self, other: "BatterySoc") -> bool:
-        return self.value <= other.value
-
-    def __gt__(self, other: "BatterySoc") -> bool:
-        return self.value > other.value
-
-    def __ge__(self, other: "BatterySoc") -> bool:
-        return self.value >= other.value
 
     def __str__(self) -> str:
         return f"{self.value:.2f}%"
