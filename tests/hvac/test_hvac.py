@@ -3,6 +3,7 @@ from datetime import datetime
 from unittest.mock import Mock
 
 import pytest
+from entities.entities import DHW_ENTITY, HEATING_ENTITY
 from hvac.hvac import Hvac
 from hvac.hvac_configuration import HvacConfiguration
 from hvac.hvac_state import HvacState
@@ -70,17 +71,17 @@ def test_control(
     mock_heating_estimator.estimate_temperature.assert_called_once_with(state, now)
 
     mock_appdaemon_service.call_service.assert_any_call(
-        "water_heater.set_temperature",
+        "water_heater/set_temperature",
         callback=mock_appdaemon_service.service_call_callback,
-        entity_id="water_heater.panasonic_heat_pump_main_dhw_target_temp",
+        entity_id=DHW_ENTITY,
         value=new_dhw_temperature.value,
     )
 
     mock_appdaemon_service.call_service.assert_any_call(
-        "climate.set_temperature",
+        "climate/set_temperature",
         callback=mock_appdaemon_service.service_call_callback,
-        entity_id="climate.panasonic_heat_pump_main_z1_temp",
-        temperature=new_heating_temperature.value,
+        entity_id=HEATING_ENTITY,
+        value=new_heating_temperature.value,
     )
 
 

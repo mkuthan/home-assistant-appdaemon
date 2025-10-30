@@ -3,6 +3,7 @@ from typing import Protocol
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from appdaemon_protocols.appdaemon_service import AppdaemonService
 from appdaemon_protocols.appdaemon_state import AppdaemonState
+from entities.entities import COOLING_ENTITY, DHW_ENTITY, ECO_MODE_ENTITY, HEATING_ENTITY
 from hvac.hvac_state import HvacState
 from units.celsius import Celsius
 from utils.safe_converters import safe_bool, safe_float, safe_str
@@ -21,23 +22,17 @@ class DefaultHvacStateFactory:
         self.appdaemon_service = appdaemon_service
 
     def create(self) -> HvacState | None:
-        is_eco_mode = safe_bool(self.appdaemon_state.get_state("input_boolean.eco_mode"))
+        is_eco_mode = safe_bool(self.appdaemon_state.get_state(ECO_MODE_ENTITY))
 
-        dhw_temperature = safe_float(
-            self.appdaemon_state.get_state("water_heater.panasonic_heat_pump_main_dhw_target_temp", "temperature")
-        )
+        dhw_temperature = safe_float(self.appdaemon_state.get_state(DHW_ENTITY, "temperature"))
 
-        heating_temperature = safe_float(
-            self.appdaemon_state.get_state("climate.panasonic_heat_pump_main_z1_temp", "temperature")
-        )
+        heating_temperature = safe_float(self.appdaemon_state.get_state(HEATING_ENTITY, "temperature"))
 
-        heating_mode = safe_str(self.appdaemon_state.get_state("climate.panasonic_heat_pump_main_z1_temp"))
+        heating_mode = safe_str(self.appdaemon_state.get_state(HEATING_ENTITY))
 
-        cooling_temperature = safe_float(
-            self.appdaemon_state.get_state("climate.panasonic_heat_pump_main_z1_temp_cooling", "temperature")
-        )
+        cooling_temperature = safe_float(self.appdaemon_state.get_state(COOLING_ENTITY, "temperature"))
 
-        cooling_mode = safe_str(self.appdaemon_state.get_state("climate.panasonic_heat_pump_main_z1_temp_cooling"))
+        cooling_mode = safe_str(self.appdaemon_state.get_state(COOLING_ENTITY))
 
         missing = []
         if is_eco_mode is None:

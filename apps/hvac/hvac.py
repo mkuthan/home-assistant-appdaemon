@@ -2,6 +2,7 @@ from datetime import datetime
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from appdaemon_protocols.appdaemon_service import AppdaemonService
+from entities.entities import DHW_ENTITY, HEATING_ENTITY
 from hvac.dhw_estimator import DhwEstimator
 from hvac.heating_estimator import HeatingEstimator
 from hvac.hvac_configuration import HvacConfiguration
@@ -41,17 +42,17 @@ class Hvac:
     def _set_dhw_temperature(self, state: HvacState, temperature: Celsius) -> None:
         self.appdaemon_logger.info(f"Change DHW temperature from {state.dhw_temperature} to {temperature}")
         self.appdaemon_service.call_service(
-            "water_heater.set_temperature",
+            "water_heater/set_temperature",
             callback=self.appdaemon_service.service_call_callback,
-            entity_id="water_heater.panasonic_heat_pump_main_dhw_target_temp",
+            entity_id=DHW_ENTITY,
             value=temperature.value,
         )
 
     def _set_heating_temperature(self, state: HvacState, temperature: Celsius) -> None:
         self.appdaemon_logger.info(f"Change heating temperature from {state.heating_temperature} to {temperature}")
         self.appdaemon_service.call_service(
-            "climate.set_temperature",
+            "climate/set_temperature",
             callback=self.appdaemon_service.service_call_callback,
-            entity_id="climate.panasonic_heat_pump_main_z1_temp",
-            temperature=temperature.value,
+            entity_id=HEATING_ENTITY,
+            value=temperature.value,
         )

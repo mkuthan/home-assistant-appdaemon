@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
+from entities.entities import is_heating_enabled
 from hvac.hvac_configuration import HvacConfiguration
 from hvac.hvac_state import HvacState
 from units.celsius import CELSIUS_ZERO, Celsius
@@ -17,7 +18,7 @@ class HeatingEstimator:
         self.configuration = configuration
 
     def estimate_temperature(self, state: HvacState, now: datetime) -> Celsius | None:
-        if state.heating_mode != "heat":
+        if not is_heating_enabled(state.heating_mode):
             return None
 
         if state.is_eco_mode:

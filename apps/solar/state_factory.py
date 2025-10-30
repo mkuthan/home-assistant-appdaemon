@@ -4,6 +4,7 @@ from typing import Protocol
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from appdaemon_protocols.appdaemon_service import AppdaemonService
 from appdaemon_protocols.appdaemon_state import AppdaemonState
+from entities.entities import ECO_MODE_ENTITY, HEATING_ENTITY
 from solar.state import State
 from solar.storage_mode import StorageMode
 from units.battery_current import BatteryCurrent
@@ -33,7 +34,7 @@ class DefaultStateFactory:
         battery_reserve_soc = safe_float(self.appdaemon_state.get_state(self.BATTERY_RESERVE_SOC_ENTITY))
         outdoor_temperature = safe_float(self.appdaemon_state.get_state("sensor.heishamon_outside_ambient_temperature"))
         is_away_mode = safe_bool(self.appdaemon_state.get_state("input_boolean.away_mode"))
-        is_eco_mode = safe_bool(self.appdaemon_state.get_state("input_boolean.eco_mode"))
+        is_eco_mode = safe_bool(self.appdaemon_state.get_state(ECO_MODE_ENTITY))
         inverter_storage_mode = safe_str(self.appdaemon_state.get_state("select.solis_control_storage_mode"))
         is_slot1_discharge_enabled = safe_bool(self.appdaemon_state.get_state("switch.solis_control_slot1_discharge"))
         slot1_discharge_time = safe_str(self.appdaemon_state.get_state("text.solis_control_slot1_discharge_time"))
@@ -45,7 +46,7 @@ class DefaultStateFactory:
         slot2_discharge_current = safe_float(
             self.appdaemon_state.get_state("number.solis_control_slot2_discharge_current")
         )
-        hvac_heating_mode = safe_str(self.appdaemon_state.get_state("climate.panasonic_heat_pump_main_z1_temp"))
+        hvac_heating_mode = safe_str(self.appdaemon_state.get_state(HEATING_ENTITY))
         hourly_price = safe_float(self.appdaemon_state.get_state(self.HOURLY_PRICE_ENTITY))
 
         pv_forecast_today = safe_list(

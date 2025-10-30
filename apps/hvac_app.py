@@ -1,6 +1,7 @@
 from datetime import time
 
 from base_app import BaseApp
+from entities.entities import COOLING_ENTITY, ECO_MODE_ENTITY, HEATING_ENTITY
 from hvac.dhw_estimator import DhwEstimator
 from hvac.heating_estimator import HeatingEstimator
 from hvac.hvac import Hvac
@@ -62,9 +63,9 @@ class HvacApp(BaseApp):
         self.listen_state(
             self.control_triggered,
             [
-                "input_boolean.eco_mode",
-                "climate.panasonic_heat_pump_main_z1_temp",
-                "climate.panasonic_heat_pump_main_z1_temp_cooling",
+                ECO_MODE_ENTITY,
+                HEATING_ENTITY,
+                COOLING_ENTITY,
             ],
         )
 
