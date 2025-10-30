@@ -6,18 +6,18 @@ from solar.forecast_factory import DefaultForecastFactory
 from solar.price_forecast import PriceForecast
 from solar.production_forecast import ProductionForecastComposite
 from solar.solar_configuration import SolarConfiguration
-from solar.state import State
+from solar.solar_state import SolarState
 from solar.weather_forecast import WeatherForecast
 
 
 @pytest.fixture
 def forecast_factory(mock_appdaemon_logger: Mock, config: SolarConfiguration) -> DefaultForecastFactory:
-    return DefaultForecastFactory(appdaemon_logger=mock_appdaemon_logger, config=config)
+    return DefaultForecastFactory(appdaemon_logger=mock_appdaemon_logger, configuration=config)
 
 
 def test_create_production_forecast(
     forecast_factory: DefaultForecastFactory,
-    state: State,
+    state: SolarState,
 ) -> None:
     production_forecast = forecast_factory.create_production_forecast(state)
 
@@ -27,7 +27,7 @@ def test_create_production_forecast(
 
 def test_create_consumption_forecast(
     forecast_factory: DefaultForecastFactory,
-    state: State,
+    state: SolarState,
 ) -> None:
     consumption_forecast = forecast_factory.create_consumption_forecast(state)
 
@@ -37,7 +37,7 @@ def test_create_consumption_forecast(
 
 def test_create_price_forecast(
     forecast_factory: DefaultForecastFactory,
-    state: State,
+    state: SolarState,
 ) -> None:
     price_forecast = forecast_factory.create_price_forecast(state)
 
@@ -46,7 +46,7 @@ def test_create_price_forecast(
 
 def test_create_weather_forecast(
     forecast_factory: DefaultForecastFactory,
-    state: State,
+    state: SolarState,
 ) -> None:
     weather_forecast = forecast_factory.create_weather_forecast(state)
 

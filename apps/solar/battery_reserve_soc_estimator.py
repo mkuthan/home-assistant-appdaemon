@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from solar.forecast_factory import ForecastFactory
 from solar.solar_configuration import SolarConfiguration
-from solar.state import State
+from solar.solar_state import SolarState
 from units.battery_soc import BatterySoc
 from units.energy_kwh import ENERGY_KWH_ZERO
 from utils.battery_estimators import estimate_battery_max_soc, estimate_battery_reserve_soc
@@ -14,14 +14,14 @@ class BatteryReserveSocEstimator:
     def __init__(
         self,
         appdaemon_logger: AppdaemonLogger,
-        config: SolarConfiguration,
+        configuration: SolarConfiguration,
         forecast_factory: ForecastFactory,
     ) -> None:
         self.appdaemon_logger = appdaemon_logger
-        self.config = config
+        self.configuration = configuration
         self.forecast_factory = forecast_factory
 
-    def estimate_soc_tomorrow_at_7_am(self, state: State, now: datetime) -> BatterySoc | None:
+    def estimate_soc_tomorrow_at_7_am(self, state: SolarState, now: datetime) -> BatterySoc | None:
         tomorrow_7_am = now.replace(hour=7, minute=0, second=0, microsecond=0) + timedelta(days=1)
         low_tariff_hours = 6
 
@@ -36,10 +36,10 @@ class BatteryReserveSocEstimator:
 
         soc_target = estimate_battery_reserve_soc(
             energy_reserve,
-            self.config.battery_capacity,
-            self.config.battery_reserve_soc_min,
-            self.config.battery_reserve_soc_margin,
-            self.config.battery_reserve_soc_max,
+            self.configuration.battery_capacity,
+            self.configuration.battery_reserve_soc_min,
+            self.configuration.battery_reserve_soc_margin,
+            self.configuration.battery_reserve_soc_max,
         )
         self.appdaemon_logger.info(f"SoC target: {soc_target}")
 
@@ -51,7 +51,7 @@ class BatteryReserveSocEstimator:
 
         return soc_target
 
-    def estimate_soc_today_at_4_pm(self, state: State, now: datetime) -> BatterySoc | None:
+    def estimate_soc_today_at_4_pm(self, state: SolarState, now: datetime) -> BatterySoc | None:
         today_4_pm = now.replace(hour=16, minute=0, second=0, microsecond=0)
         low_tariff_hours = 6
 
@@ -78,10 +78,10 @@ class BatteryReserveSocEstimator:
 
         soc_target = estimate_battery_reserve_soc(
             energy_reserve,
-            self.config.battery_capacity,
-            self.config.battery_reserve_soc_min,
-            self.config.battery_reserve_soc_margin,
-            self.config.battery_reserve_soc_max,
+            self.configuration.battery_capacity,
+            self.configuration.battery_reserve_soc_min,
+            self.configuration.battery_reserve_soc_margin,
+            self.configuration.battery_reserve_soc_max,
         )
         self.appdaemon_logger.info(f"Battery reserve SoC target: {soc_target}")
 
@@ -96,7 +96,9 @@ class BatteryReserveSocEstimator:
             self.appdaemon_logger.info(f"Skip, battery SoC current {state.battery_soc} >= SoC target {soc_target}")
             return None
 
-        soc_solar_only = estimate_battery_max_soc(energy_surplus, state.battery_soc, self.config.battery_capacity)
+        soc_solar_only = estimate_battery_max_soc(
+            energy_surplus, state.battery_soc, self.configuration.battery_capacity
+        )
         if soc_solar_only >= soc_target:
             self.appdaemon_logger.info(f"Skip, estimated battery SoC max {soc_solar_only} >= SoC target {soc_target}")
             return None

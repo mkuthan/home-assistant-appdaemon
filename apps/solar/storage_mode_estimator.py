@@ -3,7 +3,7 @@ from datetime import datetime
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from solar.forecast_factory import ForecastFactory
 from solar.solar_configuration import SolarConfiguration
-from solar.state import State
+from solar.solar_state import SolarState
 from solar.storage_mode import StorageMode
 from units.battery_soc import BATTERY_SOC_MAX
 from utils.battery_estimators import estimate_battery_max_soc
@@ -16,14 +16,14 @@ class StorageModeEstimator:
     def __init__(
         self,
         appdaemon_logger: AppdaemonLogger,
-        config: SolarConfiguration,
+        configuration: SolarConfiguration,
         forecast_factory: ForecastFactory,
     ) -> None:
         self.appdaemon_logger = appdaemon_logger
-        self.config = config
+        self.configuration = configuration
         self.forecast_factory = forecast_factory
 
-    def estimate_storage_mode(self, state: State, now: datetime) -> StorageMode:
+    def estimate_storage_mode(self, state: SolarState, now: datetime) -> StorageMode:
         remaining_hours = self.END_HOUR - now.hour
         if remaining_hours <= 0:
             self.appdaemon_logger.info(f"Use {StorageMode.SELF_USE}, no remaining hours in the day")
@@ -36,14 +36,16 @@ class StorageModeEstimator:
             return StorageMode.SELF_USE
 
         current_price = state.hourly_price.non_negative()
-        price_threshold = min_price.non_negative() + self.config.pv_export_min_price_margin
+        price_threshold = min_price.non_negative() + self.configuration.pv_export_min_price_margin
         if current_price <= price_threshold:
             self.appdaemon_logger.info(
                 f"Use {StorageMode.SELF_USE}, current price {current_price} <= {price_threshold}"
             )
             return StorageMode.SELF_USE
 
-        required_battery_reserve_soc = self.config.battery_reserve_soc_min + self.config.battery_reserve_soc_margin
+        required_battery_reserve_soc = (
+            self.configuration.battery_reserve_soc_min + self.configuration.battery_reserve_soc_margin
+        )
         if state.battery_soc <= required_battery_reserve_soc:
             self.appdaemon_logger.info(
                 f"Use {StorageMode.SELF_USE}, battery SoC {state.battery_soc} <= {required_battery_reserve_soc}"
@@ -59,7 +61,9 @@ class StorageModeEstimator:
         energy_surplus = total_surplus(consumptions, productions)
         self.appdaemon_logger.info(f"Energy surplus: {energy_surplus}")
 
-        battery_soc_max = estimate_battery_max_soc(energy_surplus, state.battery_soc, self.config.battery_capacity)
+        battery_soc_max = estimate_battery_max_soc(
+            energy_surplus, state.battery_soc, self.configuration.battery_capacity
+        )
         self.appdaemon_logger.info(f"Battery SoC max: {battery_soc_max}")
 
         if battery_soc_max < BATTERY_SOC_MAX:

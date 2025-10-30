@@ -8,7 +8,7 @@ from solar.battery_discharge_slot import BatteryDischargeSlot
 from solar.battery_discharge_slot_estimator import BatteryDischargeSlotEstimator
 from solar.price_forecast import HourlyPrice
 from solar.solar_configuration import SolarConfiguration
-from solar.state import State
+from solar.solar_state import SolarState
 from units.battery_current import BatteryCurrent
 from units.battery_soc import BatterySoc
 from units.battery_voltage import BatteryVoltage
@@ -37,14 +37,14 @@ def battery_discharge_slot_estimator(
 
     return BatteryDischargeSlotEstimator(
         appdaemon_logger=mock_appdaemon_logger,
-        config=config,
+        configuration=config,
         forecast_factory=mock_forecast_factory,
     )
 
 
 def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_for_two_slots(
     battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
-    state: State,
+    state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
@@ -79,7 +79,7 @@ def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_for_two_slots(
     mock_price_forecast.find_peak_periods.assert_called_once_with(
         this_day_4_pm,
         low_tariff_hours,
-        battery_discharge_slot_estimator.config.battery_export_threshold_price,
+        battery_discharge_slot_estimator.configuration.battery_export_threshold_price,
     )
     mock_production_forecast.hourly.assert_called_once_with(this_day_4_pm, low_tariff_hours)
     mock_consumption_forecast.hourly.assert_called_once_with(this_day_4_pm, low_tariff_hours)
@@ -95,7 +95,7 @@ def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_for_two_slots(
 
 def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_for_one_slot(
     battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
-    state: State,
+    state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
@@ -130,7 +130,7 @@ def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_for_one_slot(
     mock_price_forecast.find_peak_periods.assert_called_once_with(
         this_day_4_pm,
         low_tariff_hours,
-        battery_discharge_slot_estimator.config.battery_export_threshold_price,
+        battery_discharge_slot_estimator.configuration.battery_export_threshold_price,
     )
     mock_production_forecast.hourly.assert_called_once_with(this_day_4_pm, low_tariff_hours)
     mock_consumption_forecast.hourly.assert_called_once_with(this_day_4_pm, low_tariff_hours)
@@ -143,7 +143,7 @@ def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_for_one_slot(
 
 def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_for_no_slots(
     battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
-    state: State,
+    state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
@@ -178,7 +178,7 @@ def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_for_no_slots(
     mock_price_forecast.find_peak_periods.assert_called_once_with(
         this_day_4_pm,
         low_tariff_hours,
-        battery_discharge_slot_estimator.config.battery_export_threshold_price,
+        battery_discharge_slot_estimator.configuration.battery_export_threshold_price,
     )
     mock_production_forecast.hourly.assert_called_once_with(this_day_4_pm, low_tariff_hours)
     mock_consumption_forecast.hourly.assert_called_once_with(this_day_4_pm, low_tariff_hours)
@@ -188,7 +188,7 @@ def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_for_no_slots(
 
 def test_estimate_battery_discharge_at_4_pm_when_no_peak_periods(
     battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
-    state: State,
+    state: SolarState,
     mock_price_forecast: Mock,
 ) -> None:
     mock_price_forecast.find_peak_periods.return_value = []
@@ -202,7 +202,7 @@ def test_estimate_battery_discharge_at_4_pm_when_no_peak_periods(
     mock_price_forecast.find_peak_periods.assert_called_once_with(
         this_day_4_pm,
         low_tariff_hours,
-        battery_discharge_slot_estimator.config.battery_export_threshold_price,
+        battery_discharge_slot_estimator.configuration.battery_export_threshold_price,
     )
 
     assert len(battery_discharge_slot) == 0
