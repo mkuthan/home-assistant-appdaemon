@@ -80,7 +80,7 @@ class BatteryDischargeSlotEstimator:
             discharge_slot = BatteryDischargeSlot(
                 start_time=period.period.start_time(),
                 end_time=period.period.end_time(),
-                current=slot_current,
+                current=round(slot_current),
             )
             discharge_slots.append(discharge_slot)
             self.appdaemon_logger.info(f"Battery discharge slot: {discharge_slot}")

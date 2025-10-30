@@ -1,8 +1,9 @@
 from dataclasses import dataclass
+from math import floor
 from typing import ClassVar
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class Celsius:
     _ZERO_VALUE: ClassVar[float] = 0.0
 
@@ -14,17 +15,8 @@ class Celsius:
     def __sub__(self, other: "Celsius") -> "Celsius":
         return Celsius(value=self.value - other.value)
 
-    def __lt__(self, other: "Celsius") -> bool:
-        return self.value < other.value
-
-    def __le__(self, other: "Celsius") -> bool:
-        return self.value <= other.value
-
-    def __gt__(self, other: "Celsius") -> bool:
-        return self.value > other.value
-
-    def __ge__(self, other: "Celsius") -> bool:
-        return self.value >= other.value
+    def __round__(self) -> "Celsius":
+        return Celsius(value=floor(self.value + 0.5))
 
     def __str__(self) -> str:
         return f"{self.value:.1f}°C"

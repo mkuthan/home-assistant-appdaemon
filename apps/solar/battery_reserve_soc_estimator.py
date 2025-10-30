@@ -103,4 +103,4 @@ class BatteryReserveSocEstimator:
             self.appdaemon_logger.info(f"Skip, estimated battery SoC max {soc_solar_only} >= SoC target {soc_target}")
             return None
 
-        return soc_target
+        return round(soc_target)

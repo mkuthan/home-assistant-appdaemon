@@ -33,6 +33,8 @@ class DhwEstimator:
         else:
             temperature_boost = CELSIUS_ZERO
 
+        temperature_target = round(temperature_target)
+
         if temperature_target != state.dhw_temperature:
             self.appdaemon_logger.info(f"DHW temperature target: {temperature_target}, boost: {temperature_boost}")
             return temperature_target

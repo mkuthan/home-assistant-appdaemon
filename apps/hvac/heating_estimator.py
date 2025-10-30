@@ -39,6 +39,8 @@ class HeatingEstimator:
         else:
             temperature_boost = CELSIUS_ZERO
 
+        temperature_target = round(temperature_target)
+
         if temperature_target != state.heating_temperature:
             self.appdaemon_logger.info(f"Heating temperature target: {temperature_target}, boost: {temperature_boost}")
             return temperature_target

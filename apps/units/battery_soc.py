@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from math import floor
 from typing import ClassVar
 
 
@@ -18,6 +19,9 @@ class BatterySoc:
 
     def __sub__(self, other: "BatterySoc") -> "BatterySoc":
         return BatterySoc(value=max(self.value - other.value, self._MIN_VALUE))
+
+    def __round__(self) -> "BatterySoc":
+        return BatterySoc(value=floor(self.value + 0.5))
 
     def __str__(self) -> str:
         return f"{self.value:.2f}%"
