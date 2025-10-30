@@ -25,12 +25,12 @@ def configuration() -> HvacConfiguration:
         heating_boost_time_end_eco_off=time.fromisoformat("00:00:00"),
         cooling_temp=CELSIUS_ZERO,
         cooling_temp_eco=CELSIUS_ZERO,
-        cooling_reduced_delta_temp=CELSIUS_ZERO,
-        cooling_reduced_delta_temp_eco=CELSIUS_ZERO,
-        cooling_reduced_time_start_eco_on=time.fromisoformat("00:00:00"),
-        cooling_reduced_time_end_eco_on=time.fromisoformat("00:00:00"),
-        cooling_reduced_time_start_eco_off=time.fromisoformat("00:00:00"),
-        cooling_reduced_time_end_eco_off=time.fromisoformat("00:00:00"),
+        cooling_boost_delta_temp=CELSIUS_ZERO,
+        cooling_boost_delta_temp_eco=CELSIUS_ZERO,
+        cooling_boost_time_start_eco_on=time.fromisoformat("00:00:00"),
+        cooling_boost_time_end_eco_on=time.fromisoformat("00:00:00"),
+        cooling_boost_time_start_eco_off=time.fromisoformat("00:00:00"),
+        cooling_boost_time_end_eco_off=time.fromisoformat("00:00:00"),
     )
 
 

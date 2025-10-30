@@ -2,6 +2,7 @@ from datetime import time
 
 from base_app import BaseApp
 from entities.entities import COOLING_ENTITY, ECO_MODE_ENTITY, HEATING_ENTITY
+from hvac.cooling_estimator import CoolingEstimator
 from hvac.dhw_estimator import DhwEstimator
 from hvac.heating_estimator import HeatingEstimator
 from hvac.hvac import Hvac
@@ -33,12 +34,12 @@ class HvacApp(BaseApp):
             heating_boost_time_end_eco_off=time.fromisoformat("21:00:00"),
             cooling_temp=Celsius(24.0),
             cooling_temp_eco=Celsius(26.0),
-            cooling_reduced_delta_temp=Celsius(2.0),
-            cooling_reduced_delta_temp_eco=Celsius(2.0),
-            cooling_reduced_time_start_eco_on=time.fromisoformat("12:00:00"),
-            cooling_reduced_time_end_eco_on=time.fromisoformat("16:00:00"),
-            cooling_reduced_time_start_eco_off=time.fromisoformat("10:00:00"),
-            cooling_reduced_time_end_eco_off=time.fromisoformat("18:00:00"),
+            cooling_boost_delta_temp=Celsius(2.0),
+            cooling_boost_delta_temp_eco=Celsius(2.0),
+            cooling_boost_time_start_eco_on=time.fromisoformat("12:00:00"),
+            cooling_boost_time_end_eco_on=time.fromisoformat("16:00:00"),
+            cooling_boost_time_start_eco_off=time.fromisoformat("10:00:00"),
+            cooling_boost_time_end_eco_off=time.fromisoformat("18:00:00"),
         )
 
         state_factory = DefaultHvacStateFactory(
@@ -54,6 +55,7 @@ class HvacApp(BaseApp):
             state_factory=state_factory,
             dhw_estimator=DhwEstimator(appdaemon_logger, configuration),
             heating_estimator=HeatingEstimator(appdaemon_logger, configuration),
+            cooling_estimator=CoolingEstimator(appdaemon_logger, configuration),
         )
 
         self.info("Scheduling HVAC control every 5 minutes")
