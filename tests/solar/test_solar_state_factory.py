@@ -2,7 +2,25 @@ from decimal import Decimal
 from unittest.mock import Mock
 
 import pytest
-from entities.entities import ECO_MODE_ENTITY, HEATING_ENTITY
+from entities.entities import (
+    AWAY_MODE_ENTITY,
+    BATTERY_RESERVE_SOC_ENTITY,
+    BATTERY_SOC_ENTITY,
+    ECO_MODE_ENTITY,
+    HEATING_ENTITY,
+    HOURLY_PRICE_ENTITY,
+    INVERTER_STORAGE_MODE_ENTITY,
+    OUTDOOR_TEMPERATURE_ENTITY,
+    PV_FORECAST_TODAY_ENTITY,
+    PV_FORECAST_TOMORROW_ENTITY,
+    SLOT1_DISCHARGE_CURRENT_ENTITY,
+    SLOT1_DISCHARGE_ENABLED_ENTITY,
+    SLOT1_DISCHARGE_TIME_ENTITY,
+    SLOT2_DISCHARGE_CURRENT_ENTITY,
+    SLOT2_DISCHARGE_ENABLED_ENTITY,
+    SLOT2_DISCHARGE_TIME_ENTITY,
+    WEATHER_FORECAST_ENTITY,
+)
 from solar.solar_state_factory import DefaultSolarStateFactory
 from solar.storage_mode import StorageMode
 from units.battery_current import BatteryCurrent
@@ -34,7 +52,7 @@ def pv_forecast_day_3() -> list[dict]:
 @pytest.fixture
 def weather_forecast() -> dict:
     return {
-        "weather.forecast_wieprz": {
+        WEATHER_FORECAST_ENTITY: {
             "forecast": [
                 {"datetime": "2025-10-05T14:00:00+00:00", "temperature": 12.0, "humidity": 46.0},
             ]
@@ -57,25 +75,25 @@ def state_values(
     price_forecast: list[dict],
 ) -> dict:
     return {
-        "sensor.solis_remaining_battery_capacity:": "75.5",
-        "number.solis_control_battery_reserve_soc:": "20.0",
+        f"{BATTERY_SOC_ENTITY}:": "75.5",
+        f"{BATTERY_RESERVE_SOC_ENTITY}:": "20.0",
         "sensor.heishamon_z1_actual_temperature:": "21.5",
-        "sensor.heishamon_outside_ambient_temperature:": "10.0",
-        "input_boolean.away_mode:": "off",
+        f"{OUTDOOR_TEMPERATURE_ENTITY}:": "10.0",
+        f"{AWAY_MODE_ENTITY}:": "off",
         f"{ECO_MODE_ENTITY}:": "on",
-        "select.solis_control_storage_mode:": "Self-Use",
-        "switch.solis_control_slot1_discharge:": "on",
-        "text.solis_control_slot1_discharge_time:": "19:00-20:00",
-        "number.solis_control_slot1_discharge_current:": "45.0",
-        "switch.solis_control_slot2_discharge:": "on",
-        "text.solis_control_slot2_discharge_time:": "20:00-21:00",
-        "number.solis_control_slot2_discharge_current:": "30.0",
+        f"{INVERTER_STORAGE_MODE_ENTITY}:": "Self-Use",
+        f"{SLOT1_DISCHARGE_ENABLED_ENTITY}:": "on",
+        f"{SLOT1_DISCHARGE_TIME_ENTITY}:": "19:00-20:00",
+        f"{SLOT1_DISCHARGE_CURRENT_ENTITY}:": "45.0",
+        f"{SLOT2_DISCHARGE_ENABLED_ENTITY}:": "on",
+        f"{SLOT2_DISCHARGE_TIME_ENTITY}:": "20:00-21:00",
+        f"{SLOT2_DISCHARGE_CURRENT_ENTITY}:": "30.0",
         f"{HEATING_ENTITY}:": "heat",
-        "sensor.rce:": "500.0",
-        "sensor.solcast_pv_forecast_forecast_today:detailedHourly": pv_forecast_today,
-        "sensor.solcast_pv_forecast_forecast_tomorrow:detailedHourly": pv_forecast_tomorrow,
+        f"{HOURLY_PRICE_ENTITY}:": "500.0",
+        f"{PV_FORECAST_TODAY_ENTITY}:detailedHourly": pv_forecast_today,
+        f"{PV_FORECAST_TOMORROW_ENTITY}:detailedHourly": pv_forecast_tomorrow,
         "sensor.solcast_pv_forecast_forecast_day_3:detailedHourly": pv_forecast_day_3,
-        "sensor.rce:raw_today": price_forecast,
+        f"{HOURLY_PRICE_ENTITY}:raw_today": price_forecast,
     }
 
 
@@ -132,24 +150,24 @@ def test_create(
 @pytest.mark.parametrize(
     ("missing_entity_or_service", "expected_message"),
     [
-        ("sensor.solis_remaining_battery_capacity:", "Missing: battery_soc"),
-        ("number.solis_control_battery_reserve_soc:", "Missing: battery_reserve_soc"),
-        ("sensor.heishamon_outside_ambient_temperature:", "Missing: outdoor_temperature"),
-        ("input_boolean.away_mode:", "Missing: is_away_mode"),
+        (f"{BATTERY_SOC_ENTITY}:", "Missing: battery_soc"),
+        (f"{BATTERY_RESERVE_SOC_ENTITY}:", "Missing: battery_reserve_soc"),
+        (f"{OUTDOOR_TEMPERATURE_ENTITY}:", "Missing: outdoor_temperature"),
+        (f"{AWAY_MODE_ENTITY}:", "Missing: is_away_mode"),
         (f"{ECO_MODE_ENTITY}:", "Missing: is_eco_mode"),
-        ("select.solis_control_storage_mode:", "Missing: inverter_storage_mode"),
-        ("switch.solis_control_slot1_discharge:", "Missing: is_slot1_discharge_enabled"),
-        ("text.solis_control_slot1_discharge_time:", "Missing: slot1_discharge_time"),
-        ("number.solis_control_slot1_discharge_current:", "Missing: slot1_discharge_current"),
-        ("switch.solis_control_slot2_discharge:", "Missing: is_slot2_discharge_enabled"),
-        ("text.solis_control_slot2_discharge_time:", "Missing: slot2_discharge_time"),
-        ("number.solis_control_slot2_discharge_current:", "Missing: slot2_discharge_current"),
+        (f"{INVERTER_STORAGE_MODE_ENTITY}:", "Missing: inverter_storage_mode"),
+        (f"{SLOT1_DISCHARGE_ENABLED_ENTITY}:", "Missing: is_slot1_discharge_enabled"),
+        (f"{SLOT1_DISCHARGE_TIME_ENTITY}:", "Missing: slot1_discharge_time"),
+        (f"{SLOT1_DISCHARGE_CURRENT_ENTITY}:", "Missing: slot1_discharge_current"),
+        (f"{SLOT2_DISCHARGE_ENABLED_ENTITY}:", "Missing: is_slot2_discharge_enabled"),
+        (f"{SLOT2_DISCHARGE_TIME_ENTITY}:", "Missing: slot2_discharge_time"),
+        (f"{SLOT2_DISCHARGE_CURRENT_ENTITY}:", "Missing: slot2_discharge_current"),
         (f"{HEATING_ENTITY}:", "Missing: hvac_heating_mode"),
-        ("sensor.rce:", "Missing: hourly_price"),
-        ("sensor.solcast_pv_forecast_forecast_today:detailedHourly", "Missing: pv_forecast_today"),
-        ("sensor.solcast_pv_forecast_forecast_tomorrow:detailedHourly", "Missing: pv_forecast_tomorrow"),
+        (f"{HOURLY_PRICE_ENTITY}:", "Missing: hourly_price"),
+        (f"{PV_FORECAST_TODAY_ENTITY}:detailedHourly", "Missing: pv_forecast_today"),
+        (f"{PV_FORECAST_TOMORROW_ENTITY}:detailedHourly", "Missing: pv_forecast_tomorrow"),
         ("weather/get_forecasts", "Missing: weather_forecast"),
-        ("sensor.rce:raw_today", "Missing: price_forecast_today"),
+        (f"{HOURLY_PRICE_ENTITY}:raw_today", "Missing: price_forecast_today"),
     ],
 )
 def test_create_missing_field(

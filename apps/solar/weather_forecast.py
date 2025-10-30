@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from entities.entities import WEATHER_FORECAST_ENTITY
 from units.hourly_period import HourlyPeriod
 from units.hourly_weather import HourlyWeather
 
@@ -10,7 +11,7 @@ class WeatherForecast:
         periods = []
 
         if raw_forecast and isinstance(raw_forecast, dict):
-            weather_data = raw_forecast.get("weather.forecast_wieprz", {})
+            weather_data = raw_forecast.get(WEATHER_FORECAST_ENTITY, {})
             if isinstance(weather_data, dict):
                 forecast_list = weather_data.get("forecast")
 

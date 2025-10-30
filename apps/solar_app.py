@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from base_app import BaseApp
+from entities.entities import BATTERY_SOC_ENTITY, HOURLY_PRICE_ENTITY
 from solar.battery_discharge_slot_estimator import BatteryDischargeSlotEstimator
 from solar.battery_reserve_soc_estimator import BatteryReserveSocEstimator
 from solar.forecast_factory import DefaultForecastFactory
@@ -89,8 +90,8 @@ class SolarApp(BaseApp):
         self.listen_state(
             self.align_storage_mode,
             [
-                state_factory.BATTERY_SOC_ENTITY,
-                state_factory.HOURLY_PRICE_ENTITY,
+                BATTERY_SOC_ENTITY,
+                HOURLY_PRICE_ENTITY,
             ],
             constrain_start_time="sunrise +01:00:00",
             constrain_end_time="sunset -01:00:00",

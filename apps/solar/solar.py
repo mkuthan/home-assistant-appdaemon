@@ -2,6 +2,13 @@ from datetime import datetime
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from appdaemon_protocols.appdaemon_service import AppdaemonService
+from entities.entities import (
+    BATTERY_RESERVE_SOC_ENTITY,
+    INVERTER_STORAGE_MODE_ENTITY,
+    get_slot_discharge_current_entity,
+    get_slot_discharge_enabled_entity,
+    get_slot_discharge_time_entity,
+)
 from solar.battery_discharge_slot_estimator import BatteryDischargeSlotEstimator
 from solar.battery_reserve_soc_estimator import BatteryReserveSocEstimator
 from solar.solar_configuration import SolarConfiguration
@@ -133,7 +140,7 @@ class Solar:
             self.appdaemon_service.call_service(
                 "select/select_option",
                 callback=self.appdaemon_service.service_call_callback,
-                entity_id="select.solis_control_storage_mode",
+                entity_id=INVERTER_STORAGE_MODE_ENTITY,
                 option=storage_mode.value,
             )
         else:
@@ -148,7 +155,7 @@ class Solar:
             self.appdaemon_service.call_service(
                 "number/set_value",
                 callback=self.appdaemon_service.service_call_callback,
-                entity_id="number.solis_control_battery_reserve_soc",
+                entity_id=BATTERY_RESERVE_SOC_ENTITY,
                 value=battery_reserve_soc.value,
             )
         else:
@@ -169,7 +176,7 @@ class Solar:
             self.appdaemon_service.call_service(
                 "text/set_value",
                 callback=self.appdaemon_service.service_call_callback,
-                entity_id=f"text.solis_control_slot{slot}_discharge_time",
+                entity_id=get_slot_discharge_time_entity(slot),
                 value=discharge_time,
             )
         else:
@@ -183,7 +190,7 @@ class Solar:
             self.appdaemon_service.call_service(
                 "number/set_value",
                 callback=self.appdaemon_service.service_call_callback,
-                entity_id=f"number.solis_control_slot{slot}_discharge_current",
+                entity_id=get_slot_discharge_current_entity(slot),
                 value=discharge_current.value,
             )
         else:
@@ -201,7 +208,7 @@ class Solar:
             # slots can't be enabled concurrently, use blocking call
             result = self.appdaemon_service.call_service(
                 "switch/turn_on",
-                entity_id=f"switch.solis_control_slot{slot}_discharge",
+                entity_id=get_slot_discharge_enabled_entity(slot),
             )
             match result:
                 case {"success": True}:
@@ -221,7 +228,7 @@ class Solar:
             # slots can't be disabled concurrently, use blocking call
             result = self.appdaemon_service.call_service(
                 "switch/turn_off",
-                entity_id=f"switch.solis_control_slot{slot}_discharge",
+                entity_id=get_slot_discharge_enabled_entity(slot),
             )
             match result:
                 case {"success": True}:

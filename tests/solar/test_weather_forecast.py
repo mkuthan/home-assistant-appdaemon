@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pytest
+from entities.entities import WEATHER_FORECAST_ENTITY
 from solar.weather_forecast import HourlyWeather, WeatherForecast
 from units.hourly_period import HourlyPeriod
 
@@ -8,7 +9,7 @@ from units.hourly_period import HourlyPeriod
 def test_create() -> None:
     # Home Assistant weather forecast format
     raw_forecast = {
-        "weather.forecast_wieprz": {
+        WEATHER_FORECAST_ENTITY: {
             "forecast": [
                 {
                     "datetime": "2025-10-03T14:00:00+00:00",
