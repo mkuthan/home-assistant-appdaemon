@@ -20,12 +20,12 @@ from units.hourly_period import HourlyPeriod
 
 @pytest.fixture
 def battery_discharge_slot_estimator(
-    config: SolarConfiguration,
+    configuration: SolarConfiguration,
     mock_appdaemon_logger: Mock,
     mock_forecast_factory: Mock,
 ) -> BatteryDischargeSlotEstimator:
-    config = replace(
-        config,
+    configuration = replace(
+        configuration,
         battery_capacity=EnergyKwh(10.0),
         battery_voltage=BatteryVoltage(50.0),
         battery_maximum_current=BatteryCurrent(80.0),
@@ -37,7 +37,7 @@ def battery_discharge_slot_estimator(
 
     return BatteryDischargeSlotEstimator(
         appdaemon_logger=mock_appdaemon_logger,
-        configuration=config,
+        configuration=configuration,
         forecast_factory=mock_forecast_factory,
     )
 

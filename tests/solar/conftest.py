@@ -40,7 +40,7 @@ def mock_forecast_factory(
 
 
 @pytest.fixture
-def config() -> SolarConfiguration:
+def configuration() -> SolarConfiguration:
     return SolarConfiguration(
         battery_capacity=ENERGY_KWH_ZERO,
         battery_voltage=BATTERY_VOLTAGE_ZERO,

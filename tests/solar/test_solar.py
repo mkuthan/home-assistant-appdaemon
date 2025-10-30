@@ -36,7 +36,7 @@ def mock_storage_mode_estimator() -> Mock:
 def solar(
     mock_appdaemon_logger: Mock,
     mock_appdaemon_service: Mock,
-    config: SolarConfiguration,
+    configuration: SolarConfiguration,
     mock_state_factory: Mock,
     mock_battery_discharge_slot_estimator: Mock,
     mock_battery_reserve_soc_estimator: Mock,
@@ -45,7 +45,7 @@ def solar(
     return Solar(
         mock_appdaemon_logger,
         mock_appdaemon_service,
-        config,
+        configuration,
         mock_state_factory,
         mock_battery_discharge_slot_estimator,
         mock_battery_reserve_soc_estimator,
@@ -114,14 +114,14 @@ def test_align_battery_reserve_soc_today_at_4_pm(
 def test_reset_battery_reserve_soc(
     solar: Solar,
     state: SolarState,
-    config: SolarConfiguration,
+    configuration: SolarConfiguration,
     mock_appdaemon_service: Mock,
     mock_state_factory: Mock,
 ) -> None:
     battery_reserve_soc_current = BatterySoc(50.0)
     battery_reserve_soc_min = BatterySoc(20.0)
 
-    solar.configuration = replace(config, battery_reserve_soc_min=battery_reserve_soc_min)
+    solar.configuration = replace(configuration, battery_reserve_soc_min=battery_reserve_soc_min)
     state = replace(state, battery_reserve_soc=battery_reserve_soc_current)
 
     mock_state_factory.create.return_value = state
