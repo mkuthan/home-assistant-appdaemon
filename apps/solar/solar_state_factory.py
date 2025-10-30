@@ -4,7 +4,25 @@ from typing import Protocol
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from appdaemon_protocols.appdaemon_service import AppdaemonService
 from appdaemon_protocols.appdaemon_state import AppdaemonState
-from entities.entities import ECO_MODE_ENTITY, HEATING_ENTITY
+from entities.entities import (
+    AWAY_MODE_ENTITY,
+    BATTERY_RESERVE_SOC_ENTITY,
+    BATTERY_SOC_ENTITY,
+    ECO_MODE_ENTITY,
+    HEATING_ENTITY,
+    HOURLY_PRICE_ENTITY,
+    INVERTER_STORAGE_MODE_ENTITY,
+    OUTDOOR_TEMPERATURE_ENTITY,
+    PV_FORECAST_TODAY_ENTITY,
+    PV_FORECAST_TOMORROW_ENTITY,
+    SLOT1_DISCHARGE_CURRENT_ENTITY,
+    SLOT1_DISCHARGE_ENABLED_ENTITY,
+    SLOT1_DISCHARGE_TIME_ENTITY,
+    SLOT2_DISCHARGE_CURRENT_ENTITY,
+    SLOT2_DISCHARGE_ENABLED_ENTITY,
+    SLOT2_DISCHARGE_TIME_ENTITY,
+    WEATHER_FORECAST_ENTITY,
+)
 from solar.solar_state import SolarState
 from solar.storage_mode import StorageMode
 from units.battery_current import BatteryCurrent
@@ -18,10 +36,6 @@ class SolarStateFactory(Protocol):
 
 
 class DefaultSolarStateFactory:
-    BATTERY_SOC_ENTITY = "sensor.solis_remaining_battery_capacity"
-    BATTERY_RESERVE_SOC_ENTITY = "number.solis_control_battery_reserve_soc"
-    HOURLY_PRICE_ENTITY = "sensor.rce"
-
     def __init__(
         self, appdaemon_logger: AppdaemonLogger, appdaemon_state: AppdaemonState, appdaemon_service: AppdaemonService
     ) -> None:
@@ -30,39 +44,31 @@ class DefaultSolarStateFactory:
         self.appdaemon_service = appdaemon_service
 
     def create(self) -> SolarState | None:
-        battery_soc = safe_float(self.appdaemon_state.get_state(self.BATTERY_SOC_ENTITY))
-        battery_reserve_soc = safe_float(self.appdaemon_state.get_state(self.BATTERY_RESERVE_SOC_ENTITY))
-        outdoor_temperature = safe_float(self.appdaemon_state.get_state("sensor.heishamon_outside_ambient_temperature"))
-        is_away_mode = safe_bool(self.appdaemon_state.get_state("input_boolean.away_mode"))
+        battery_soc = safe_float(self.appdaemon_state.get_state(BATTERY_SOC_ENTITY))
+        battery_reserve_soc = safe_float(self.appdaemon_state.get_state(BATTERY_RESERVE_SOC_ENTITY))
+        outdoor_temperature = safe_float(self.appdaemon_state.get_state(OUTDOOR_TEMPERATURE_ENTITY))
+        is_away_mode = safe_bool(self.appdaemon_state.get_state(AWAY_MODE_ENTITY))
         is_eco_mode = safe_bool(self.appdaemon_state.get_state(ECO_MODE_ENTITY))
-        inverter_storage_mode = safe_str(self.appdaemon_state.get_state("select.solis_control_storage_mode"))
-        is_slot1_discharge_enabled = safe_bool(self.appdaemon_state.get_state("switch.solis_control_slot1_discharge"))
-        slot1_discharge_time = safe_str(self.appdaemon_state.get_state("text.solis_control_slot1_discharge_time"))
-        slot1_discharge_current = safe_float(
-            self.appdaemon_state.get_state("number.solis_control_slot1_discharge_current")
-        )
-        is_slot2_discharge_enabled = safe_bool(self.appdaemon_state.get_state("switch.solis_control_slot2_discharge"))
-        slot2_discharge_time = safe_str(self.appdaemon_state.get_state("text.solis_control_slot2_discharge_time"))
-        slot2_discharge_current = safe_float(
-            self.appdaemon_state.get_state("number.solis_control_slot2_discharge_current")
-        )
+        inverter_storage_mode = safe_str(self.appdaemon_state.get_state(INVERTER_STORAGE_MODE_ENTITY))
+        is_slot1_discharge_enabled = safe_bool(self.appdaemon_state.get_state(SLOT1_DISCHARGE_ENABLED_ENTITY))
+        slot1_discharge_time = safe_str(self.appdaemon_state.get_state(SLOT1_DISCHARGE_TIME_ENTITY))
+        slot1_discharge_current = safe_float(self.appdaemon_state.get_state(SLOT1_DISCHARGE_CURRENT_ENTITY))
+        is_slot2_discharge_enabled = safe_bool(self.appdaemon_state.get_state(SLOT2_DISCHARGE_ENABLED_ENTITY))
+        slot2_discharge_time = safe_str(self.appdaemon_state.get_state(SLOT2_DISCHARGE_TIME_ENTITY))
+        slot2_discharge_current = safe_float(self.appdaemon_state.get_state(SLOT2_DISCHARGE_CURRENT_ENTITY))
         hvac_heating_mode = safe_str(self.appdaemon_state.get_state(HEATING_ENTITY))
-        hourly_price = safe_float(self.appdaemon_state.get_state(self.HOURLY_PRICE_ENTITY))
+        hourly_price = safe_float(self.appdaemon_state.get_state(HOURLY_PRICE_ENTITY))
 
-        pv_forecast_today = safe_list(
-            self.appdaemon_state.get_state("sensor.solcast_pv_forecast_forecast_today", "detailedHourly")
-        )
-        pv_forecast_tomorrow = safe_list(
-            self.appdaemon_state.get_state("sensor.solcast_pv_forecast_forecast_tomorrow", "detailedHourly")
-        )
+        pv_forecast_today = safe_list(self.appdaemon_state.get_state(PV_FORECAST_TODAY_ENTITY, "detailedHourly"))
+        pv_forecast_tomorrow = safe_list(self.appdaemon_state.get_state(PV_FORECAST_TOMORROW_ENTITY, "detailedHourly"))
 
         weather_forecast = safe_dict(
             self.appdaemon_service.call_service(
-                "weather/get_forecasts", entity_id="weather.forecast_wieprz", type="hourly"
+                "weather/get_forecasts", entity_id=WEATHER_FORECAST_ENTITY, type="hourly"
             )
         )
 
-        price_forecast_today = safe_list(self.appdaemon_state.get_state("sensor.rce", "raw_today"))
+        price_forecast_today = safe_list(self.appdaemon_state.get_state(HOURLY_PRICE_ENTITY, "raw_today"))
 
         missing = []
         if battery_soc is None:

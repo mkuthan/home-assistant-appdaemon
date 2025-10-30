@@ -3,6 +3,16 @@ from datetime import datetime, time
 from unittest.mock import Mock
 
 import pytest
+from entities.entities import (
+    BATTERY_RESERVE_SOC_ENTITY,
+    INVERTER_STORAGE_MODE_ENTITY,
+    SLOT1_DISCHARGE_CURRENT_ENTITY,
+    SLOT1_DISCHARGE_ENABLED_ENTITY,
+    SLOT1_DISCHARGE_TIME_ENTITY,
+    SLOT2_DISCHARGE_CURRENT_ENTITY,
+    SLOT2_DISCHARGE_ENABLED_ENTITY,
+    SLOT2_DISCHARGE_TIME_ENTITY,
+)
 from solar.battery_discharge_slot import BatteryDischargeSlot
 from solar.solar import Solar
 from solar.solar_configuration import SolarConfiguration
@@ -77,7 +87,7 @@ def test_align_battery_reserve_soc_tomorrow_at_7_am(
     mock_appdaemon_service.call_service.assert_called_once_with(
         "number/set_value",
         callback=mock_appdaemon_service.service_call_callback,
-        entity_id="number.solis_control_battery_reserve_soc",
+        entity_id=BATTERY_RESERVE_SOC_ENTITY,
         value=new_battery_reserve_soc.value,
     )
 
@@ -106,7 +116,7 @@ def test_align_battery_reserve_soc_today_at_4_pm(
     mock_appdaemon_service.call_service.assert_called_once_with(
         "number/set_value",
         callback=mock_appdaemon_service.service_call_callback,
-        entity_id="number.solis_control_battery_reserve_soc",
+        entity_id=BATTERY_RESERVE_SOC_ENTITY,
         value=new_battery_reserve_soc.value,
     )
 
@@ -131,7 +141,7 @@ def test_reset_battery_reserve_soc(
     mock_appdaemon_service.call_service.assert_called_once_with(
         "number/set_value",
         callback=mock_appdaemon_service.service_call_callback,
-        entity_id="number.solis_control_battery_reserve_soc",
+        entity_id=BATTERY_RESERVE_SOC_ENTITY,
         value=battery_reserve_soc_min.value,
     )
 
@@ -187,34 +197,34 @@ def test_schedule_battery_discharge_at_4_pm(
     mock_appdaemon_service.call_service.assert_any_call(
         "text/set_value",
         callback=mock_appdaemon_service.service_call_callback,
-        entity_id="text.solis_control_slot1_discharge_time",
+        entity_id=SLOT1_DISCHARGE_TIME_ENTITY,
         value=new_slot1_discharge_time,
     )
     mock_appdaemon_service.call_service.assert_any_call(
         "number/set_value",
         callback=mock_appdaemon_service.service_call_callback,
-        entity_id="number.solis_control_slot1_discharge_current",
+        entity_id=SLOT1_DISCHARGE_CURRENT_ENTITY,
         value=new_slot1_discharge_current.value,
     )
     mock_appdaemon_service.call_service.assert_any_call(
         "switch/turn_on",
-        entity_id="switch.solis_control_slot1_discharge",
+        entity_id=SLOT1_DISCHARGE_ENABLED_ENTITY,
     )
     mock_appdaemon_service.call_service.assert_any_call(
         "text/set_value",
         callback=mock_appdaemon_service.service_call_callback,
-        entity_id="text.solis_control_slot2_discharge_time",
+        entity_id=SLOT2_DISCHARGE_TIME_ENTITY,
         value=new_slot2_discharge_time,
     )
     mock_appdaemon_service.call_service.assert_any_call(
         "number/set_value",
         callback=mock_appdaemon_service.service_call_callback,
-        entity_id="number.solis_control_slot2_discharge_current",
+        entity_id=SLOT2_DISCHARGE_CURRENT_ENTITY,
         value=new_slot2_discharge_current.value,
     )
     mock_appdaemon_service.call_service.assert_any_call(
         "switch/turn_on",
-        entity_id="switch.solis_control_slot2_discharge",
+        entity_id=SLOT2_DISCHARGE_ENABLED_ENTITY,
     )
 
 
@@ -232,11 +242,11 @@ def test_disable_battery_discharge(
     assert mock_appdaemon_service.call_service.call_count == 2
     mock_appdaemon_service.call_service.assert_any_call(
         "switch/turn_off",
-        entity_id="switch.solis_control_slot1_discharge",
+        entity_id=SLOT1_DISCHARGE_ENABLED_ENTITY,
     )
     mock_appdaemon_service.call_service.assert_any_call(
         "switch/turn_off",
-        entity_id="switch.solis_control_slot2_discharge",
+        entity_id=SLOT2_DISCHARGE_ENABLED_ENTITY,
     )
 
 
@@ -263,6 +273,6 @@ def test_align_storage_mode(
     mock_appdaemon_service.call_service.assert_called_once_with(
         "select/select_option",
         callback=mock_appdaemon_service.service_call_callback,
-        entity_id="select.solis_control_storage_mode",
+        entity_id=INVERTER_STORAGE_MODE_ENTITY,
         option=new_storage_mode.value,
     )
