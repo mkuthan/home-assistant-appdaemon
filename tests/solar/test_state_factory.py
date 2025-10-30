@@ -2,6 +2,7 @@ from decimal import Decimal
 from unittest.mock import Mock
 
 import pytest
+from entities.entities import ECO_MODE_ENTITY, HEATING_ENTITY
 from solar.state_factory import DefaultStateFactory
 from solar.storage_mode import StorageMode
 from units.battery_current import BatteryCurrent
@@ -61,7 +62,7 @@ def state_values(
         "sensor.heishamon_z1_actual_temperature:": "21.5",
         "sensor.heishamon_outside_ambient_temperature:": "10.0",
         "input_boolean.away_mode:": "off",
-        "input_boolean.eco_mode:": "on",
+        f"{ECO_MODE_ENTITY}:": "on",
         "select.solis_control_storage_mode:": "Self-Use",
         "switch.solis_control_slot1_discharge:": "on",
         "text.solis_control_slot1_discharge_time:": "19:00-20:00",
@@ -69,7 +70,7 @@ def state_values(
         "switch.solis_control_slot2_discharge:": "on",
         "text.solis_control_slot2_discharge_time:": "20:00-21:00",
         "number.solis_control_slot2_discharge_current:": "30.0",
-        "climate.panasonic_heat_pump_main_z1_temp:": "heat",
+        f"{HEATING_ENTITY}:": "heat",
         "sensor.rce:": "500.0",
         "sensor.solcast_pv_forecast_forecast_today:detailedHourly": pv_forecast_today,
         "sensor.solcast_pv_forecast_forecast_tomorrow:detailedHourly": pv_forecast_tomorrow,
@@ -135,7 +136,7 @@ def test_create(
         ("number.solis_control_battery_reserve_soc:", "Missing: battery_reserve_soc"),
         ("sensor.heishamon_outside_ambient_temperature:", "Missing: outdoor_temperature"),
         ("input_boolean.away_mode:", "Missing: is_away_mode"),
-        ("input_boolean.eco_mode:", "Missing: is_eco_mode"),
+        (f"{ECO_MODE_ENTITY}:", "Missing: is_eco_mode"),
         ("select.solis_control_storage_mode:", "Missing: inverter_storage_mode"),
         ("switch.solis_control_slot1_discharge:", "Missing: is_slot1_discharge_enabled"),
         ("text.solis_control_slot1_discharge_time:", "Missing: slot1_discharge_time"),
@@ -143,7 +144,7 @@ def test_create(
         ("switch.solis_control_slot2_discharge:", "Missing: is_slot2_discharge_enabled"),
         ("text.solis_control_slot2_discharge_time:", "Missing: slot2_discharge_time"),
         ("number.solis_control_slot2_discharge_current:", "Missing: slot2_discharge_current"),
-        ("climate.panasonic_heat_pump_main_z1_temp:", "Missing: hvac_heating_mode"),
+        (f"{HEATING_ENTITY}:", "Missing: hvac_heating_mode"),
         ("sensor.rce:", "Missing: hourly_price"),
         ("sensor.solcast_pv_forecast_forecast_today:detailedHourly", "Missing: pv_forecast_today"),
         ("sensor.solcast_pv_forecast_forecast_tomorrow:detailedHourly", "Missing: pv_forecast_tomorrow"),

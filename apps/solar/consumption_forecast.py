@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Protocol
 
+from entities.entities import is_heating_enabled
 from solar.weather_forecast import WeatherForecast
 from units.energy_kwh import ENERGY_KWH_ZERO, EnergyKwh
 from units.hourly_energy import HourlyConsumptionEnergy
@@ -65,7 +66,7 @@ class ConsumptionForecastHvacHeating:
         for hour_offset in range(period_hours):
             current = period_start + timedelta(hours=hour_offset)
 
-            if self.hvac_heating_mode == "heat" and not self.is_eco_mode:
+            if is_heating_enabled(self.hvac_heating_mode) and not self.is_eco_mode:
                 weather_period = self.forecast_weather.find_by_datetime(current)
                 energy = self.energy_estimator(
                     t_in=self.t_in,

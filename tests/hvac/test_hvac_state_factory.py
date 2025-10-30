@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
+from entities.entities import COOLING_ENTITY, DHW_ENTITY, ECO_MODE_ENTITY, HEATING_ENTITY
 from hvac.hvac_state_factory import DefaultHvacStateFactory
 from units.celsius import Celsius
 
@@ -8,12 +9,12 @@ from units.celsius import Celsius
 @pytest.fixture
 def state_values() -> dict:
     return {
-        "input_boolean.eco_mode:": "off",
-        "water_heater.panasonic_heat_pump_main_dhw_target_temp:temperature": "40.0",
-        "climate.panasonic_heat_pump_main_z1_temp:temperature": "21",
-        "climate.panasonic_heat_pump_main_z1_temp:": "heat",
-        "climate.panasonic_heat_pump_main_z1_temp_cooling:temperature": "24",
-        "climate.panasonic_heat_pump_main_z1_temp_cooling:": "cool",
+        f"{ECO_MODE_ENTITY}:": "off",
+        f"{DHW_ENTITY}:temperature": "40.0",
+        f"{HEATING_ENTITY}:temperature": "21",
+        f"{HEATING_ENTITY}:": "heat",
+        f"{COOLING_ENTITY}:temperature": "24",
+        f"{COOLING_ENTITY}:": "cool",
     }
 
 
@@ -41,12 +42,12 @@ def test_create(
 @pytest.mark.parametrize(
     ("missing_entity_or_service", "expected_message"),
     [
-        ("input_boolean.eco_mode:", "Missing: is_eco_mode"),
-        ("water_heater.panasonic_heat_pump_main_dhw_target_temp:temperature", "Missing: dhw_temperature"),
-        ("climate.panasonic_heat_pump_main_z1_temp:temperature", "Missing: heating_temperature"),
-        ("climate.panasonic_heat_pump_main_z1_temp:", "Missing: heating_mode"),
-        ("climate.panasonic_heat_pump_main_z1_temp_cooling:temperature", "Missing: cooling_temperature"),
-        ("climate.panasonic_heat_pump_main_z1_temp_cooling:", "Missing: cooling_mode"),
+        (f"{ECO_MODE_ENTITY}:", "Missing: is_eco_mode"),
+        (f"{DHW_ENTITY}:temperature", "Missing: dhw_temperature"),
+        (f"{HEATING_ENTITY}:temperature", "Missing: heating_temperature"),
+        (f"{HEATING_ENTITY}:", "Missing: heating_mode"),
+        (f"{COOLING_ENTITY}:temperature", "Missing: cooling_temperature"),
+        (f"{COOLING_ENTITY}:", "Missing: cooling_mode"),
     ],
 )
 def test_create_missing_field(
