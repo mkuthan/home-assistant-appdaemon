@@ -70,43 +70,30 @@ class DefaultSolarStateFactory:
 
         price_forecast_today = safe_list(self.appdaemon_state.get_state(HOURLY_PRICE_ENTITY, "raw_today"))
 
-        missing = []
-        if battery_soc is None:
-            missing.append("battery_soc")
-        if battery_reserve_soc is None:
-            missing.append("battery_reserve_soc")
-        if outdoor_temperature is None:
-            missing.append("outdoor_temperature")
-        if is_away_mode is None:
-            missing.append("is_away_mode")
-        if is_eco_mode is None:
-            missing.append("is_eco_mode")
-        if inverter_storage_mode is None:
-            missing.append("inverter_storage_mode")
-        if is_slot1_discharge_enabled is None:
-            missing.append("is_slot1_discharge_enabled")
-        if slot1_discharge_time is None:
-            missing.append("slot1_discharge_time")
-        if slot1_discharge_current is None:
-            missing.append("slot1_discharge_current")
-        if is_slot2_discharge_enabled is None:
-            missing.append("is_slot2_discharge_enabled")
-        if slot2_discharge_time is None:
-            missing.append("slot2_discharge_time")
-        if slot2_discharge_current is None:
-            missing.append("slot2_discharge_current")
-        if hvac_heating_mode is None:
-            missing.append("hvac_heating_mode")
-        if hourly_price is None:
-            missing.append("hourly_price")
-        if pv_forecast_today is None:
-            missing.append("pv_forecast_today")
-        if pv_forecast_tomorrow is None:
-            missing.append("pv_forecast_tomorrow")
-        if weather_forecast is None:
-            missing.append("weather_forecast")
-        if price_forecast_today is None:
-            missing.append("price_forecast_today")
+        missing = [
+            name
+            for name, value in [
+                ("battery_soc", battery_soc),
+                ("battery_reserve_soc", battery_reserve_soc),
+                ("outdoor_temperature", outdoor_temperature),
+                ("is_away_mode", is_away_mode),
+                ("is_eco_mode", is_eco_mode),
+                ("inverter_storage_mode", inverter_storage_mode),
+                ("is_slot1_discharge_enabled", is_slot1_discharge_enabled),
+                ("slot1_discharge_time", slot1_discharge_time),
+                ("slot1_discharge_current", slot1_discharge_current),
+                ("is_slot2_discharge_enabled", is_slot2_discharge_enabled),
+                ("slot2_discharge_time", slot2_discharge_time),
+                ("slot2_discharge_current", slot2_discharge_current),
+                ("hvac_heating_mode", hvac_heating_mode),
+                ("hourly_price", hourly_price),
+                ("pv_forecast_today", pv_forecast_today),
+                ("pv_forecast_tomorrow", pv_forecast_tomorrow),
+                ("weather_forecast", weather_forecast),
+                ("price_forecast_today", price_forecast_today),
+            ]
+            if value is None
+        ]
 
         if missing:
             self.appdaemon_logger.warn(f"Missing: {', '.join(missing)}")

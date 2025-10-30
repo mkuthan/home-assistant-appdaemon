@@ -23,30 +23,24 @@ class DefaultHvacStateFactory:
 
     def create(self) -> HvacState | None:
         is_eco_mode = safe_bool(self.appdaemon_state.get_state(ECO_MODE_ENTITY))
-
         dhw_temperature = safe_float(self.appdaemon_state.get_state(DHW_ENTITY, "temperature"))
-
         heating_temperature = safe_float(self.appdaemon_state.get_state(HEATING_ENTITY, "temperature"))
-
         heating_mode = safe_str(self.appdaemon_state.get_state(HEATING_ENTITY))
-
         cooling_temperature = safe_float(self.appdaemon_state.get_state(COOLING_ENTITY, "temperature"))
-
         cooling_mode = safe_str(self.appdaemon_state.get_state(COOLING_ENTITY))
 
-        missing = []
-        if is_eco_mode is None:
-            missing.append("is_eco_mode")
-        if dhw_temperature is None:
-            missing.append("dhw_temperature")
-        if heating_temperature is None:
-            missing.append("heating_temperature")
-        if heating_mode is None:
-            missing.append("heating_mode")
-        if cooling_temperature is None:
-            missing.append("cooling_temperature")
-        if cooling_mode is None:
-            missing.append("cooling_mode")
+        missing = [
+            name
+            for name, value in [
+                ("is_eco_mode", is_eco_mode),
+                ("dhw_temperature", dhw_temperature),
+                ("heating_temperature", heating_temperature),
+                ("heating_mode", heating_mode),
+                ("cooling_temperature", cooling_temperature),
+                ("cooling_mode", cooling_mode),
+            ]
+            if value is None
+        ]
 
         if missing:
             self.appdaemon_logger.warn(f"Missing: {', '.join(missing)}")
