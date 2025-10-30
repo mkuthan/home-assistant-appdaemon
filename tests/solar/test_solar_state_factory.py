@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 from entities.entities import ECO_MODE_ENTITY, HEATING_ENTITY
-from solar.state_factory import DefaultStateFactory
+from solar.solar_state_factory import DefaultSolarStateFactory
 from solar.storage_mode import StorageMode
 from units.battery_current import BatteryCurrent
 from units.battery_soc import BatterySoc
@@ -106,7 +106,7 @@ def test_create(
         service
     )
 
-    result = DefaultStateFactory(mock_appdaemon_logger, mock_appdaemon_state, mock_appdaemon_service).create()
+    result = DefaultSolarStateFactory(mock_appdaemon_logger, mock_appdaemon_state, mock_appdaemon_service).create()
 
     assert result is not None
     assert result.battery_soc == BatterySoc(75.5)
@@ -172,7 +172,7 @@ def test_create_missing_field(
         else None
     )
 
-    result = DefaultStateFactory(mock_appdaemon_logger, mock_appdaemon_state, mock_appdaemon_service).create()
+    result = DefaultSolarStateFactory(mock_appdaemon_logger, mock_appdaemon_state, mock_appdaemon_service).create()
 
     assert result is None
     mock_appdaemon_logger.warn.assert_called_once_with(expected_message)

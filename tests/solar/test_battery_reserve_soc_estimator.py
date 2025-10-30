@@ -5,7 +5,7 @@ from unittest.mock import Mock
 import pytest
 from solar.battery_reserve_soc_estimator import BatteryReserveSocEstimator
 from solar.solar_configuration import SolarConfiguration
-from solar.state import State
+from solar.solar_state import SolarState
 from units.battery_soc import BatterySoc
 from units.energy_kwh import EnergyKwh
 from units.hourly_energy import HourlyProductionEnergy
@@ -28,14 +28,14 @@ def battery_reserve_soc_estimator(
 
     return BatteryReserveSocEstimator(
         appdaemon_logger=mock_appdaemon_logger,
-        config=config,
+        configuration=config,
         forecast_factory=mock_forecast_factory,
     )
 
 
 def test_estimate_soc_tomorrow_at_7_am_when_higher_than_current(
     battery_reserve_soc_estimator: BatteryReserveSocEstimator,
-    state: State,
+    state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
 ) -> None:
@@ -64,7 +64,7 @@ def test_estimate_soc_tomorrow_at_7_am_when_higher_than_current(
 
 def test_estimate_soc_tomorrow_at_7_am_when_lower_than_current(
     battery_reserve_soc_estimator: BatteryReserveSocEstimator,
-    state: State,
+    state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
 ) -> None:
@@ -93,7 +93,7 @@ def test_estimate_soc_tomorrow_at_7_am_when_lower_than_current(
 
 def test_estimate_soc_today_at_4_pm_when_grid_charging_needed(
     battery_reserve_soc_estimator: BatteryReserveSocEstimator,
-    state: State,
+    state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
 ) -> None:
@@ -126,7 +126,7 @@ def test_estimate_soc_today_at_4_pm_when_grid_charging_needed(
 
 def test_estimate_soc_today_at_4_pm_when_reserve_soc_already_above_target(
     battery_reserve_soc_estimator: BatteryReserveSocEstimator,
-    state: State,
+    state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
 ) -> None:
@@ -156,7 +156,7 @@ def test_estimate_soc_today_at_4_pm_when_reserve_soc_already_above_target(
 
 def test_estimate_soc_today_at_4_pm_when_solar_only_charging_sufficient(
     battery_reserve_soc_estimator: BatteryReserveSocEstimator,
-    state: State,
+    state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
 ) -> None:

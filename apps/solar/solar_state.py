@@ -7,7 +7,7 @@ from units.energy_price import EnergyPrice
 
 
 @dataclass(frozen=True)
-class State:
+class SolarState:
     battery_soc: BatterySoc
     battery_reserve_soc: BatterySoc
     outdoor_temperature: float

@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 from solar.solar_configuration import SolarConfiguration
-from solar.state import State
+from solar.solar_state import SolarState
 from solar.storage_mode import StorageMode
 from units.battery_current import BATTERY_CURRENT_ZERO
 from units.battery_soc import BATTERY_SOC_MIN
@@ -63,8 +63,8 @@ def config() -> SolarConfiguration:
 
 
 @pytest.fixture
-def state() -> State:
-    return State(
+def state() -> SolarState:
+    return SolarState(
         battery_soc=BATTERY_SOC_MIN,
         battery_reserve_soc=BATTERY_SOC_MIN,
         outdoor_temperature=-1.0,

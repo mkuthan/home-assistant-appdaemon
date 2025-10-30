@@ -5,7 +5,7 @@ from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from appdaemon_protocols.appdaemon_service import AppdaemonService
 from appdaemon_protocols.appdaemon_state import AppdaemonState
 from entities.entities import ECO_MODE_ENTITY, HEATING_ENTITY
-from solar.state import State
+from solar.solar_state import SolarState
 from solar.storage_mode import StorageMode
 from units.battery_current import BatteryCurrent
 from units.battery_soc import BatterySoc
@@ -13,11 +13,11 @@ from units.energy_price import EnergyPrice
 from utils.safe_converters import safe_bool, safe_dict, safe_float, safe_list, safe_str
 
 
-class StateFactory(Protocol):
-    def create(self) -> State | None: ...
+class SolarStateFactory(Protocol):
+    def create(self) -> SolarState | None: ...
 
 
-class DefaultStateFactory:
+class DefaultSolarStateFactory:
     BATTERY_SOC_ENTITY = "sensor.solis_remaining_battery_capacity"
     BATTERY_RESERVE_SOC_ENTITY = "number.solis_control_battery_reserve_soc"
     HOURLY_PRICE_ENTITY = "sensor.rce"
@@ -29,7 +29,7 @@ class DefaultStateFactory:
         self.appdaemon_state = appdaemon_state
         self.appdaemon_service = appdaemon_service
 
-    def create(self) -> State | None:
+    def create(self) -> SolarState | None:
         battery_soc = safe_float(self.appdaemon_state.get_state(self.BATTERY_SOC_ENTITY))
         battery_reserve_soc = safe_float(self.appdaemon_state.get_state(self.BATTERY_RESERVE_SOC_ENTITY))
         outdoor_temperature = safe_float(self.appdaemon_state.get_state("sensor.heishamon_outside_ambient_temperature"))
@@ -125,7 +125,7 @@ class DefaultStateFactory:
         assert weather_forecast is not None
         assert price_forecast_today is not None
 
-        solar_state = State(
+        solar_state = SolarState(
             battery_soc=BatterySoc(battery_soc),
             battery_reserve_soc=BatterySoc(battery_reserve_soc),
             outdoor_temperature=outdoor_temperature,

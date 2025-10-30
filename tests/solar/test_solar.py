@@ -6,7 +6,7 @@ import pytest
 from solar.battery_discharge_slot import BatteryDischargeSlot
 from solar.solar import Solar
 from solar.solar_configuration import SolarConfiguration
-from solar.state import State
+from solar.solar_state import SolarState
 from solar.storage_mode import StorageMode
 from units.battery_current import BATTERY_CURRENT_ZERO, BatteryCurrent
 from units.battery_soc import BatterySoc
@@ -55,7 +55,7 @@ def solar(
 
 def test_align_battery_reserve_soc_tomorrow_at_7_am(
     solar: Solar,
-    state: State,
+    state: SolarState,
     mock_appdaemon_service: Mock,
     mock_state_factory: Mock,
     mock_battery_reserve_soc_estimator: Mock,
@@ -84,7 +84,7 @@ def test_align_battery_reserve_soc_tomorrow_at_7_am(
 
 def test_align_battery_reserve_soc_today_at_4_pm(
     solar: Solar,
-    state: State,
+    state: SolarState,
     mock_appdaemon_service: Mock,
     mock_state_factory: Mock,
     mock_battery_reserve_soc_estimator: Mock,
@@ -113,7 +113,7 @@ def test_align_battery_reserve_soc_today_at_4_pm(
 
 def test_reset_battery_reserve_soc(
     solar: Solar,
-    state: State,
+    state: SolarState,
     config: SolarConfiguration,
     mock_appdaemon_service: Mock,
     mock_state_factory: Mock,
@@ -121,7 +121,7 @@ def test_reset_battery_reserve_soc(
     battery_reserve_soc_current = BatterySoc(50.0)
     battery_reserve_soc_min = BatterySoc(20.0)
 
-    solar.config = replace(config, battery_reserve_soc_min=battery_reserve_soc_min)
+    solar.configuration = replace(config, battery_reserve_soc_min=battery_reserve_soc_min)
     state = replace(state, battery_reserve_soc=battery_reserve_soc_current)
 
     mock_state_factory.create.return_value = state
@@ -138,7 +138,7 @@ def test_reset_battery_reserve_soc(
 
 def test_schedule_battery_discharge_at_4_pm(
     solar: Solar,
-    state: State,
+    state: SolarState,
     mock_appdaemon_service: Mock,
     mock_state_factory: Mock,
     mock_battery_discharge_slot_estimator: Mock,
@@ -220,7 +220,7 @@ def test_schedule_battery_discharge_at_4_pm(
 
 def test_disable_battery_discharge(
     solar: Solar,
-    state: State,
+    state: SolarState,
     mock_appdaemon_service: Mock,
     mock_state_factory: Mock,
 ) -> None:
@@ -242,7 +242,7 @@ def test_disable_battery_discharge(
 
 def test_align_storage_mode(
     solar: Solar,
-    state: State,
+    state: SolarState,
     mock_appdaemon_service: Mock,
     mock_state_factory: Mock,
     mock_storage_mode_estimator: Mock,

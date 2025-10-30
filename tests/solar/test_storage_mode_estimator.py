@@ -5,7 +5,7 @@ from unittest.mock import Mock
 
 import pytest
 from solar.solar_configuration import SolarConfiguration
-from solar.state import State
+from solar.solar_state import SolarState
 from solar.storage_mode import StorageMode
 from solar.storage_mode_estimator import StorageModeEstimator
 from units.battery_soc import BatterySoc
@@ -30,14 +30,14 @@ def storage_mode_estimator(
 
     return StorageModeEstimator(
         appdaemon_logger=mock_appdaemon_logger,
-        config=config,
+        configuration=config,
         forecast_factory=mock_forecast_factory,
     )
 
 
 def test_estimator_feed_in_priority(
     storage_mode_estimator: StorageModeEstimator,
-    state: State,
+    state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
@@ -64,7 +64,7 @@ def test_estimator_feed_in_priority(
 
 def test_estimator_self_use_when_battery_soc_below_reserve(
     storage_mode_estimator: StorageModeEstimator,
-    state: State,
+    state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
@@ -87,7 +87,7 @@ def test_estimator_self_use_when_battery_soc_below_reserve(
 
 def test_estimator_self_use_when_min_price_not_found(
     storage_mode_estimator: StorageModeEstimator,
-    state: State,
+    state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
@@ -110,7 +110,7 @@ def test_estimator_self_use_when_min_price_not_found(
 
 def test_estimator_self_use_when_current_price_below_threshold(
     storage_mode_estimator: StorageModeEstimator,
-    state: State,
+    state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
@@ -133,7 +133,7 @@ def test_estimator_self_use_when_current_price_below_threshold(
 
 def test_estimator_self_use_when_no_enough_surplus_energy(
     storage_mode_estimator: StorageModeEstimator,
-    state: State,
+    state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,

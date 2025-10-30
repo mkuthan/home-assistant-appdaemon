@@ -6,7 +6,7 @@ from solar.battery_reserve_soc_estimator import BatteryReserveSocEstimator
 from solar.forecast_factory import DefaultForecastFactory
 from solar.solar import Solar
 from solar.solar_configuration import SolarConfiguration
-from solar.state_factory import DefaultStateFactory
+from solar.solar_state_factory import DefaultSolarStateFactory
 from solar.storage_mode_estimator import StorageModeEstimator
 from units.battery_current import BatteryCurrent
 from units.battery_soc import BatterySoc
@@ -21,7 +21,7 @@ class SolarApp(BaseApp):
         appdaemon_state = self
         appdaemon_service = self
 
-        config = SolarConfiguration(
+        configuration = SolarConfiguration(
             battery_capacity=EnergyKwh(10.0),
             battery_voltage=BatteryVoltage(52.0),
             battery_maximum_current=BatteryCurrent(80.0),
@@ -41,17 +41,19 @@ class SolarApp(BaseApp):
             battery_export_threshold_energy=EnergyKwh(1.0),
         )
 
-        state_factory = DefaultStateFactory(appdaemon_logger, appdaemon_state, appdaemon_service)
-        forecast_factory = DefaultForecastFactory(appdaemon_logger, config)
+        state_factory = DefaultSolarStateFactory(appdaemon_logger, appdaemon_state, appdaemon_service)
+        forecast_factory = DefaultForecastFactory(appdaemon_logger, configuration)
 
         self.solar = Solar(
             appdaemon_logger=appdaemon_logger,
             appdaemon_service=appdaemon_service,
-            config=config,
+            configuration=configuration,
             state_factory=state_factory,
-            battery_discharge_slot_estimator=BatteryDischargeSlotEstimator(appdaemon_logger, config, forecast_factory),
-            battery_reserve_soc_estimator=BatteryReserveSocEstimator(appdaemon_logger, config, forecast_factory),
-            storage_mode_estimator=StorageModeEstimator(appdaemon_logger, config, forecast_factory),
+            battery_discharge_slot_estimator=BatteryDischargeSlotEstimator(
+                appdaemon_logger, configuration, forecast_factory
+            ),
+            battery_reserve_soc_estimator=BatteryReserveSocEstimator(appdaemon_logger, configuration, forecast_factory),
+            storage_mode_estimator=StorageModeEstimator(appdaemon_logger, configuration, forecast_factory),
         )
 
         self.listen_event(self.solar_debug, "SOLAR_DEBUG")

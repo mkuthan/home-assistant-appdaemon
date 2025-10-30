@@ -5,8 +5,8 @@ from appdaemon_protocols.appdaemon_service import AppdaemonService
 from solar.battery_discharge_slot_estimator import BatteryDischargeSlotEstimator
 from solar.battery_reserve_soc_estimator import BatteryReserveSocEstimator
 from solar.solar_configuration import SolarConfiguration
-from solar.state import State
-from solar.state_factory import StateFactory
+from solar.solar_state import SolarState
+from solar.solar_state_factory import SolarStateFactory
 from solar.storage_mode import StorageMode
 from solar.storage_mode_estimator import StorageModeEstimator
 from units.battery_current import BatteryCurrent
@@ -20,15 +20,15 @@ class Solar:
         self,
         appdaemon_logger: AppdaemonLogger,
         appdaemon_service: AppdaemonService,
-        config: SolarConfiguration,
-        state_factory: StateFactory,
+        configuration: SolarConfiguration,
+        state_factory: SolarStateFactory,
         battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
         battery_reserve_soc_estimator: BatteryReserveSocEstimator,
         storage_mode_estimator: StorageModeEstimator,
     ) -> None:
         self.appdaemon_logger = appdaemon_logger
         self.appdaemon_service = appdaemon_service
-        self.config = config
+        self.configuration = configuration
         self.state_factory = state_factory
         self.battery_discharge_slot_estimator = battery_discharge_slot_estimator
         self.battery_reserve_soc_estimator = battery_reserve_soc_estimator
@@ -68,7 +68,7 @@ class Solar:
             self._set_battery_reserve_soc(state, target_soc)
 
     def reset_battery_reserve_soc(self) -> None:
-        battery_reserve_soc_default = self.config.battery_reserve_soc_min
+        battery_reserve_soc_default = self.configuration.battery_reserve_soc_min
         self.appdaemon_logger.info(f"Reset battery reserve SoC to {battery_reserve_soc_default}")
 
         state = self.state_factory.create()
@@ -126,7 +126,7 @@ class Solar:
 
         self._set_storage_mode(state, estimated_storage_mode)
 
-    def _set_storage_mode(self, state: State, storage_mode: StorageMode) -> None:
+    def _set_storage_mode(self, state: SolarState, storage_mode: StorageMode) -> None:
         current_storage_mode = state.inverter_storage_mode
         if current_storage_mode != storage_mode:
             self.appdaemon_logger.info(f"Change storage mode from {current_storage_mode} to {storage_mode}")
@@ -139,7 +139,7 @@ class Solar:
         else:
             self.appdaemon_logger.info(f"Storage mode already set to {current_storage_mode}")
 
-    def _set_battery_reserve_soc(self, state: State, battery_reserve_soc: BatterySoc) -> None:
+    def _set_battery_reserve_soc(self, state: SolarState, battery_reserve_soc: BatterySoc) -> None:
         current_battery_reserve_soc = state.battery_reserve_soc
         if current_battery_reserve_soc != battery_reserve_soc:
             self.appdaemon_logger.info(
@@ -155,7 +155,7 @@ class Solar:
             self.appdaemon_logger.info(f"Battery reserve SoC already set to {current_battery_reserve_soc}")
 
     def _set_slot_discharge(
-        self, state: State, slot: int, discharge_time: str, discharge_current: BatteryCurrent
+        self, state: SolarState, slot: int, discharge_time: str, discharge_current: BatteryCurrent
     ) -> None:
         if not 1 <= slot <= self._NUM_DISCHARGE_SLOTS:
             self.appdaemon_logger.error(f"Invalid slot number: {slot}")
@@ -191,7 +191,7 @@ class Solar:
                 f"Slot {slot} battery discharge current already set to {current_discharge_current}"
             )
 
-    def _enable_slot_discharge(self, state: State, slot: int) -> None:
+    def _enable_slot_discharge(self, state: SolarState, slot: int) -> None:
         if not 1 <= slot <= self._NUM_DISCHARGE_SLOTS:
             self.appdaemon_logger.error(f"Invalid slot number: {slot}")
             return
@@ -211,7 +211,7 @@ class Solar:
         else:
             self.appdaemon_logger.info(f"Slot {slot} battery discharge is already enabled")
 
-    def _disable_slot_discharge(self, state: State, slot: int) -> None:
+    def _disable_slot_discharge(self, state: SolarState, slot: int) -> None:
         if not 1 <= slot <= self._NUM_DISCHARGE_SLOTS:
             self.appdaemon_logger.error(f"Invalid slot number: {slot}")
             return
