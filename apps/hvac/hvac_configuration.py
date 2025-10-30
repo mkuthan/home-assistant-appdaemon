@@ -24,9 +24,9 @@ class HvacConfiguration:
 
     cooling_temp: Celsius  # cooling temperature
     cooling_temp_eco: Celsius  # cooling temperature in eco mode
-    cooling_reduced_delta_temp: Celsius
-    cooling_reduced_delta_temp_eco: Celsius
-    cooling_reduced_time_start_eco_on: time
-    cooling_reduced_time_end_eco_on: time
-    cooling_reduced_time_start_eco_off: time
-    cooling_reduced_time_end_eco_off: time
+    cooling_boost_delta_temp: Celsius
+    cooling_boost_delta_temp_eco: Celsius
+    cooling_boost_time_start_eco_on: time
+    cooling_boost_time_end_eco_on: time
+    cooling_boost_time_start_eco_off: time
+    cooling_boost_time_end_eco_off: time
