@@ -14,12 +14,12 @@ from units.hourly_period import HourlyPeriod
 
 @pytest.fixture
 def battery_reserve_soc_estimator(
-    config: SolarConfiguration,
+    configuration: SolarConfiguration,
     mock_appdaemon_logger: Mock,
     mock_forecast_factory: Mock,
 ) -> BatteryReserveSocEstimator:
-    config = replace(
-        config,
+    configuration = replace(
+        configuration,
         battery_capacity=EnergyKwh(10.0),
         battery_reserve_soc_min=BatterySoc(20.0),
         battery_reserve_soc_margin=BatterySoc(5.0),
@@ -28,7 +28,7 @@ def battery_reserve_soc_estimator(
 
     return BatteryReserveSocEstimator(
         appdaemon_logger=mock_appdaemon_logger,
-        configuration=config,
+        configuration=configuration,
         forecast_factory=mock_forecast_factory,
     )
 
