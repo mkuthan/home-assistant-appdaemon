@@ -108,6 +108,20 @@ def test_greater_than_or_equal(soc1: float, soc2: float, expected: bool) -> None
     assert result == expected
 
 
+@pytest.mark.parametrize(
+    ("soc_value", "expected"),
+    [
+        (0.0, 0.0),
+        (20.5, 21.0),
+        (21.5, 22.0),
+    ],
+)
+def test_round(soc_value: float, expected: float) -> None:
+    soc = BatterySoc(value=soc_value)
+    rounded_soc = round(soc)
+    assert rounded_soc.value == expected
+
+
 def test_str() -> None:
     soc = BatterySoc(value=75.4567)
     assert f"{soc}" == "75.46%"

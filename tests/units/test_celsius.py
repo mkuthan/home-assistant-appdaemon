@@ -100,6 +100,21 @@ def test_greater_than_or_equal(temp1: float, temp2: float, expected: bool) -> No
 
 
 @pytest.mark.parametrize(
+    ("temp_value", "expected_value"),
+    [
+        (0.0, 0.0),
+        (20.5, 21.0),
+        (21.5, 22.0),
+        (-10.3, -10.0),
+    ],
+)
+def test_round(temp_value: float, expected_value: float) -> None:
+    temp = Celsius(temp_value)
+    rounded_temp = round(temp)
+    assert rounded_temp.value == expected_value
+
+
+@pytest.mark.parametrize(
     ("temp_value", "expected_str"),
     [
         (0.0, "0.0°C"),

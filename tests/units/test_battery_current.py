@@ -106,6 +106,20 @@ def test_greater_than_or_equal(current1: float, current2: float, expected: bool)
     assert result == expected
 
 
+@pytest.mark.parametrize(
+    ("current_value", "expected_value"),
+    [
+        (0.0, 0.0),
+        (20.5, 21.0),
+        (21.5, 22.0),
+    ],
+)
+def test_round(current_value: float, expected_value: float) -> None:
+    current = BatteryCurrent(value=current_value)
+    rounded_current = round(current)
+    assert rounded_current == BatteryCurrent(value=expected_value)
+
+
 def test_str() -> None:
     current = BatteryCurrent(value=12.3456)
     assert f"{current}" == "12.35A"
