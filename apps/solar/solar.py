@@ -131,20 +131,17 @@ class Solar:
 
         estimated_storage_mode = self.storage_mode_estimator.estimate_storage_mode(state, now)
 
-        self._set_storage_mode(state, estimated_storage_mode)
+        if estimated_storage_mode is not None:
+            self._set_storage_mode(state, estimated_storage_mode)
 
     def _set_storage_mode(self, state: SolarState, storage_mode: StorageMode) -> None:
-        current_storage_mode = state.inverter_storage_mode
-        if current_storage_mode != storage_mode:
-            self.appdaemon_logger.info(f"Change storage mode from {current_storage_mode} to {storage_mode}")
-            self.appdaemon_service.call_service(
-                "select/select_option",
-                callback=self.appdaemon_service.service_call_callback,
-                entity_id=INVERTER_STORAGE_MODE_ENTITY,
-                option=storage_mode.value,
-            )
-        else:
-            self.appdaemon_logger.info(f"Storage mode already set to {current_storage_mode}")
+        self.appdaemon_logger.info(f"Change storage mode from {state.inverter_storage_mode} to {storage_mode}")
+        self.appdaemon_service.call_service(
+            "select/select_option",
+            callback=self.appdaemon_service.service_call_callback,
+            entity_id=INVERTER_STORAGE_MODE_ENTITY,
+            option=storage_mode.value,
+        )
 
     def _set_battery_reserve_soc(self, state: SolarState, battery_reserve_soc: BatterySoc) -> None:
         current_battery_reserve_soc = state.battery_reserve_soc

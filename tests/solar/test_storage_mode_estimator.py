@@ -42,7 +42,12 @@ def test_estimator_feed_in_priority(
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_soc=BatterySoc(80.0), hourly_price=EnergyPrice.pln_per_mwh(Decimal(250)))
+    state = replace(
+        state,
+        inverter_storage_mode=StorageMode.SELF_USE,
+        battery_soc=BatterySoc(80.0),
+        hourly_price=EnergyPrice.pln_per_mwh(Decimal(250)),
+    )
 
     now = datetime.fromisoformat("2025-10-10T12:00:00+00:00")
     remaining_hours = StorageModeEstimator.END_HOUR - now.hour
@@ -69,7 +74,12 @@ def test_estimator_self_use_when_battery_soc_below_reserve(
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_soc=BatterySoc(20.0), hourly_price=EnergyPrice.pln_per_mwh(Decimal(250)))
+    state = replace(
+        state,
+        inverter_storage_mode=StorageMode.FEED_IN_PRIORITY,
+        battery_soc=BatterySoc(20.0),
+        hourly_price=EnergyPrice.pln_per_mwh(Decimal(250)),
+    )
 
     now = datetime.fromisoformat("2025-10-10T12:00:00+00:00")
     remaining_hours = StorageModeEstimator.END_HOUR - now.hour
@@ -92,7 +102,12 @@ def test_estimator_self_use_when_min_price_not_found(
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_soc=BatterySoc(80.0), hourly_price=EnergyPrice.pln_per_mwh(Decimal(250)))
+    state = replace(
+        state,
+        inverter_storage_mode=StorageMode.FEED_IN_PRIORITY,
+        battery_soc=BatterySoc(80.0),
+        hourly_price=EnergyPrice.pln_per_mwh(Decimal(250)),
+    )
 
     mock_price_forecast.find_daily_min_price.return_value = None
 
@@ -115,7 +130,12 @@ def test_estimator_self_use_when_current_price_below_threshold(
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_soc=BatterySoc(80.0), hourly_price=EnergyPrice.pln_per_mwh(Decimal(150)))
+    state = replace(
+        state,
+        inverter_storage_mode=StorageMode.FEED_IN_PRIORITY,
+        battery_soc=BatterySoc(80.0),
+        hourly_price=EnergyPrice.pln_per_mwh(Decimal(150)),
+    )
 
     mock_price_forecast.find_daily_min_price.return_value = EnergyPrice.pln_per_mwh(Decimal(30))
 
@@ -138,7 +158,12 @@ def test_estimator_self_use_when_no_enough_surplus_energy(
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_soc=BatterySoc(80.0), hourly_price=EnergyPrice.pln_per_mwh(Decimal(250)))
+    state = replace(
+        state,
+        inverter_storage_mode=StorageMode.FEED_IN_PRIORITY,
+        battery_soc=BatterySoc(80.0),
+        hourly_price=EnergyPrice.pln_per_mwh(Decimal(250)),
+    )
 
     now = datetime.fromisoformat("2025-10-10T12:00:00+00:00")
     remaining_hours = StorageModeEstimator.END_HOUR - now.hour
