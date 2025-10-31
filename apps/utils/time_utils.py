@@ -1,4 +1,4 @@
-from datetime import time
+from datetime import datetime, time, timedelta
 
 
 def is_time_in_range(current_time: time, start_time: time, end_time: time) -> bool:
@@ -11,9 +11,29 @@ def is_time_in_range(current_time: time, start_time: time, end_time: time) -> bo
 
     Returns:
         True if current_time is within the range [start_time, end_time], False otherwise.
-        Handles time ranges that cross midnight (e.g., 22:00 to 06:00).
     """
     if start_time <= end_time:
         return start_time <= current_time <= end_time
     else:
         return current_time >= start_time or current_time <= end_time
+
+
+def hours_difference(start_time: time, end_time: time) -> int:
+    """Calculate the difference in hours between two times, handling ranges that cross midnight.
+
+    Args:
+        start_time: The start time.
+        end_time: The end time.
+    Returns:
+        The difference in hours rounded to the nearest whole hour.
+    """
+    start_datetime = datetime.combine(datetime.today(), start_time)
+    end_datetime = datetime.combine(datetime.today(), end_time)
+
+    if end_datetime < start_datetime:
+        end_datetime += timedelta(days=1)
+
+    difference = end_datetime - start_datetime
+    difference_hours = difference.total_seconds() / 3600
+
+    return round(difference_hours)

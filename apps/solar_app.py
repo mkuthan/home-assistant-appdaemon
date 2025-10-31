@@ -1,3 +1,4 @@
+from datetime import time
 from decimal import Decimal
 
 from base_app import BaseApp
@@ -40,6 +41,10 @@ class SolarApp(BaseApp):
             pv_export_min_price_margin=EnergyPrice.pln_per_mwh(Decimal(200)),
             battery_export_threshold_price=EnergyPrice.pln_per_mwh(Decimal(1200)),
             battery_export_threshold_energy=EnergyKwh(1.0),
+            night_low_tariff_time_start=time.fromisoformat("22:05:00"),
+            night_low_tariff_time_end=time.fromisoformat("06:55:00"),
+            day_low_tariff_time_start=time.fromisoformat("13:05:00"),
+            day_low_tariff_time_end=time.fromisoformat("15:55:00"),
         )
 
         state_factory = DefaultSolarStateFactory(appdaemon_logger, appdaemon_state, appdaemon_service)
@@ -59,34 +64,10 @@ class SolarApp(BaseApp):
 
         self.listen_event(self.solar_debug, "SOLAR_DEBUG")
 
-        self.info("Scheduling battery reserve SOC alignment for tomorrow at 7 AM")
-        self.run_daily(self.align_battery_reserve_soc_tomorrow_at_7_am, "22:05:00")
-        self.run_daily(self.align_battery_reserve_soc_tomorrow_at_7_am, "22:35:00")  # backup call
+        self.info("Scheduling battery reserve SoC control every 5 minutes")
+        self.run_every(self.control_battery_reserve_soc, "00:00:00", 5 * 60)
 
-        self.info("Scheduling battery reserve SOC reset before morning usage")
-        self.run_daily(self.reset_battery_reserve_soc, "6:55:00")
-        self.run_daily(self.reset_battery_reserve_soc, "7:05:00")  # backup call
-
-        self.info("Scheduling battery reserve SOC alignment for today at 4 PM")
-        self.run_daily(self.align_battery_reserve_soc_today_at_4_pm, "13:05:00")
-        self.run_daily(self.align_battery_reserve_soc_today_at_4_pm, "14:00:00")
-        self.run_daily(self.align_battery_reserve_soc_today_at_4_pm, "14:30:00")
-        self.run_daily(self.align_battery_reserve_soc_today_at_4_pm, "15:00:00")
-        self.run_daily(self.align_battery_reserve_soc_today_at_4_pm, "15:30:00")
-
-        self.info("Scheduling battery reserve SOC reset before evening usage")
-        self.run_daily(self.reset_battery_reserve_soc, "15:55:00")
-        self.run_daily(self.reset_battery_reserve_soc, "16:05:00")  # backup call
-
-        self.info("Scheduling battery discharge schedule")
-        self.run_daily(self.schedule_battery_discharge_at_4_pm, "15:30:00")
-        self.run_daily(self.schedule_battery_discharge_at_4_pm, "16:00:00")  # backup call
-
-        self.info("Scheduling battery discharge disable")
-        self.run_daily(self.disable_battery_discharge, "22:00:00")
-        self.run_daily(self.disable_battery_discharge, "22:05:00")  # backup call
-
-        self.info("Listening to: [Battery SoC, Hourly price] changes and control storage mode")
+        self.info("Setting up storage mode control triggers on relevant state changes")
         self.listen_state(
             self.control_storage_mode,
             [
@@ -97,23 +78,25 @@ class SolarApp(BaseApp):
             constrain_end_time="sunset -01:00:00",
         )
 
+        self.info("Scheduling battery discharge schedule")
+        self.run_daily(self.schedule_battery_discharge, "15:30:00")
+        self.run_daily(self.schedule_battery_discharge, "16:00:00")  # backup call
+
+        self.info("Scheduling battery discharge disable")
+        self.run_daily(self.disable_battery_discharge, "22:00:00")
+        self.run_daily(self.disable_battery_discharge, "22:05:00")  # backup call
+
     def solar_debug(self, event_type, data, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
         self.solar.log_state()
 
-    def align_battery_reserve_soc_tomorrow_at_7_am(self, **_kwargs: object) -> None:
-        self.solar.align_battery_reserve_soc_tomorrow_at_7_am(self.get_now())
-
-    def align_battery_reserve_soc_today_at_4_pm(self, **_kwargs: object) -> None:
-        self.solar.align_battery_reserve_soc_today_at_4_pm(self.get_now())
-
-    def reset_battery_reserve_soc(self, **_kwargs: object) -> None:
-        self.solar.reset_battery_reserve_soc()
-
-    def schedule_battery_discharge_at_4_pm(self, **_kwargs: object) -> None:
-        self.solar.schedule_battery_discharge_at_4_pm(self.get_now())
-
-    def disable_battery_discharge(self, **_kwargs: object) -> None:
-        self.solar.disable_battery_discharge()
+    def control_battery_reserve_soc(self, **_kwargs: object) -> None:
+        self.solar.control_battery_reserve_soc(self.get_now())
 
     def control_storage_mode(self, entity, attribute, old, new, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
         self.solar.control_storage_mode(self.get_now())
+
+    def schedule_battery_discharge(self, **_kwargs: object) -> None:
+        self.solar.schedule_battery_discharge(self.get_now())
+
+    def disable_battery_discharge(self, **_kwargs: object) -> None:
+        self.solar.disable_battery_discharge()

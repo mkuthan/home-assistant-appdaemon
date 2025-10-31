@@ -48,44 +48,29 @@ class Solar:
         else:
             self.appdaemon_logger.info(f"Current state: {state}")
 
-    def align_battery_reserve_soc_tomorrow_at_7_am(self, now: datetime) -> None:
-        self.appdaemon_logger.info("Align battery reserve SoC for tomorrow at 7 AM")
-
+    def control_battery_reserve_soc(self, now: datetime) -> None:
         state = self.state_factory.create()
         if state is None:
-            self.appdaemon_logger.warn("Unknown state, cannot estimate battery reserve SoC")
+            self.appdaemon_logger.warn("Unknown state, cannot control battery reserve SoC")
             return
 
-        target_soc = self.battery_reserve_soc_estimator.estimate_soc_tomorrow_at_7_am(state, now)
+        battery_reserve_soc = self.battery_reserve_soc_estimator.estimate_battery_reserve_soc(state, now)
 
-        if target_soc is not None:
-            self._set_battery_reserve_soc(state, target_soc)
+        if battery_reserve_soc is not None:
+            self._set_battery_reserve_soc(state, battery_reserve_soc)
 
-    def align_battery_reserve_soc_today_at_4_pm(self, now: datetime) -> None:
-        self.appdaemon_logger.info("Align battery reserve SoC for today at 4 PM")
-
+    def control_storage_mode(self, now: datetime) -> None:
         state = self.state_factory.create()
         if state is None:
-            self.appdaemon_logger.warn("Unknown state, cannot estimate battery reserve SoC")
+            self.appdaemon_logger.warn("Unknown state, cannot control storage mode")
             return
 
-        target_soc = self.battery_reserve_soc_estimator.estimate_soc_today_at_4_pm(state, now)
+        storage_mode = self.storage_mode_estimator.estimate_storage_mode(state, now)
 
-        if target_soc is not None:
-            self._set_battery_reserve_soc(state, target_soc)
+        if storage_mode is not None:
+            self._set_storage_mode(state, storage_mode)
 
-    def reset_battery_reserve_soc(self) -> None:
-        battery_reserve_soc_default = self.configuration.battery_reserve_soc_min
-        self.appdaemon_logger.info(f"Reset battery reserve SoC to {battery_reserve_soc_default}")
-
-        state = self.state_factory.create()
-        if state is None:
-            self.appdaemon_logger.warn("Unknown state, cannot reset battery reserve SoC")
-            return
-
-        self._set_battery_reserve_soc(state, battery_reserve_soc_default)
-
-    def schedule_battery_discharge_at_4_pm(self, now: datetime) -> None:
+    def schedule_battery_discharge(self, now: datetime) -> None:
         self.appdaemon_logger.info("Schedule battery discharge at 4 PM")
 
         state = self.state_factory.create()
@@ -121,16 +106,16 @@ class Solar:
         for slot in range(1, self._NUM_DISCHARGE_SLOTS + 1):
             self._disable_slot_discharge(state, slot)
 
-    def control_storage_mode(self, now: datetime) -> None:
-        state = self.state_factory.create()
-        if state is None:
-            self.appdaemon_logger.warn("Unknown state, cannot control storage mode")
-            return
-
-        storage_mode = self.storage_mode_estimator.estimate_storage_mode(state, now)
-
-        if storage_mode is not None:
-            self._set_storage_mode(state, storage_mode)
+    def _set_battery_reserve_soc(self, state: SolarState, battery_reserve_soc: BatterySoc) -> None:
+        self.appdaemon_logger.info(
+            f"Change battery reserve SoC from {state.battery_reserve_soc} to {battery_reserve_soc}"
+        )
+        self.appdaemon_service.call_service(
+            "number/set_value",
+            callback=self.appdaemon_service.service_call_callback,
+            entity_id=BATTERY_RESERVE_SOC_ENTITY,
+            value=battery_reserve_soc.value,
+        )
 
     def _set_storage_mode(self, state: SolarState, storage_mode: StorageMode) -> None:
         self.appdaemon_logger.info(f"Change storage mode from {state.inverter_storage_mode} to {storage_mode}")
@@ -140,21 +125,6 @@ class Solar:
             entity_id=INVERTER_STORAGE_MODE_ENTITY,
             option=storage_mode.value,
         )
-
-    def _set_battery_reserve_soc(self, state: SolarState, battery_reserve_soc: BatterySoc) -> None:
-        current_battery_reserve_soc = state.battery_reserve_soc
-        if current_battery_reserve_soc != battery_reserve_soc:
-            self.appdaemon_logger.info(
-                f"Change battery reserve SoC from {current_battery_reserve_soc} to {battery_reserve_soc}"
-            )
-            self.appdaemon_service.call_service(
-                "number/set_value",
-                callback=self.appdaemon_service.service_call_callback,
-                entity_id=BATTERY_RESERVE_SOC_ENTITY,
-                value=battery_reserve_soc.value,
-            )
-        else:
-            self.appdaemon_logger.info(f"Battery reserve SoC already set to {current_battery_reserve_soc}")
 
     def _set_slot_discharge(
         self, state: SolarState, slot: int, discharge_time: str, discharge_current: BatteryCurrent

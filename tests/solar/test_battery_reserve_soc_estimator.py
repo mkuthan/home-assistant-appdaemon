@@ -1,5 +1,5 @@
 from dataclasses import replace
-from datetime import datetime
+from datetime import datetime, time
 from unittest.mock import Mock
 
 import pytest
@@ -24,6 +24,10 @@ def battery_reserve_soc_estimator(
         battery_reserve_soc_min=BatterySoc(20.0),
         battery_reserve_soc_margin=BatterySoc(5.0),
         battery_reserve_soc_max=BatterySoc(100.0),
+        night_low_tariff_time_start=time.fromisoformat("22:05:00"),
+        night_low_tariff_time_end=time.fromisoformat("06:55:00"),
+        day_low_tariff_time_start=time.fromisoformat("13:05:00"),
+        day_low_tariff_time_end=time.fromisoformat("15:55:00"),
     )
 
     return BatteryReserveSocEstimator(
@@ -41,8 +45,8 @@ def test_estimate_soc_tomorrow_at_7_am_when_higher_than_current(
 ) -> None:
     state = replace(state, battery_reserve_soc=BatterySoc(30.0))
 
-    now = datetime.fromisoformat("2025-10-10T22:00:00+00:00")
-    low_tariff_hours = 6
+    now = datetime.fromisoformat("2025-10-10T22:05:00+00:00")
+    high_tariff_hours = 6
 
     tomorrow_7_am = datetime.fromisoformat("2025-10-11T07:00:00+00:00")
     hourly_period = HourlyPeriod(tomorrow_7_am)
@@ -54,10 +58,10 @@ def test_estimate_soc_tomorrow_at_7_am_when_higher_than_current(
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(6.0)),
     ]
 
-    battery_reserve_soc = battery_reserve_soc_estimator.estimate_soc_tomorrow_at_7_am(state, now)
+    battery_reserve_soc = battery_reserve_soc_estimator.estimate_battery_reserve_soc(state, now)
 
-    mock_production_forecast.hourly.assert_called_once_with(tomorrow_7_am, low_tariff_hours)
-    mock_consumption_forecast.hourly.assert_called_once_with(tomorrow_7_am, low_tariff_hours)
+    mock_production_forecast.hourly.assert_called_once_with(tomorrow_7_am, high_tariff_hours)
+    mock_consumption_forecast.hourly.assert_called_once_with(tomorrow_7_am, high_tariff_hours)
 
     assert battery_reserve_soc == BatterySoc(65.0)
 
@@ -70,8 +74,8 @@ def test_estimate_soc_tomorrow_at_7_am_when_lower_than_current(
 ) -> None:
     state = replace(state, battery_reserve_soc=BatterySoc(50.0))
 
-    now = datetime.fromisoformat("2025-10-10T22:00:00+00:00")
-    low_tariff_hours = 6
+    now = datetime.fromisoformat("2025-10-10T22:05:00+00:00")
+    high_tariff_hours = 6
 
     tomorrow_7_am = datetime.fromisoformat("2025-10-11T07:00:00+00:00")
     hourly_period = HourlyPeriod(tomorrow_7_am)
@@ -83,10 +87,10 @@ def test_estimate_soc_tomorrow_at_7_am_when_lower_than_current(
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(6.0)),
     ]
 
-    battery_reserve_soc = battery_reserve_soc_estimator.estimate_soc_tomorrow_at_7_am(state, now)
+    battery_reserve_soc = battery_reserve_soc_estimator.estimate_battery_reserve_soc(state, now)
 
-    mock_production_forecast.hourly.assert_called_once_with(tomorrow_7_am, low_tariff_hours)
-    mock_consumption_forecast.hourly.assert_called_once_with(tomorrow_7_am, low_tariff_hours)
+    mock_production_forecast.hourly.assert_called_once_with(tomorrow_7_am, high_tariff_hours)
+    mock_consumption_forecast.hourly.assert_called_once_with(tomorrow_7_am, high_tariff_hours)
 
     assert battery_reserve_soc is None
 
@@ -115,7 +119,7 @@ def test_estimate_soc_today_at_4_pm_when_grid_charging_needed(
         [HourlyProductionEnergy(evening_period, energy=EnergyKwh(0.5))],
     ]
 
-    battery_reserve_soc = battery_reserve_soc_estimator.estimate_soc_today_at_4_pm(state, now)
+    battery_reserve_soc = battery_reserve_soc_estimator.estimate_battery_reserve_soc(state, now)
 
     # Evening deficit: 6.0 kWh - 0.5 kWh = 5.5 kWh
     # Afternoon surplus: 1.5 kWh - 1.0 kWh = 0.5 kWh
@@ -148,7 +152,7 @@ def test_estimate_soc_today_at_4_pm_when_reserve_soc_already_above_target(
         [HourlyProductionEnergy(evening_period, energy=EnergyKwh(0.5))],
     ]
 
-    battery_reserve_soc = battery_reserve_soc_estimator.estimate_soc_today_at_4_pm(state, now)
+    battery_reserve_soc = battery_reserve_soc_estimator.estimate_battery_reserve_soc(state, now)
 
     # Battery reserve SoC (80%) is already above the target (75%)
     assert battery_reserve_soc is None
@@ -178,7 +182,7 @@ def test_estimate_soc_today_at_4_pm_when_solar_only_charging_sufficient(
         [HourlyProductionEnergy(evening_period, energy=EnergyKwh(0.5))],
     ]
 
-    battery_reserve_soc = battery_reserve_soc_estimator.estimate_soc_today_at_4_pm(state, now)
+    battery_reserve_soc = battery_reserve_soc_estimator.estimate_battery_reserve_soc(state, now)
 
     # Evening deficit: 6.0 kWh - 0.5 kWh = 5.5 kWh
     # Afternoon surplus: 5.0 kWh - 1.0 kWh = 4.0 kWh

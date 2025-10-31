@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import time
 
 from units.battery_current import BatteryCurrent
 from units.battery_soc import BatterySoc
@@ -32,3 +33,9 @@ class SolarConfiguration:
 
     battery_export_threshold_price: EnergyPrice  # minimum price threshold for selling battery energy to grid
     battery_export_threshold_energy: EnergyKwh  # minimum energy threshold for selling battery energy to grid
+
+    night_low_tariff_time_start: time  # start time of night low tariff period (with margin)
+    night_low_tariff_time_end: time  # end time of night low tariff period (with margin)
+
+    day_low_tariff_time_start: time  # start time of day low tariff period (with margin)
+    day_low_tariff_time_end: time  # end time of day low tariff period (with margin)

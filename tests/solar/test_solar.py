@@ -63,7 +63,7 @@ def solar(
     )
 
 
-def test_align_battery_reserve_soc_tomorrow_at_7_am(
+def test_control_battery_reserve_soc(
     solar: Solar,
     state: SolarState,
     mock_appdaemon_service: Mock,
@@ -77,12 +77,12 @@ def test_align_battery_reserve_soc_tomorrow_at_7_am(
 
     mock_state_factory.create.return_value = state
 
-    mock_battery_reserve_soc_estimator.estimate_soc_tomorrow_at_7_am.return_value = new_battery_reserve_soc
+    mock_battery_reserve_soc_estimator.estimate_battery_reserve_soc.return_value = new_battery_reserve_soc
 
     now = datetime.now()
-    solar.align_battery_reserve_soc_tomorrow_at_7_am(now)
+    solar.control_battery_reserve_soc(now)
 
-    mock_battery_reserve_soc_estimator.estimate_soc_tomorrow_at_7_am.assert_called_once_with(state, now)
+    mock_battery_reserve_soc_estimator.estimate_battery_reserve_soc.assert_called_once_with(state, now)
 
     mock_appdaemon_service.call_service.assert_called_once_with(
         "number/set_value",
@@ -92,7 +92,7 @@ def test_align_battery_reserve_soc_tomorrow_at_7_am(
     )
 
 
-def test_align_battery_reserve_soc_today_at_4_pm(
+def test_control_battery_reserve_soc_no_change(
     solar: Solar,
     state: SolarState,
     mock_appdaemon_service: Mock,
@@ -100,53 +100,72 @@ def test_align_battery_reserve_soc_today_at_4_pm(
     mock_battery_reserve_soc_estimator: Mock,
 ) -> None:
     current_battery_reserve_soc = BatterySoc(30.0)
-    new_battery_reserve_soc = BatterySoc(40.0)
 
     state = replace(state, battery_reserve_soc=current_battery_reserve_soc)
 
     mock_state_factory.create.return_value = state
 
-    mock_battery_reserve_soc_estimator.estimate_soc_today_at_4_pm.return_value = new_battery_reserve_soc
+    mock_battery_reserve_soc_estimator.estimate_battery_reserve_soc.return_value = None
 
     now = datetime.now()
-    solar.align_battery_reserve_soc_today_at_4_pm(now)
+    solar.control_battery_reserve_soc(now)
 
-    mock_battery_reserve_soc_estimator.estimate_soc_today_at_4_pm.assert_called_once_with(state, now)
+    mock_battery_reserve_soc_estimator.estimate_battery_reserve_soc.assert_called_once_with(state, now)
 
-    mock_appdaemon_service.call_service.assert_called_once_with(
-        "number/set_value",
-        callback=mock_appdaemon_service.service_call_callback,
-        entity_id=BATTERY_RESERVE_SOC_ENTITY,
-        value=new_battery_reserve_soc.value,
-    )
+    mock_appdaemon_service.call_service.assert_not_called()
 
 
-def test_reset_battery_reserve_soc(
+def test_control_storage_mode(
     solar: Solar,
     state: SolarState,
-    configuration: SolarConfiguration,
     mock_appdaemon_service: Mock,
     mock_state_factory: Mock,
+    mock_storage_mode_estimator: Mock,
 ) -> None:
-    battery_reserve_soc_current = BatterySoc(50.0)
-    battery_reserve_soc_min = BatterySoc(20.0)
+    current_storage_mode = StorageMode.SELF_USE
+    new_storage_mode = StorageMode.FEED_IN_PRIORITY
 
-    solar.configuration = replace(configuration, battery_reserve_soc_min=battery_reserve_soc_min)
-    state = replace(state, battery_reserve_soc=battery_reserve_soc_current)
-
+    state = replace(state, inverter_storage_mode=current_storage_mode)
     mock_state_factory.create.return_value = state
 
-    solar.reset_battery_reserve_soc()
+    mock_storage_mode_estimator.estimate_storage_mode.return_value = new_storage_mode
+
+    now = datetime.now()
+    solar.control_storage_mode(now)
+
+    mock_storage_mode_estimator.estimate_storage_mode.assert_called_once_with(state, now)
 
     mock_appdaemon_service.call_service.assert_called_once_with(
-        "number/set_value",
+        "select/select_option",
         callback=mock_appdaemon_service.service_call_callback,
-        entity_id=BATTERY_RESERVE_SOC_ENTITY,
-        value=battery_reserve_soc_min.value,
+        entity_id=INVERTER_STORAGE_MODE_ENTITY,
+        option=new_storage_mode.value,
     )
 
 
-def test_schedule_battery_discharge_at_4_pm(
+def test_control_storage_mode_no_change(
+    solar: Solar,
+    state: SolarState,
+    mock_appdaemon_service: Mock,
+    mock_state_factory: Mock,
+    mock_storage_mode_estimator: Mock,
+) -> None:
+    current_storage_mode = StorageMode.SELF_USE
+
+    state = replace(state, inverter_storage_mode=current_storage_mode)
+    mock_state_factory.create.return_value = state
+
+    mock_storage_mode_estimator.estimate_storage_mode.return_value = None
+
+    now = datetime.now()
+    solar.control_storage_mode(now)
+
+    mock_storage_mode_estimator.estimate_storage_mode.assert_called_once_with(state, now)
+
+    mock_appdaemon_service.call_service.assert_not_called()
+
+
+def test_schedule_battery_discharge(
     solar: Solar,
     state: SolarState,
     mock_appdaemon_service: Mock,
@@ -189,7 +208,7 @@ def test_schedule_battery_discharge_at_4_pm(
     mock_battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm.return_value = estimated_discharge_slots
 
     now = datetime.now()
-    solar.schedule_battery_discharge_at_4_pm(now)
+    solar.schedule_battery_discharge(now)
 
     mock_battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm.assert_called_once_with(state, now)
 
@@ -248,53 +267,3 @@ def test_disable_battery_discharge(
         "switch/turn_off",
         entity_id=SLOT2_DISCHARGE_ENABLED_ENTITY,
     )
-
-
-def test_control_storage_mode(
-    solar: Solar,
-    state: SolarState,
-    mock_appdaemon_service: Mock,
-    mock_state_factory: Mock,
-    mock_storage_mode_estimator: Mock,
-) -> None:
-    current_storage_mode = StorageMode.SELF_USE
-    new_storage_mode = StorageMode.FEED_IN_PRIORITY
-
-    state = replace(state, inverter_storage_mode=current_storage_mode)
-    mock_state_factory.create.return_value = state
-
-    mock_storage_mode_estimator.estimate_storage_mode.return_value = new_storage_mode
-
-    now = datetime.now()
-    solar.control_storage_mode(now)
-
-    mock_storage_mode_estimator.estimate_storage_mode.assert_called_once_with(state, now)
-
-    mock_appdaemon_service.call_service.assert_called_once_with(
-        "select/select_option",
-        callback=mock_appdaemon_service.service_call_callback,
-        entity_id=INVERTER_STORAGE_MODE_ENTITY,
-        option=new_storage_mode.value,
-    )
-
-
-def test_control_storage_mode_no_change(
-    solar: Solar,
-    state: SolarState,
-    mock_appdaemon_service: Mock,
-    mock_state_factory: Mock,
-    mock_storage_mode_estimator: Mock,
-) -> None:
-    current_storage_mode = StorageMode.SELF_USE
-
-    state = replace(state, inverter_storage_mode=current_storage_mode)
-    mock_state_factory.create.return_value = state
-
-    mock_storage_mode_estimator.estimate_storage_mode.return_value = None
-
-    now = datetime.now()
-    solar.control_storage_mode(now)
-
-    mock_storage_mode_estimator.estimate_storage_mode.assert_called_once_with(state, now)
-
-    mock_appdaemon_service.call_service.assert_not_called()

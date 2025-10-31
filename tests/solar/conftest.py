@@ -1,3 +1,4 @@
+from datetime import time
 from decimal import Decimal
 from unittest.mock import Mock
 
@@ -59,6 +60,10 @@ def configuration() -> SolarConfiguration:
         pv_export_min_price_margin=EnergyPrice.eur_per_mwh(Decimal(0)),
         battery_export_threshold_price=EnergyPrice.eur_per_mwh(Decimal(0)),
         battery_export_threshold_energy=ENERGY_KWH_ZERO,
+        night_low_tariff_time_start=time.fromisoformat("00:00:00"),
+        night_low_tariff_time_end=time.fromisoformat("00:00:00"),
+        day_low_tariff_time_start=time.fromisoformat("00:00:00"),
+        day_low_tariff_time_end=time.fromisoformat("00:00:00"),
     )
 
 
