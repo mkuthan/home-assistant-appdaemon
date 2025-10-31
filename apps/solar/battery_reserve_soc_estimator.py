@@ -8,6 +8,7 @@ from units.battery_soc import BatterySoc
 from units.energy_kwh import ENERGY_KWH_ZERO
 from utils.battery_estimators import estimate_battery_max_soc, estimate_battery_reserve_soc
 from utils.energy_aggregators import maximum_cumulative_deficit, total_surplus
+from utils.time_utils import hours_difference, is_time_in_range
 
 
 class BatteryReserveSocEstimator:
@@ -21,86 +22,106 @@ class BatteryReserveSocEstimator:
         self.configuration = configuration
         self.forecast_factory = forecast_factory
 
-    def estimate_soc_tomorrow_at_7_am(self, state: SolarState, now: datetime) -> BatterySoc | None:
-        tomorrow_7_am = now.replace(hour=7, minute=0, second=0, microsecond=0) + timedelta(days=1)
-        low_tariff_hours = 6
+    def estimate_battery_reserve_soc(self, state: SolarState, now: datetime) -> BatterySoc | None:
+        is_night_low_tariff = is_time_in_range(
+            now.time(), self.configuration.night_low_tariff_time_start, self.configuration.night_low_tariff_time_end
+        )
+        is_day_low_tariff = is_time_in_range(
+            now.time(), self.configuration.day_low_tariff_time_start, self.configuration.day_low_tariff_time_end
+        )
+
+        if is_night_low_tariff:
+            next_high_tariff_hours = hours_difference(
+                self.configuration.night_low_tariff_time_end, self.configuration.day_low_tariff_time_start
+            )
+            battery_reserve_soc_target = self._estimate_soc_at_7_am(state, now, next_high_tariff_hours)
+        elif is_day_low_tariff:
+            next_high_tariff_hours = hours_difference(
+                self.configuration.day_low_tariff_time_end, self.configuration.night_low_tariff_time_start
+            )
+            battery_reserve_soc_target = self._estimate_soc_at_4_pm(state, now, next_high_tariff_hours)
+        else:
+            battery_reserve_soc_target = self.configuration.battery_reserve_soc_min
+
+        battery_reserve_soc_target = round(battery_reserve_soc_target)
+
+        if battery_reserve_soc_target != state.battery_reserve_soc:
+            self.appdaemon_logger.info(f"Battery reserve SoC target: {battery_reserve_soc_target}")
+            return battery_reserve_soc_target
+        else:
+            return None
+
+    def _estimate_soc_at_7_am(self, state: SolarState, now: datetime, next_high_tariff_hours: int) -> BatterySoc:
+        if now.hour >= 7:
+            upcoming_7_am = now.replace(hour=7, minute=0, second=0, microsecond=0) + timedelta(days=1)
+        else:
+            upcoming_7_am = now.replace(hour=7, minute=0, second=0, microsecond=0)
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
         production_forecast = self.forecast_factory.create_production_forecast(state)
 
-        morning_consumptions = consumption_forecast.hourly(tomorrow_7_am, low_tariff_hours)
-        morning_productions = production_forecast.hourly(tomorrow_7_am, low_tariff_hours)
+        morning_consumptions = consumption_forecast.hourly(upcoming_7_am, next_high_tariff_hours)
+        morning_productions = production_forecast.hourly(upcoming_7_am, next_high_tariff_hours)
 
         energy_reserve = maximum_cumulative_deficit(morning_consumptions, morning_productions)
-        self.appdaemon_logger.info(f"Energy reserve: {energy_reserve}")
 
-        soc_target = estimate_battery_reserve_soc(
+        battery_reserve_soc_target = estimate_battery_reserve_soc(
             energy_reserve,
             self.configuration.battery_capacity,
             self.configuration.battery_reserve_soc_min,
             self.configuration.battery_reserve_soc_margin,
             self.configuration.battery_reserve_soc_max,
         )
-        self.appdaemon_logger.info(f"SoC target: {soc_target}")
 
-        if state.battery_reserve_soc >= soc_target:
-            self.appdaemon_logger.info(
-                f"Skip, battery reserve SoC above target: {state.battery_reserve_soc} >= {soc_target}"
-            )
-            return None
+        # Don't set the battery reserve SoC target below the current value
+        battery_reserve_soc_target = max(battery_reserve_soc_target, state.battery_reserve_soc)
 
-        return soc_target
+        return round(battery_reserve_soc_target)
 
-    def estimate_soc_today_at_4_pm(self, state: SolarState, now: datetime) -> BatterySoc | None:
-        today_4_pm = now.replace(hour=16, minute=0, second=0, microsecond=0)
-        low_tariff_hours = 6
+    def _estimate_soc_at_4_pm(self, state: SolarState, now: datetime, next_high_tariff_hours: int) -> BatterySoc:
+        if now.hour >= 16:
+            upcoming_4_pm = now.replace(hour=16, minute=0, second=0, microsecond=0) + timedelta(days=1)
+        else:
+            upcoming_4_pm = now.replace(hour=16, minute=0, second=0, microsecond=0)
 
         current_hour = now.replace(minute=0, second=0, microsecond=0)
-        remaining_hours = today_4_pm.hour - current_hour.hour
+        remaining_hours = upcoming_4_pm.hour - current_hour.hour
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
         production_forecast = self.forecast_factory.create_production_forecast(state)
 
-        afternoon_consumptions = consumption_forecast.hourly(current_hour, remaining_hours)
-        afternoon_productions = production_forecast.hourly(current_hour, remaining_hours)
+        remaining_consumptions = consumption_forecast.hourly(current_hour, remaining_hours)
+        remaining_productions = production_forecast.hourly(current_hour, remaining_hours)
 
-        energy_surplus = total_surplus(afternoon_consumptions, afternoon_productions)
-        self.appdaemon_logger.info(f"Energy surplus before 4PM: {energy_surplus}")
+        energy_surplus = total_surplus(remaining_consumptions, remaining_productions)
 
-        evening_consumptions = consumption_forecast.hourly(today_4_pm, low_tariff_hours)
-        evening_productions = production_forecast.hourly(today_4_pm, low_tariff_hours)
+        evening_consumptions = consumption_forecast.hourly(upcoming_4_pm, next_high_tariff_hours)
+        evening_productions = production_forecast.hourly(upcoming_4_pm, next_high_tariff_hours)
 
         evening_deficit = maximum_cumulative_deficit(evening_consumptions, evening_productions)
-        self.appdaemon_logger.info(f"Energy deficit after 4PM: {evening_deficit}")
 
         energy_reserve = max(evening_deficit - energy_surplus, ENERGY_KWH_ZERO)
-        self.appdaemon_logger.info(f"Energy reserve: {energy_reserve}")
 
-        soc_target = estimate_battery_reserve_soc(
+        battery_reserve_soc_target = estimate_battery_reserve_soc(
             energy_reserve,
             self.configuration.battery_capacity,
             self.configuration.battery_reserve_soc_min,
             self.configuration.battery_reserve_soc_margin,
             self.configuration.battery_reserve_soc_max,
         )
-        self.appdaemon_logger.info(f"Battery reserve SoC target: {soc_target}")
 
-        if state.battery_reserve_soc >= soc_target:
-            self.appdaemon_logger.info(
-                f"Skip, battery reserve SoC above target: {state.battery_reserve_soc} >= {soc_target}"
-            )
-            return None
+        # Don't set the battery reserve SoC target below the current value
+        battery_reserve_soc_target = max(battery_reserve_soc_target, state.battery_reserve_soc)
 
-        # Optimization to skip unnecessary Inverter register writes
-        if state.battery_soc >= soc_target:
-            self.appdaemon_logger.info(f"Skip, battery SoC current {state.battery_soc} >= SoC target {soc_target}")
-            return None
+        # Skip unnecessary Inverter register writes
+        if state.battery_soc >= battery_reserve_soc_target:
+            return state.battery_reserve_soc
 
-        soc_solar_only = estimate_battery_max_soc(
+        # Skip unnecessary grid charging
+        battery_soc_solar_only = estimate_battery_max_soc(
             energy_surplus, state.battery_soc, self.configuration.battery_capacity
         )
-        if soc_solar_only >= soc_target:
-            self.appdaemon_logger.info(f"Skip, estimated battery SoC max {soc_solar_only} >= SoC target {soc_target}")
-            return None
+        if battery_soc_solar_only >= battery_reserve_soc_target:
+            return state.battery_reserve_soc
 
-        return round(soc_target)
+        return round(battery_reserve_soc_target)

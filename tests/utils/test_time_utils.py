@@ -1,7 +1,7 @@
 from datetime import time
 
 import pytest
-from utils.time_utils import is_time_in_range
+from utils.time_utils import hours_difference, is_time_in_range
 
 
 @pytest.mark.parametrize(
@@ -22,3 +22,28 @@ def test_is_time_in_range(current_time: str, start_time: str, end_time: str, exp
         time.fromisoformat(end_time),
     )
     assert result == expected
+
+
+@pytest.mark.parametrize(
+    "start_time, end_time, expected_hours",
+    [
+        # Morning high tariff period
+        ("06:55:00", "13:05:00", 6),
+        ("07:00:00", "13:00:00", 6),
+        ("07:05:00", "12:55:00", 6),
+        # Evening high tariff period
+        ("15:55:00", "22:05:00", 6),
+        ("16:00:00", "22:00:00", 6),
+        ("16:05:00", "21:55:00", 6),
+        # Periods crossing midnight
+        ("21:55:00", "02:05:00", 4),
+        ("22:00:00", "02:00:00", 4),
+        ("22:05:00", "01:55:00", 4),
+    ],
+)
+def test_hours_difference(start_time: str, end_time: str, expected_hours: int) -> None:
+    result = hours_difference(
+        time.fromisoformat(start_time),
+        time.fromisoformat(end_time),
+    )
+    assert result == expected_hours
