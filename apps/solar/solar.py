@@ -121,16 +121,16 @@ class Solar:
         for slot in range(1, self._NUM_DISCHARGE_SLOTS + 1):
             self._disable_slot_discharge(state, slot)
 
-    def align_storage_mode(self, now: datetime) -> None:
+    def control_storage_mode(self, now: datetime) -> None:
         state = self.state_factory.create()
         if state is None:
-            self.appdaemon_logger.warn("Unknown state, cannot align storage mode")
+            self.appdaemon_logger.warn("Unknown state, cannot control storage mode")
             return
 
-        estimated_storage_mode = self.storage_mode_estimator.estimate_storage_mode(state, now)
+        storage_mode = self.storage_mode_estimator.estimate_storage_mode(state, now)
 
-        if estimated_storage_mode is not None:
-            self._set_storage_mode(state, estimated_storage_mode)
+        if storage_mode is not None:
+            self._set_storage_mode(state, storage_mode)
 
     def _set_storage_mode(self, state: SolarState, storage_mode: StorageMode) -> None:
         self.appdaemon_logger.info(f"Change storage mode from {state.inverter_storage_mode} to {storage_mode}")

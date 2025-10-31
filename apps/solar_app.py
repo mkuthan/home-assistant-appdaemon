@@ -86,9 +86,9 @@ class SolarApp(BaseApp):
         self.run_daily(self.disable_battery_discharge, "22:00:00")
         self.run_daily(self.disable_battery_discharge, "22:05:00")  # backup call
 
-        self.info("Listening to: [Battery SoC, Hourly price] changes and align storage mode")
+        self.info("Listening to: [Battery SoC, Hourly price] changes and control storage mode")
         self.listen_state(
-            self.align_storage_mode,
+            self.control_storage_mode,
             [
                 BATTERY_SOC_ENTITY,
                 HOURLY_PRICE_ENTITY,
@@ -115,5 +115,5 @@ class SolarApp(BaseApp):
     def disable_battery_discharge(self, **_kwargs: object) -> None:
         self.solar.disable_battery_discharge()
 
-    def align_storage_mode(self, entity, attribute, old, new, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
-        self.solar.align_storage_mode(self.get_now())
+    def control_storage_mode(self, entity, attribute, old, new, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
+        self.solar.control_storage_mode(self.get_now())

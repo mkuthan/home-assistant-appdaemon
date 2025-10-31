@@ -250,7 +250,7 @@ def test_disable_battery_discharge(
     )
 
 
-def test_align_storage_mode(
+def test_control_storage_mode(
     solar: Solar,
     state: SolarState,
     mock_appdaemon_service: Mock,
@@ -266,7 +266,7 @@ def test_align_storage_mode(
     mock_storage_mode_estimator.estimate_storage_mode.return_value = new_storage_mode
 
     now = datetime.now()
-    solar.align_storage_mode(now)
+    solar.control_storage_mode(now)
 
     mock_storage_mode_estimator.estimate_storage_mode.assert_called_once_with(state, now)
 
@@ -278,7 +278,7 @@ def test_align_storage_mode(
     )
 
 
-def test_align_storage_mode_no_change(
+def test_control_storage_mode_no_change(
     solar: Solar,
     state: SolarState,
     mock_appdaemon_service: Mock,
@@ -293,7 +293,7 @@ def test_align_storage_mode_no_change(
     mock_storage_mode_estimator.estimate_storage_mode.return_value = None
 
     now = datetime.now()
-    solar.align_storage_mode(now)
+    solar.control_storage_mode(now)
 
     mock_storage_mode_estimator.estimate_storage_mode.assert_called_once_with(state, now)
 
