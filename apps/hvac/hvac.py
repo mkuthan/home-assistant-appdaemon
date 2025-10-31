@@ -7,7 +7,6 @@ from hvac.cooling_estimator import CoolingEstimator
 from hvac.dhw_estimator import DhwEstimator
 from hvac.heating_estimator import HeatingEstimator
 from hvac.hvac_configuration import HvacConfiguration
-from hvac.hvac_state import HvacState
 from hvac.hvac_state_factory import HvacStateFactory
 from units.celsius import Celsius
 
@@ -37,16 +36,22 @@ class Hvac:
             return
 
         if (dhw_temperature := self.dhw_estimator.estimate_temperature(state, now)) is not None:
-            self._set_dhw_temperature(state, dhw_temperature)
+            self.appdaemon_logger.info(f"Change DHW temperature from {state.dhw_temperature} to {dhw_temperature}")
+            self._set_dhw_temperature(dhw_temperature)
 
         if (heating_temperature := self.heating_estimator.estimate_temperature(state, now)) is not None:
-            self._set_heating_temperature(state, heating_temperature)
+            self.appdaemon_logger.info(
+                f"Change heating temperature from {state.heating_temperature} to {heating_temperature}"
+            )
+            self._set_heating_temperature(heating_temperature)
 
         if (cooling_temperature := self.cooling_estimator.estimate_temperature(state, now)) is not None:
-            self._set_cooling_temperature(state, cooling_temperature)
+            self.appdaemon_logger.info(
+                f"Change cooling temperature from {state.cooling_temperature} to {cooling_temperature}"
+            )
+            self._set_cooling_temperature(cooling_temperature)
 
-    def _set_dhw_temperature(self, state: HvacState, temperature: Celsius) -> None:
-        self.appdaemon_logger.info(f"Change DHW temperature from {state.dhw_temperature} to {temperature}")
+    def _set_dhw_temperature(self, temperature: Celsius) -> None:
         self.appdaemon_service.call_service(
             "water_heater/set_temperature",
             callback=self.appdaemon_service.service_call_callback,
@@ -54,8 +59,7 @@ class Hvac:
             temperature=temperature.value,
         )
 
-    def _set_heating_temperature(self, state: HvacState, temperature: Celsius) -> None:
-        self.appdaemon_logger.info(f"Change heating temperature from {state.heating_temperature} to {temperature}")
+    def _set_heating_temperature(self, temperature: Celsius) -> None:
         self.appdaemon_service.call_service(
             "climate/set_temperature",
             callback=self.appdaemon_service.service_call_callback,
@@ -63,8 +67,7 @@ class Hvac:
             temperature=temperature.value,
         )
 
-    def _set_cooling_temperature(self, state: HvacState, temperature: Celsius) -> None:
-        self.appdaemon_logger.info(f"Change cooling temperature from {state.cooling_temperature} to {temperature}")
+    def _set_cooling_temperature(self, temperature: Celsius) -> None:
         self.appdaemon_service.call_service(
             "climate/set_temperature",
             callback=self.appdaemon_service.service_call_callback,

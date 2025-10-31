@@ -57,7 +57,10 @@ class Solar:
         battery_reserve_soc = self.battery_reserve_soc_estimator.estimate_battery_reserve_soc(state, now)
 
         if battery_reserve_soc is not None:
-            self._set_battery_reserve_soc(state, battery_reserve_soc)
+            self.appdaemon_logger.info(
+                f"Change battery reserve SoC from {state.battery_reserve_soc} to {battery_reserve_soc}"
+            )
+            self._set_battery_reserve_soc(battery_reserve_soc)
 
     def control_storage_mode(self, now: datetime) -> None:
         state = self.state_factory.create()
@@ -68,7 +71,8 @@ class Solar:
         storage_mode = self.storage_mode_estimator.estimate_storage_mode(state, now)
 
         if storage_mode is not None:
-            self._set_storage_mode(state, storage_mode)
+            self.appdaemon_logger.info(f"Change storage mode from {state.inverter_storage_mode} to {storage_mode}")
+            self._set_storage_mode(storage_mode)
 
     def schedule_battery_discharge(self, now: datetime) -> None:
         self.appdaemon_logger.info("Schedule battery discharge at 4 PM")
@@ -106,10 +110,7 @@ class Solar:
         for slot in range(1, self._NUM_DISCHARGE_SLOTS + 1):
             self._disable_slot_discharge(state, slot)
 
-    def _set_battery_reserve_soc(self, state: SolarState, battery_reserve_soc: BatterySoc) -> None:
-        self.appdaemon_logger.info(
-            f"Change battery reserve SoC from {state.battery_reserve_soc} to {battery_reserve_soc}"
-        )
+    def _set_battery_reserve_soc(self, battery_reserve_soc: BatterySoc) -> None:
         self.appdaemon_service.call_service(
             "number/set_value",
             callback=self.appdaemon_service.service_call_callback,
@@ -117,8 +118,7 @@ class Solar:
             value=battery_reserve_soc.value,
         )
 
-    def _set_storage_mode(self, state: SolarState, storage_mode: StorageMode) -> None:
-        self.appdaemon_logger.info(f"Change storage mode from {state.inverter_storage_mode} to {storage_mode}")
+    def _set_storage_mode(self, storage_mode: StorageMode) -> None:
         self.appdaemon_service.call_service(
             "select/select_option",
             callback=self.appdaemon_service.service_call_callback,

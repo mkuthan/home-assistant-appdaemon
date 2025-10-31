@@ -66,8 +66,8 @@ class HvacApp(BaseApp):
             self.control_triggered,
             [
                 ECO_MODE_ENTITY,
-                HEATING_ENTITY,
-                COOLING_ENTITY,
+                HEATING_ENTITY,  # on/off changes
+                COOLING_ENTITY,  # on/off changes
             ],
         )
 
