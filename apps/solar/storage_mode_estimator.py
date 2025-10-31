@@ -23,34 +23,30 @@ class StorageModeEstimator:
         self.configuration = configuration
         self.forecast_factory = forecast_factory
 
-    def estimate_storage_mode(self, state: SolarState, now: datetime) -> StorageMode:
+    def estimate_storage_mode(self, state: SolarState, now: datetime) -> StorageMode | None:
         remaining_hours = self.END_HOUR - now.hour
         if remaining_hours <= 0:
-            self.appdaemon_logger.info(f"Use {StorageMode.SELF_USE}, no remaining hours in the day")
-            return StorageMode.SELF_USE
+            reason = "no remaining hours in the day"
+            return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
         price_forecast = self.forecast_factory.create_price_forecast(state)
         min_price = price_forecast.find_daily_min_price(now, remaining_hours)
         if min_price is None:
-            self.appdaemon_logger.info(f"Use {StorageMode.SELF_USE}, minimum price not found in the forecast")
-            return StorageMode.SELF_USE
+            reason = "minimum price not found in the forecast"
+            return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
         current_price = state.hourly_price.non_negative()
         price_threshold = min_price.non_negative() + self.configuration.pv_export_min_price_margin
         if current_price <= price_threshold:
-            self.appdaemon_logger.info(
-                f"Use {StorageMode.SELF_USE}, current price {current_price} <= {price_threshold}"
-            )
-            return StorageMode.SELF_USE
+            reason = f"current price {current_price} <= {price_threshold}"
+            return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
         required_battery_reserve_soc = (
             self.configuration.battery_reserve_soc_min + self.configuration.battery_reserve_soc_margin
         )
         if state.battery_soc <= required_battery_reserve_soc:
-            self.appdaemon_logger.info(
-                f"Use {StorageMode.SELF_USE}, battery SoC {state.battery_soc} <= {required_battery_reserve_soc}"
-            )
-            return StorageMode.SELF_USE
+            reason = f"battery SoC {state.battery_soc} <= {required_battery_reserve_soc}"
+            return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
         consumptions = consumption_forecast.hourly(now, remaining_hours)
@@ -59,21 +55,21 @@ class StorageModeEstimator:
         productions = production_forecast.hourly(now, remaining_hours)
 
         energy_surplus = total_surplus(consumptions, productions)
-        self.appdaemon_logger.info(f"Energy surplus: {energy_surplus}")
 
         battery_soc_max = estimate_battery_max_soc(
             energy_surplus, state.battery_soc, self.configuration.battery_capacity
         )
-        self.appdaemon_logger.info(f"Battery SoC max: {battery_soc_max}")
 
         if battery_soc_max < BATTERY_SOC_MAX:
-            self.appdaemon_logger.info(
-                f"Use {StorageMode.SELF_USE}, battery SoC max {battery_soc_max} < {BATTERY_SOC_MAX}"
-            )
-            return StorageMode.SELF_USE
+            reason = f"battery SoC max {battery_soc_max} < {BATTERY_SOC_MAX}, energy surplus: {energy_surplus}"
+            return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
-        self.appdaemon_logger.info(
-            f"Use {StorageMode.FEED_IN_PRIORITY}, current price: {current_price}, "
-            + f"current battery SoC: {state.battery_soc}"
-        )
-        return StorageMode.FEED_IN_PRIORITY
+        reason = f"current price: {current_price}, current battery SoC: {state.battery_soc}"
+        return self._return_if_changed(state, StorageMode.FEED_IN_PRIORITY, reason)
+
+    def _return_if_changed(self, state: SolarState, storage_mode: StorageMode, reason: str) -> StorageMode | None:
+        if storage_mode != state.inverter_storage_mode:
+            self.appdaemon_logger.info(f"Use {StorageMode.SELF_USE}, {reason}")
+            return storage_mode
+        else:
+            return None

@@ -276,3 +276,25 @@ def test_align_storage_mode(
         entity_id=INVERTER_STORAGE_MODE_ENTITY,
         option=new_storage_mode.value,
     )
+
+
+def test_align_storage_mode_no_change(
+    solar: Solar,
+    state: SolarState,
+    mock_appdaemon_service: Mock,
+    mock_state_factory: Mock,
+    mock_storage_mode_estimator: Mock,
+) -> None:
+    current_storage_mode = StorageMode.SELF_USE
+
+    state = replace(state, inverter_storage_mode=current_storage_mode)
+    mock_state_factory.create.return_value = state
+
+    mock_storage_mode_estimator.estimate_storage_mode.return_value = None
+
+    now = datetime.now()
+    solar.align_storage_mode(now)
+
+    mock_storage_mode_estimator.estimate_storage_mode.assert_called_once_with(state, now)
+
+    mock_appdaemon_service.call_service.assert_not_called()
