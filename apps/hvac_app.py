@@ -24,7 +24,7 @@ class HvacApp(BaseApp):
             dhw_boost_delta_temp_eco=Celsius(4.0),
             dhw_boost_start=time.fromisoformat("13:05:00"),
             dhw_boost_end=time.fromisoformat("15:55:00"),
-            heating_temp=Celsius(21.0),
+            heating_temp=Celsius(20.0),
             heating_temp_eco=Celsius(18.0),
             heating_boost_delta_temp=Celsius(1.0),
             heating_boost_delta_temp_eco=Celsius(2.0),
