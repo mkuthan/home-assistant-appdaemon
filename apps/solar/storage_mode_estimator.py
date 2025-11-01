@@ -67,7 +67,11 @@ class StorageModeEstimator:
             reason = f"battery SoC max {battery_soc_max} < {BATTERY_SOC_MAX}, energy surplus: {energy_surplus}"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
-        reason = f"current price: {current_price}, current battery SoC: {state.battery_soc}"
+        reason = (
+            f"current price: {current_price}, "
+            + f"current battery SoC: {state.battery_soc}, "
+            + f"energy surplus: {energy_surplus}"
+        )
         return self._return_if_changed(state, StorageMode.FEED_IN_PRIORITY, reason)
 
     def _return_if_changed(self, state: SolarState, storage_mode: StorageMode, reason: str) -> StorageMode | None:
