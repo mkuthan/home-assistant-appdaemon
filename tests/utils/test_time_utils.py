@@ -1,7 +1,7 @@
-from datetime import time
+from datetime import datetime, time
 
 import pytest
-from utils.time_utils import hours_difference, is_time_in_range
+from utils.time_utils import hours_difference, is_time_in_range, truncate_to_hour
 
 
 @pytest.mark.parametrize(
@@ -47,3 +47,17 @@ def test_hours_difference(start_time: str, end_time: str, expected_hours: int) -
         time.fromisoformat(end_time),
     )
     assert result == expected_hours
+
+
+@pytest.mark.parametrize(
+    "input_datetime, expected_datetime",
+    [
+        ("2025-11-01T14:30:45.123456", "2025-11-01T14:00:00"),
+        ("2025-11-01T00:59:59.999999", "2025-11-01T00:00:00"),
+        ("2025-11-01T23:15:30.500000", "2025-11-01T23:00:00"),
+        ("2025-11-01T10:00:00", "2025-11-01T10:00:00"),
+    ],
+)
+def test_truncate_to_hour(input_datetime: str, expected_datetime: str) -> None:
+    result = truncate_to_hour(datetime.fromisoformat(input_datetime))
+    assert result == datetime.fromisoformat(expected_datetime)

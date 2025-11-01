@@ -8,7 +8,7 @@ from units.battery_soc import BatterySoc
 from units.energy_kwh import ENERGY_KWH_ZERO
 from utils.battery_estimators import estimate_battery_max_soc, estimate_battery_reserve_soc
 from utils.energy_aggregators import maximum_cumulative_deficit, total_surplus
-from utils.time_utils import hours_difference, is_time_in_range
+from utils.time_utils import hours_difference, is_time_in_range, truncate_to_hour
 
 
 class BatteryReserveSocEstimator:
@@ -84,7 +84,7 @@ class BatteryReserveSocEstimator:
         else:
             upcoming_4_pm = now.replace(hour=16, minute=0, second=0, microsecond=0)
 
-        current_hour = now.replace(minute=0, second=0, microsecond=0)
+        current_hour = truncate_to_hour(now)
         remaining_hours = upcoming_4_pm.hour - current_hour.hour
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
