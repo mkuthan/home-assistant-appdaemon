@@ -72,7 +72,7 @@ class StorageModeEstimator:
 
     def _return_if_changed(self, state: SolarState, storage_mode: StorageMode, reason: str) -> StorageMode | None:
         if storage_mode != state.inverter_storage_mode:
-            self.appdaemon_logger.info(f"Use {StorageMode.SELF_USE}, {reason}")
+            self.appdaemon_logger.info(f"Use {storage_mode}, {reason}")
             return storage_mode
         else:
             return None
