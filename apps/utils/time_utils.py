@@ -37,3 +37,15 @@ def hours_difference(start_time: time, end_time: time) -> int:
     difference_hours = difference.total_seconds() / 3600
 
     return round(difference_hours)
+
+
+def truncate_to_hour(dt: datetime) -> datetime:
+    """Truncate datetime to the hour by setting minutes, seconds, and microseconds to zero.
+
+    Args:
+        dt: The datetime to truncate.
+
+    Returns:
+        A new datetime with only year, month, day, and hour preserved.
+    """
+    return dt.replace(minute=0, second=0, microsecond=0)

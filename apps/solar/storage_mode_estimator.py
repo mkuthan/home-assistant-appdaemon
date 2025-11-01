@@ -8,6 +8,7 @@ from solar.storage_mode import StorageMode
 from units.battery_soc import BATTERY_SOC_MAX
 from utils.battery_estimators import estimate_battery_max_soc
 from utils.energy_aggregators import total_surplus
+from utils.time_utils import truncate_to_hour
 
 
 class StorageModeEstimator:
@@ -29,8 +30,10 @@ class StorageModeEstimator:
             reason = "no remaining hours in the day"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
+        current_hour = truncate_to_hour(now)
+
         price_forecast = self.forecast_factory.create_price_forecast(state)
-        min_price = price_forecast.find_daily_min_price(now, remaining_hours)
+        min_price = price_forecast.find_daily_min_price(current_hour, remaining_hours)
         if min_price is None:
             reason = "minimum price not found in the forecast"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
@@ -49,10 +52,10 @@ class StorageModeEstimator:
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
-        consumptions = consumption_forecast.hourly(now, remaining_hours)
+        consumptions = consumption_forecast.hourly(current_hour, remaining_hours)
 
         production_forecast = self.forecast_factory.create_production_forecast(state)
-        productions = production_forecast.hourly(now, remaining_hours)
+        productions = production_forecast.hourly(current_hour, remaining_hours)
 
         energy_surplus = total_surplus(consumptions, productions)
 
