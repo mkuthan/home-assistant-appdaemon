@@ -11,6 +11,7 @@ from entities.entities import (
     ECO_MODE_ENTITY,
     HEATING_ENTITY,
     HOURLY_PRICE_ENTITY,
+    INDOOR_TEMPERATURE_ENTITY,
     INVERTER_STORAGE_MODE_ENTITY,
     OUTDOOR_TEMPERATURE_ENTITY,
     PV_FORECAST_TODAY_ENTITY,
@@ -27,6 +28,7 @@ from solar.solar_state import SolarState
 from solar.storage_mode import StorageMode
 from units.battery_current import BatteryCurrent
 from units.battery_soc import BatterySoc
+from units.celsius import Celsius
 from units.energy_price import EnergyPrice
 from utils.safe_converters import safe_bool, safe_dict, safe_float, safe_list, safe_str
 
@@ -46,6 +48,7 @@ class DefaultSolarStateFactory:
     def create(self) -> SolarState | None:
         battery_soc = safe_float(self.appdaemon_state.get_state(BATTERY_SOC_ENTITY))
         battery_reserve_soc = safe_float(self.appdaemon_state.get_state(BATTERY_RESERVE_SOC_ENTITY))
+        indoor_temperature = safe_float(self.appdaemon_state.get_state(INDOOR_TEMPERATURE_ENTITY))
         outdoor_temperature = safe_float(self.appdaemon_state.get_state(OUTDOOR_TEMPERATURE_ENTITY))
         is_away_mode = safe_bool(self.appdaemon_state.get_state(AWAY_MODE_ENTITY))
         is_eco_mode = safe_bool(self.appdaemon_state.get_state(ECO_MODE_ENTITY))
@@ -75,6 +78,7 @@ class DefaultSolarStateFactory:
             for name, value in [
                 ("battery_soc", battery_soc),
                 ("battery_reserve_soc", battery_reserve_soc),
+                ("indoor_temperature", indoor_temperature),
                 ("outdoor_temperature", outdoor_temperature),
                 ("is_away_mode", is_away_mode),
                 ("is_eco_mode", is_eco_mode),
@@ -101,6 +105,7 @@ class DefaultSolarStateFactory:
 
         assert battery_soc is not None
         assert battery_reserve_soc is not None
+        assert indoor_temperature is not None
         assert outdoor_temperature is not None
         assert is_away_mode is not None
         assert is_eco_mode is not None
@@ -121,7 +126,8 @@ class DefaultSolarStateFactory:
         solar_state = SolarState(
             battery_soc=BatterySoc(battery_soc),
             battery_reserve_soc=BatterySoc(battery_reserve_soc),
-            outdoor_temperature=outdoor_temperature,
+            indoor_temperature=Celsius(indoor_temperature),
+            outdoor_temperature=Celsius(outdoor_temperature),
             is_away_mode=is_away_mode,
             is_eco_mode=is_eco_mode,
             inverter_storage_mode=StorageMode(inverter_storage_mode),

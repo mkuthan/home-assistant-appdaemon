@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from solar.storage_mode import StorageMode
 from units.battery_current import BatteryCurrent
 from units.battery_soc import BatterySoc
+from units.celsius import Celsius
 from units.energy_price import EnergyPrice
 
 
@@ -10,7 +11,8 @@ from units.energy_price import EnergyPrice
 class SolarState:
     battery_soc: BatterySoc
     battery_reserve_soc: BatterySoc
-    outdoor_temperature: float
+    indoor_temperature: Celsius
+    outdoor_temperature: Celsius
     is_away_mode: bool
     is_eco_mode: bool
     inverter_storage_mode: StorageMode

@@ -1,5 +1,5 @@
 import pytest
-from units.energy_kwh import EnergyKwh
+from units.energy_kwh import ENERGY_KWH_ZERO, EnergyKwh
 
 
 @pytest.mark.parametrize(
@@ -48,10 +48,8 @@ def test_div() -> None:
 
 
 def test_div_by_zero() -> None:
-    energy1 = EnergyKwh(10.0)
-    energy2 = EnergyKwh(0.0)
     with pytest.raises(ValueError, match="Cannot divide by zero energy"):
-        energy1 / energy2  # pyright: ignore[reportUnusedExpression]
+        EnergyKwh(10.0) / ENERGY_KWH_ZERO  # pyright: ignore[reportUnusedExpression]
 
 
 @pytest.mark.parametrize(
