@@ -1,5 +1,5 @@
 import pytest
-from units.celsius import Celsius
+from units.celsius import CELSIUS_ZERO, Celsius
 
 
 @pytest.mark.parametrize(
@@ -41,6 +41,24 @@ def test_add(temp1: float, temp2: float, expected: float) -> None:
 def test_sub(temp1: float, temp2: float, expected: float) -> None:
     result = Celsius(temp1) - Celsius(temp2)
     assert result.value == expected
+
+
+@pytest.mark.parametrize(
+    ("temp1", "temp2", "expected"),
+    [
+        (-10.0, 2.0, -5.0),
+        (0.0, 2.0, 0.0),
+        (10.0, 2.5, 4.0),
+    ],
+)
+def test_div(temp1: float, temp2: float, expected: float) -> None:
+    result = Celsius(temp1) / Celsius(temp2)
+    assert result == expected
+
+
+def test_div_by_zero() -> None:
+    with pytest.raises(ValueError, match="Cannot divide by zero temperature"):
+        Celsius(10.0) / CELSIUS_ZERO  # pyright: ignore[reportUnusedExpression]
 
 
 @pytest.mark.parametrize(

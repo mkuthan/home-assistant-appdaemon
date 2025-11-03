@@ -19,6 +19,7 @@ SLOT2_DISCHARGE_TIME_ENTITY = "text.solis_control_slot2_discharge_time"
 SLOT2_DISCHARGE_CURRENT_ENTITY = "number.solis_control_slot2_discharge_current"
 
 # Weather and temperature entities
+INDOOR_TEMPERATURE_ENTITY = "sensor.heishamon_z1_actual_temperature"
 OUTDOOR_TEMPERATURE_ENTITY = "sensor.heishamon_outside_ambient_temperature"
 WEATHER_FORECAST_ENTITY = "weather.forecast_wieprz"
 

@@ -9,6 +9,7 @@ from entities.entities import (
     ECO_MODE_ENTITY,
     HEATING_ENTITY,
     HOURLY_PRICE_ENTITY,
+    INDOOR_TEMPERATURE_ENTITY,
     INVERTER_STORAGE_MODE_ENTITY,
     OUTDOOR_TEMPERATURE_ENTITY,
     PV_FORECAST_TODAY_ENTITY,
@@ -25,6 +26,7 @@ from solar.solar_state_factory import DefaultSolarStateFactory
 from solar.storage_mode import StorageMode
 from units.battery_current import BatteryCurrent
 from units.battery_soc import BatterySoc
+from units.celsius import Celsius
 from units.energy_price import EnergyPrice
 
 
@@ -39,13 +41,6 @@ def pv_forecast_today() -> list[dict]:
 def pv_forecast_tomorrow() -> list[dict]:
     return [
         {"period_start": "2025-10-06T06:00:00+00:00", "pv_estimate": 1.2},
-    ]
-
-
-@pytest.fixture
-def pv_forecast_day_3() -> list[dict]:
-    return [
-        {"period_start": "2025-10-07T06:00:00+00:00", "pv_estimate": 0.8},
     ]
 
 
@@ -71,13 +66,12 @@ def price_forecast() -> list[dict]:
 def state_values(
     pv_forecast_today: list[dict],
     pv_forecast_tomorrow: list[dict],
-    pv_forecast_day_3: list[dict],
     price_forecast: list[dict],
 ) -> dict:
     return {
         f"{BATTERY_SOC_ENTITY}:": "75.5",
         f"{BATTERY_RESERVE_SOC_ENTITY}:": "20.0",
-        "sensor.heishamon_z1_actual_temperature:": "21.5",
+        f"{INDOOR_TEMPERATURE_ENTITY}:": "21.5",
         f"{OUTDOOR_TEMPERATURE_ENTITY}:": "10.0",
         f"{AWAY_MODE_ENTITY}:": "off",
         f"{ECO_MODE_ENTITY}:": "on",
@@ -92,7 +86,6 @@ def state_values(
         f"{HOURLY_PRICE_ENTITY}:": "500.0",
         f"{PV_FORECAST_TODAY_ENTITY}:detailedHourly": pv_forecast_today,
         f"{PV_FORECAST_TOMORROW_ENTITY}:detailedHourly": pv_forecast_tomorrow,
-        "sensor.solcast_pv_forecast_forecast_day_3:detailedHourly": pv_forecast_day_3,
         f"{HOURLY_PRICE_ENTITY}:raw_today": price_forecast,
     }
 
@@ -129,7 +122,8 @@ def test_create(
     assert result is not None
     assert result.battery_soc == BatterySoc(75.5)
     assert result.battery_reserve_soc == BatterySoc(20.0)
-    assert result.outdoor_temperature == 10.0
+    assert result.indoor_temperature == Celsius(21.5)
+    assert result.outdoor_temperature == Celsius(10.0)
     assert result.is_away_mode is False
     assert result.is_eco_mode is True
     assert result.inverter_storage_mode == StorageMode.SELF_USE

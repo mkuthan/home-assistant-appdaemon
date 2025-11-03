@@ -9,6 +9,7 @@ from solar.storage_mode import StorageMode
 from units.battery_current import BATTERY_CURRENT_ZERO
 from units.battery_soc import BATTERY_SOC_MIN
 from units.battery_voltage import BATTERY_VOLTAGE_ZERO
+from units.celsius import CELSIUS_ZERO
 from units.energy_kwh import ENERGY_KWH_ZERO
 from units.energy_price import EnergyPrice
 
@@ -72,7 +73,8 @@ def state() -> SolarState:
     return SolarState(
         battery_soc=BATTERY_SOC_MIN,
         battery_reserve_soc=BATTERY_SOC_MIN,
-        outdoor_temperature=-1.0,
+        indoor_temperature=CELSIUS_ZERO,
+        outdoor_temperature=CELSIUS_ZERO,
         is_away_mode=False,
         is_eco_mode=False,
         inverter_storage_mode=StorageMode.SELF_USE,
