@@ -1,7 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
-from entities.entities import COOLING_ENTITY, DHW_ENTITY, ECO_MODE_ENTITY, HEATING_ENTITY
+from entities.entities import COOLING_ENTITY, DHW_ENTITY, ECO_MODE_ENTITY, HEATING_ENTITY, TEMPERATURE_ADJUSTMENT_ENTITY
 from hvac.hvac_state_factory import DefaultHvacStateFactory
 from units.celsius import Celsius
 
@@ -15,6 +15,7 @@ def state_values() -> dict:
         f"{HEATING_ENTITY}:": "heat",
         f"{COOLING_ENTITY}:temperature": "24",
         f"{COOLING_ENTITY}:": "cool",
+        f"{TEMPERATURE_ADJUSTMENT_ENTITY}:": "0.0",
     }
 
 
@@ -37,6 +38,7 @@ def test_create(
     assert result.heating_mode == "heat"
     assert result.cooling_temperature == Celsius(24.0)
     assert result.cooling_mode == "cool"
+    assert result.temperature_adjustment == Celsius(0.0)
 
 
 @pytest.mark.parametrize(
@@ -48,6 +50,7 @@ def test_create(
         (f"{HEATING_ENTITY}:", "Missing: heating_mode"),
         (f"{COOLING_ENTITY}:temperature", "Missing: cooling_temperature"),
         (f"{COOLING_ENTITY}:", "Missing: cooling_mode"),
+        (f"{TEMPERATURE_ADJUSTMENT_ENTITY}:", "Missing: temperature_adjustment"),
     ],
 )
 def test_create_missing_field(

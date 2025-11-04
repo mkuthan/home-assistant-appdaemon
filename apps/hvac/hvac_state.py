@@ -11,3 +11,4 @@ class HvacState:
     heating_mode: str
     cooling_temperature: Celsius
     cooling_mode: str
+    temperature_adjustment: Celsius
