@@ -3,6 +3,7 @@ from datetime import datetime
 import pytest
 from entities.entities import WEATHER_FORECAST_ENTITY
 from solar.weather_forecast import HourlyWeather, WeatherForecast
+from units.celsius import Celsius
 from units.hourly_period import HourlyPeriod
 
 
@@ -30,12 +31,12 @@ def test_create() -> None:
     assert forecast_weather.periods == [
         HourlyWeather(
             period=HourlyPeriod.parse("2025-10-03T14:00:00+00:00"),
-            temperature=12.0,
+            temperature=Celsius(12.0),
             humidity=46.0,
         ),
         HourlyWeather(
             period=HourlyPeriod.parse("2025-10-03T15:00:00+00:00"),
-            temperature=13.0,
+            temperature=Celsius(13.0),
             humidity=45.0,
         ),
     ]
@@ -47,12 +48,12 @@ def forecast_weather() -> WeatherForecast:
         [
             HourlyWeather(
                 period=HourlyPeriod.parse("2025-10-03T14:00:00+00:00"),
-                temperature=12.0,
+                temperature=Celsius(12.0),
                 humidity=46.0,
             ),
             HourlyWeather(
                 period=HourlyPeriod.parse("2025-10-03T15:00:00+00:00"),
-                temperature=13.0,
+                temperature=Celsius(13.0),
                 humidity=45.0,
             ),
         ]
@@ -66,7 +67,7 @@ def test_find_by_datetime_found(forecast_weather: WeatherForecast) -> None:
 
     assert result == HourlyWeather(
         period=HourlyPeriod(dt),
-        temperature=13.0,
+        temperature=Celsius(13.0),
         humidity=45.0,
     )
 

@@ -39,7 +39,7 @@ def estimate_temperature_decay_time(
     total_hours = 0.0
 
     for weather in hourly_weather:
-        temp_outdoor = Celsius(weather.temperature)
+        temp_outdoor = weather.temperature
 
         if temp_current <= temp_target:
             break

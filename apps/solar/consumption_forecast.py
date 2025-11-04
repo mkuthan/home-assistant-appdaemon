@@ -25,8 +25,8 @@ class ConsumptionForecastComposite:
 class HeatingEnergyEstimator(Protocol):
     def __call__(
         self,
-        t_out: float,
-        t_in: float,
+        t_out: Celsius,
+        t_in: Celsius,
         humidity: float,
         cop_at_7c: float,
         h: float,
@@ -44,11 +44,11 @@ class ConsumptionForecastHvacHeating:
         indoor_temperature: Celsius,
         hvac_heating_mode: str,
         hvac_heating_temperature: Celsius,
-        t_in: float,
+        t_in: Celsius,
         cop_at_7c: float,
         h: float,
         forecast_weather: WeatherForecast,
-        temp_out_fallback: float,
+        temp_out_fallback: Celsius,
         humidity_out_fallback: float,
         energy_estimator: HeatingEnergyEstimator = estimate_heating_energy_consumption,
     ) -> None:
