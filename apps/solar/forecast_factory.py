@@ -45,7 +45,9 @@ class DefaultForecastFactory:
         hvac_heating = ConsumptionForecastHvacHeating(
             forecast_weather=weather_forecast,
             is_eco_mode=state.is_eco_mode,
+            indoor_temperature=state.indoor_temperature,
             hvac_heating_mode=state.hvac_heating_mode,
+            hvac_heating_temperature=state.hvac_heating_temperature,
             t_in=self.configuration.temp_in,
             cop_at_7c=self.configuration.heating_cop_at_7c,
             h=self.configuration.heating_h,

@@ -83,6 +83,7 @@ def state_values(
         f"{SLOT2_DISCHARGE_TIME_ENTITY}:": "20:00-21:00",
         f"{SLOT2_DISCHARGE_CURRENT_ENTITY}:": "30.0",
         f"{HEATING_ENTITY}:": "heat",
+        f"{HEATING_ENTITY}:temperature": "22.0",
         f"{HOURLY_PRICE_ENTITY}:": "500.0",
         f"{PV_FORECAST_TODAY_ENTITY}:detailedHourly": pv_forecast_today,
         f"{PV_FORECAST_TOMORROW_ENTITY}:detailedHourly": pv_forecast_tomorrow,
@@ -134,6 +135,7 @@ def test_create(
     assert result.slot2_discharge_time == "20:00-21:00"
     assert result.slot2_discharge_current == BatteryCurrent(30.0)
     assert result.hvac_heating_mode == "heat"
+    assert result.hvac_heating_temperature == Celsius(22.0)
     assert result.hourly_price == EnergyPrice.pln_per_mwh(Decimal(500))
     assert result.pv_forecast_today == pv_forecast_today
     assert result.pv_forecast_tomorrow == pv_forecast_tomorrow
@@ -157,6 +159,7 @@ def test_create(
         (f"{SLOT2_DISCHARGE_TIME_ENTITY}:", "Missing: slot2_discharge_time"),
         (f"{SLOT2_DISCHARGE_CURRENT_ENTITY}:", "Missing: slot2_discharge_current"),
         (f"{HEATING_ENTITY}:", "Missing: hvac_heating_mode"),
+        (f"{HEATING_ENTITY}:temperature", "Missing: hvac_heating_temperature"),
         (f"{HOURLY_PRICE_ENTITY}:", "Missing: hourly_price"),
         (f"{PV_FORECAST_TODAY_ENTITY}:detailedHourly", "Missing: pv_forecast_today"),
         (f"{PV_FORECAST_TOMORROW_ENTITY}:detailedHourly", "Missing: pv_forecast_tomorrow"),
