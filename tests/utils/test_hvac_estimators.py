@@ -1,10 +1,11 @@
 import pytest
+from units.celsius import Celsius
 from utils.hvac_estimators import estimate_heating_energy_consumption
 
 
 def test_heating_energy_consumption_at_reference_temperature() -> None:
-    t_out = 7.0
-    t_in = 20.0
+    t_out = Celsius(7.0)
+    t_in = Celsius(20.0)
     humidity = 50.0
     cop_at_7c = 4.0
     h = 0.18
@@ -16,8 +17,8 @@ def test_heating_energy_consumption_at_reference_temperature() -> None:
 
 
 def test_heating_energy_consumption_cold_weather() -> None:
-    t_out = -10.0
-    t_in = 20.0
+    t_out = Celsius(-10.0)
+    t_in = Celsius(20.0)
     humidity = 50.0
     cop_at_7c = 4.0
     h = 0.18
@@ -32,8 +33,8 @@ def test_heating_energy_consumption_cold_weather() -> None:
 
 
 def test_heating_energy_consumption_mild_weather() -> None:
-    t_out = 15.0
-    t_in = 20.0
+    t_out = Celsius(15.0)
+    t_in = Celsius(20.0)
     humidity = 50.0
     cop_at_7c = 4.0
     h = 0.18
@@ -48,8 +49,8 @@ def test_heating_energy_consumption_mild_weather() -> None:
 
 
 def test_heating_energy_consumption_with_frosting_penalty() -> None:
-    t_out = 3.5
-    t_in = 20.0
+    t_out = Celsius(3.5)
+    t_in = Celsius(20.0)
     humidity = 100.0
     cop_at_7c = 4.0
     h = 0.18
@@ -65,8 +66,8 @@ def test_heating_energy_consumption_with_frosting_penalty() -> None:
 
 
 def test_heating_energy_consumption_no_heating_needed() -> None:
-    t_out = 20.0
-    t_in = 20.0
+    t_out = Celsius(20.0)
+    t_in = Celsius(20.0)
     humidity = 50.0
     cop_at_7c = 4.0
     h = 0.18

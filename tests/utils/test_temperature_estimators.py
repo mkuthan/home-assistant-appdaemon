@@ -42,7 +42,7 @@ def test_estimate_temperature_decay_time(
     hourly_weather = [
         HourlyWeather(
             period=HourlyPeriod(start=base_time.replace(hour=i)),
-            temperature=temp,
+            temperature=Celsius(temp),
             humidity=50.0,
         )
         for i, temp in enumerate(outdoor_temps)
@@ -60,12 +60,12 @@ def test_estimate_temperature_decay_time_outdoor_warmer_than_current() -> None:
     hourly_weather = [
         HourlyWeather(
             period=HourlyPeriod(start=base_time),
-            temperature=18.0,
+            temperature=Celsius(18.0),
             humidity=50.0,
         ),
         HourlyWeather(
             period=HourlyPeriod(start=base_time.replace(hour=1)),
-            temperature=20.0,
+            temperature=Celsius(20.0),
             humidity=50.0,
         ),
     ]
@@ -80,7 +80,7 @@ def test_estimate_temperature_decay_time_invalid_decay_rate() -> None:
     temp_start = Celsius(22.0)
     temp_end = Celsius(20.0)
     base_time = datetime(2025, 1, 1, 0, 0, 0, tzinfo=UTC)
-    hourly_weather = [HourlyWeather(period=HourlyPeriod(start=base_time), temperature=8.0, humidity=50.0)]
+    hourly_weather = [HourlyWeather(period=HourlyPeriod(start=base_time), temperature=Celsius(8.0), humidity=50.0)]
 
     with pytest.raises(ValueError, match="Decay rate must be positive"):
         estimate_temperature_decay_time(temp_start, temp_end, hourly_weather, 0.0)

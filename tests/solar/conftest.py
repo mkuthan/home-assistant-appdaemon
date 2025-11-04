@@ -9,7 +9,7 @@ from solar.storage_mode import StorageMode
 from units.battery_current import BATTERY_CURRENT_ZERO
 from units.battery_soc import BATTERY_SOC_MIN
 from units.battery_voltage import BATTERY_VOLTAGE_ZERO
-from units.celsius import CELSIUS_ZERO
+from units.celsius import CELSIUS_ZERO, Celsius
 from units.energy_kwh import ENERGY_KWH_ZERO
 from units.energy_price import EnergyPrice
 
@@ -50,10 +50,10 @@ def configuration() -> SolarConfiguration:
         battery_reserve_soc_min=BATTERY_SOC_MIN,
         battery_reserve_soc_margin=BATTERY_SOC_MIN,
         battery_reserve_soc_max=BATTERY_SOC_MIN,
-        temp_in=-1.0,
+        temp_in=Celsius(-1.0),
         heating_cop_at_7c=-1.0,
         heating_h=-1.0,
-        temp_out_fallback=-1.0,
+        temp_out_fallback=Celsius(-1.0),
         humidity_out_fallback=-1.0,
         regular_consumption_away=ENERGY_KWH_ZERO,
         regular_consumption_day=ENERGY_KWH_ZERO,

@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from entities.entities import WEATHER_FORECAST_ENTITY
+from units.celsius import Celsius
 from units.hourly_period import HourlyPeriod
 from units.hourly_weather import HourlyWeather
 
@@ -25,7 +26,7 @@ class WeatherForecast:
                             periods.append(
                                 HourlyWeather(
                                     period=HourlyPeriod.parse(item["datetime"]),
-                                    temperature=float(item["temperature"]),
+                                    temperature=Celsius(float(item["temperature"])),
                                     humidity=float(item["humidity"]),
                                 )
                             )

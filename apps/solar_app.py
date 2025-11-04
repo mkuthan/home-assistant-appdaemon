@@ -13,6 +13,7 @@ from solar.storage_mode_estimator import StorageModeEstimator
 from units.battery_current import BatteryCurrent
 from units.battery_soc import BatterySoc
 from units.battery_voltage import BatteryVoltage
+from units.celsius import Celsius
 from units.energy_kwh import EnergyKwh
 from units.energy_price import EnergyPrice
 
@@ -30,13 +31,13 @@ class SolarApp(BaseApp):
             battery_reserve_soc_min=BatterySoc(20.0),
             battery_reserve_soc_margin=BatterySoc(8.0),
             battery_reserve_soc_max=BatterySoc(95.0),
-            temp_in=21.0,  # °C
+            temp_in=Celsius(21.0),
             heating_cop_at_7c=4.0,  # ratio
             heating_h=0.18,  # kW/°C
-            temp_out_fallback=5.0,  # °C
+            temp_out_fallback=Celsius(5.0),
             humidity_out_fallback=80.0,  # %
             regular_consumption_away=EnergyKwh(0.35),
-            regular_consumption_day=EnergyKwh(0.6),
+            regular_consumption_day=EnergyKwh(0.5),
             regular_consumption_evening=EnergyKwh(0.8),
             pv_export_min_price_margin=EnergyPrice.pln_per_mwh(Decimal(200)),
             battery_export_threshold_price=EnergyPrice.pln_per_mwh(Decimal(1200)),

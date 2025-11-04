@@ -4,6 +4,7 @@ from datetime import time
 from units.battery_current import BatteryCurrent
 from units.battery_soc import BatterySoc
 from units.battery_voltage import BatteryVoltage
+from units.celsius import Celsius
 from units.energy_kwh import EnergyKwh
 from units.energy_price import EnergyPrice
 
@@ -17,12 +18,12 @@ class SolarConfiguration:
     battery_reserve_soc_margin: BatterySoc  # margin above minimum reserve SOC
     battery_reserve_soc_max: BatterySoc  # maximum reserve SOC
 
-    temp_in: float  # indoor temperature setpoint
+    temp_in: Celsius  # indoor temperature setpoint
 
     heating_cop_at_7c: float  # coefficient of heat-pump performance at 7 degrees Celsius
     heating_h: float  # coefficient representing building heat loss rate in kW/°C
 
-    temp_out_fallback: float  # outdoor temperature if no forecast available
+    temp_out_fallback: Celsius  # outdoor temperature if no forecast available
     humidity_out_fallback: float  # outdoor humidity if no forecast available
 
     regular_consumption_away: EnergyKwh  # consumption when in away mode

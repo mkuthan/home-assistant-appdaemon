@@ -101,11 +101,11 @@ class TestForecastConsumptionHvacHeating:
             indoor_temperature=Celsius(20.0),
             hvac_heating_mode="heat",
             hvac_heating_temperature=Celsius(22.0),
-            t_in=20.0,
+            t_in=Celsius(20.0),
             cop_at_7c=3.5,
             h=0.18,
             forecast_weather=mock_forecast_weather,
-            temp_out_fallback=5.0,
+            temp_out_fallback=Celsius(5.0),
             humidity_out_fallback=75.0,
             energy_estimator=mock_energy_estimator,
         )
@@ -184,17 +184,17 @@ class TestForecastConsumptionHvacHeating:
         mock_forecast_weather.find_by_datetime.side_effect = [
             HourlyWeather(
                 period=HourlyPeriod(period_1),
-                temperature=5.0,
+                temperature=Celsius(5.0),
                 humidity=80.0,
             ),
             HourlyWeather(
                 period=HourlyPeriod(period_2),
-                temperature=3.0,
+                temperature=Celsius(3.0),
                 humidity=75.0,
             ),
             HourlyWeather(
                 period=HourlyPeriod(period_3),
-                temperature=7.0,
+                temperature=Celsius(7.0),
                 humidity=70.0,
             ),
         ]
@@ -217,9 +217,15 @@ class TestForecastConsumptionHvacHeating:
         mock_forecast_weather.find_by_datetime.assert_any_call(period_3)
 
         assert mock_energy_estimator.call_count == 3
-        mock_energy_estimator.assert_any_call(t_in=20.0, t_out=5.0, humidity=80.0, cop_at_7c=3.5, h=0.18)
-        mock_energy_estimator.assert_any_call(t_in=20.0, t_out=3.0, humidity=75.0, cop_at_7c=3.5, h=0.18)
-        mock_energy_estimator.assert_any_call(t_in=20.0, t_out=7.0, humidity=70.0, cop_at_7c=3.5, h=0.18)
+        mock_energy_estimator.assert_any_call(
+            t_in=Celsius(20.0), t_out=Celsius(5.0), humidity=80.0, cop_at_7c=3.5, h=0.18
+        )
+        mock_energy_estimator.assert_any_call(
+            t_in=Celsius(20.0), t_out=Celsius(3.0), humidity=75.0, cop_at_7c=3.5, h=0.18
+        )
+        mock_energy_estimator.assert_any_call(
+            t_in=Celsius(20.0), t_out=Celsius(7.0), humidity=70.0, cop_at_7c=3.5, h=0.18
+        )
 
     def test_total_heating_mode_heat_no_weather_data(
         self,
@@ -255,4 +261,6 @@ class TestForecastConsumptionHvacHeating:
         mock_forecast_weather.find_by_datetime.assert_any_call(period_3)
 
         assert mock_energy_estimator.call_count == 3
-        mock_energy_estimator.assert_any_call(t_in=20.0, t_out=5.0, humidity=75.0, cop_at_7c=3.5, h=0.18)
+        mock_energy_estimator.assert_any_call(
+            t_in=Celsius(20.0), t_out=Celsius(5.0), humidity=75.0, cop_at_7c=3.5, h=0.18
+        )
