@@ -39,10 +39,16 @@ class CoolingEstimator:
         else:
             temperature_boost = CELSIUS_ZERO
 
+        temperature_target += state.temperature_adjustment
+
         temperature_target = round(temperature_target)
 
         if temperature_target != state.cooling_temperature:
-            self.appdaemon_logger.info(f"Cooling temperature target: {temperature_target}, boost: {temperature_boost}")
+            self.appdaemon_logger.info(
+                f"Cooling temperature target: {temperature_target}, "
+                + f"boost: {temperature_boost}, "
+                + f"adjustment: {state.temperature_adjustment}",
+            )
             return temperature_target
         else:
             return None

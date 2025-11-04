@@ -81,6 +81,32 @@ def test_estimate_temperature_eco_mode(
     assert result == expected_temp
 
 
+def test_estimate_temperature_adjustment(
+    mock_appdaemon_logger: Mock,
+    configuration: HvacConfiguration,
+    state: HvacState,
+) -> None:
+    configuration = replace(
+        configuration,
+        heating_temp=Celsius(21.0),
+        heating_boost_time_start_eco_off=time.fromisoformat("05:00:00"),
+        heating_boost_time_end_eco_off=time.fromisoformat("21:00:00"),
+    )
+    heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
+
+    state = replace(
+        state,
+        heating_mode="heat",
+        is_eco_mode=False,
+        heating_temperature=Celsius(21.0),
+        temperature_adjustment=Celsius(1.0),
+    )
+
+    result = heating_estimator.estimate_temperature(state, datetime.fromisoformat("2025-10-29T04:00:00+00:00"))
+
+    assert result == Celsius(22.0)
+
+
 def test_estimate_temperature_no_change(
     mock_appdaemon_logger: Mock,
     configuration: HvacConfiguration,

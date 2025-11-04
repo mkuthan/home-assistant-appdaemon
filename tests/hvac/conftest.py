@@ -43,4 +43,5 @@ def state() -> HvacState:
         heating_mode="",
         cooling_temperature=CELSIUS_ZERO,
         cooling_mode="",
+        temperature_adjustment=CELSIUS_ZERO,
     )
