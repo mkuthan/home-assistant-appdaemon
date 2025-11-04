@@ -3,6 +3,7 @@ from typing import Protocol
 
 from entities.entities import is_heating_enabled
 from solar.weather_forecast import WeatherForecast
+from units.celsius import Celsius
 from units.energy_kwh import ENERGY_KWH_ZERO, EnergyKwh
 from units.hourly_energy import HourlyConsumptionEnergy
 from units.hourly_period import HourlyPeriod
@@ -40,7 +41,9 @@ class ConsumptionForecastHvacHeating:
     def __init__(
         self,
         is_eco_mode: bool,
+        indoor_temperature: Celsius,
         hvac_heating_mode: str,
+        hvac_heating_temperature: Celsius,
         t_in: float,
         cop_at_7c: float,
         h: float,
@@ -50,7 +53,9 @@ class ConsumptionForecastHvacHeating:
         energy_estimator: HeatingEnergyEstimator = estimate_heating_energy_consumption,
     ) -> None:
         self.is_eco_mode = is_eco_mode
+        self.indoor_temperature = indoor_temperature
         self.hvac_heating_mode = hvac_heating_mode
+        self.hvac_heating_temperature = hvac_heating_temperature
         self.t_in = t_in
         self.cop_at_7c = cop_at_7c
         self.h = h
@@ -63,10 +68,12 @@ class ConsumptionForecastHvacHeating:
     def hourly(self, period_start: datetime, period_hours: int) -> list[HourlyConsumptionEnergy]:
         periods = []
 
+        is_overheated = self.indoor_temperature > self.hvac_heating_temperature
+
         for hour_offset in range(period_hours):
             current = period_start + timedelta(hours=hour_offset)
 
-            if is_heating_enabled(self.hvac_heating_mode) and not self.is_eco_mode:
+            if is_heating_enabled(self.hvac_heating_mode) and not self.is_eco_mode and not is_overheated:
                 weather_period = self.forecast_weather.find_by_datetime(current)
                 energy = self.energy_estimator(
                     t_in=self.t_in,

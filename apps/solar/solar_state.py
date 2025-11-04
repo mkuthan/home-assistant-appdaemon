@@ -12,7 +12,7 @@ class SolarState:
     battery_soc: BatterySoc
     battery_reserve_soc: BatterySoc
     indoor_temperature: Celsius
-    outdoor_temperature: Celsius
+    outdoor_temperature: Celsius  # unused
     is_away_mode: bool
     is_eco_mode: bool
     inverter_storage_mode: StorageMode
@@ -23,6 +23,7 @@ class SolarState:
     slot2_discharge_time: str
     slot2_discharge_current: BatteryCurrent
     hvac_heating_mode: str
+    hvac_heating_temperature: Celsius
     hourly_price: EnergyPrice
     pv_forecast_today: list
     pv_forecast_tomorrow: list

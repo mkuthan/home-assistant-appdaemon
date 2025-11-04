@@ -85,6 +85,7 @@ def state() -> SolarState:
         slot2_discharge_time="",
         slot2_discharge_current=BATTERY_CURRENT_ZERO,
         hvac_heating_mode="",
+        hvac_heating_temperature=CELSIUS_ZERO,
         hourly_price=EnergyPrice.pln_per_mwh(Decimal(0)),
         pv_forecast_today=[],
         pv_forecast_tomorrow=[],

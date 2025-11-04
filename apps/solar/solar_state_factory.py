@@ -60,6 +60,7 @@ class DefaultSolarStateFactory:
         slot2_discharge_time = safe_str(self.appdaemon_state.get_state(SLOT2_DISCHARGE_TIME_ENTITY))
         slot2_discharge_current = safe_float(self.appdaemon_state.get_state(SLOT2_DISCHARGE_CURRENT_ENTITY))
         hvac_heating_mode = safe_str(self.appdaemon_state.get_state(HEATING_ENTITY))
+        hvac_heating_temperature = safe_float(self.appdaemon_state.get_state(HEATING_ENTITY, "temperature"))
         hourly_price = safe_float(self.appdaemon_state.get_state(HOURLY_PRICE_ENTITY))
 
         pv_forecast_today = safe_list(self.appdaemon_state.get_state(PV_FORECAST_TODAY_ENTITY, "detailedHourly"))
@@ -90,6 +91,7 @@ class DefaultSolarStateFactory:
                 ("slot2_discharge_time", slot2_discharge_time),
                 ("slot2_discharge_current", slot2_discharge_current),
                 ("hvac_heating_mode", hvac_heating_mode),
+                ("hvac_heating_temperature", hvac_heating_temperature),
                 ("hourly_price", hourly_price),
                 ("pv_forecast_today", pv_forecast_today),
                 ("pv_forecast_tomorrow", pv_forecast_tomorrow),
@@ -117,6 +119,7 @@ class DefaultSolarStateFactory:
         assert slot2_discharge_time is not None
         assert slot2_discharge_current is not None
         assert hvac_heating_mode is not None
+        assert hvac_heating_temperature is not None
         assert hourly_price is not None
         assert pv_forecast_today is not None
         assert pv_forecast_tomorrow is not None
@@ -138,6 +141,7 @@ class DefaultSolarStateFactory:
             slot2_discharge_time=slot2_discharge_time,
             slot2_discharge_current=BatteryCurrent(slot2_discharge_current),
             hvac_heating_mode=hvac_heating_mode,
+            hvac_heating_temperature=Celsius(hvac_heating_temperature),
             hourly_price=EnergyPrice.pln_per_mwh(Decimal.from_float(hourly_price)),
             pv_forecast_today=pv_forecast_today,
             pv_forecast_tomorrow=pv_forecast_tomorrow,
