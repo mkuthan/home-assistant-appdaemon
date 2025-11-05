@@ -10,8 +10,9 @@ dependencies = [
 dev = [
     "pytest==8.4.2",
     "pytest-cov==7.0.0",
-    "ruff==0.14.1",
-    "pyright==1.1.407",
+    "ruff",
+    "pyright",
+    "ty",
 ]
 
 [tool.pytest.ini_options]
@@ -47,3 +48,6 @@ omit = [
     "apps/hvac_app.py",
     "apps/solar_app.py",
 ]
+
+[tool.ty.environment]
+extra-paths = ["./apps"]
