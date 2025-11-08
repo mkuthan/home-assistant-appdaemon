@@ -1,6 +1,7 @@
 ---
 appdaemon:
-  production_mode: true
+  # https://github.com/AppDaemon/appdaemon/issues/2467
+  # production_mode: true
   ascii_encode: false
 
   # disable HA service calls
