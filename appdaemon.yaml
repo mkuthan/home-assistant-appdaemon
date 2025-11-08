@@ -9,7 +9,8 @@ appdaemon:
   plugins:
     HASS:
       type: hass
-      token: !env_var SUPERVISOR_TOKEN
+      ha_url: !secret ha_url
+      token: !secret ha_token
       ws_timeout: 30
 http:
   url: http://0.0.0.0:5050
