@@ -1,6 +1,11 @@
 from datetime import time
 
-from base_app import BaseApp
+import appdaemon.plugins.hass.hassapi as hass
+from appdaemon_protocols.appdaemon_factory import (
+    create_appdaemon_logger,
+    create_appdaemon_service,
+    create_appdaemon_state,
+)
 from entities.entities import COOLING_ENTITY, ECO_MODE_ENTITY, HEATING_ENTITY
 from hvac.cooling_estimator import CoolingEstimator
 from hvac.dhw_estimator import DhwEstimator
@@ -11,11 +16,11 @@ from hvac.hvac_state_factory import DefaultHvacStateFactory
 from units.celsius import Celsius
 
 
-class HvacApp(BaseApp):
+class HvacApp(hass.Hass):
     def initialize(self) -> None:
-        appdaemon_logger = self
-        appdaemon_state = self
-        appdaemon_service = self
+        appdaemon_logger = create_appdaemon_logger(self)
+        appdaemon_state = create_appdaemon_state(self)
+        appdaemon_service = create_appdaemon_service(self)
 
         configuration = HvacConfiguration(
             dhw_temp=Celsius(48.0),
@@ -58,10 +63,10 @@ class HvacApp(BaseApp):
             cooling_estimator=CoolingEstimator(appdaemon_logger, configuration),
         )
 
-        self.info("Scheduling HVAC control every 5 minutes")
+        self.log("Scheduling HVAC control every 5 minutes")
         self.run_every(self.control_scheduled, "00:00:00", 5 * 60)
 
-        self.info("Setting up HVAC control triggers on relevant state changes")
+        self.log("Setting up HVAC control triggers on relevant state changes")
         self.listen_state(
             self.control_triggered,
             [
