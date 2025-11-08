@@ -163,7 +163,6 @@ def test_create(
         (f"{HOURLY_PRICE_ENTITY}:", "Missing: hourly_price"),
         (f"{PV_FORECAST_TODAY_ENTITY}:detailedHourly", "Missing: pv_forecast_today"),
         (f"{PV_FORECAST_TOMORROW_ENTITY}:detailedHourly", "Missing: pv_forecast_tomorrow"),
-        ("weather/get_forecasts", "Missing: weather_forecast"),
         (f"{HOURLY_PRICE_ENTITY}:raw_today", "Missing: price_forecast_today"),
     ],
 )

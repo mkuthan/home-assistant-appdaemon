@@ -27,5 +27,5 @@ class SolarState:
     hourly_price: EnergyPrice
     pv_forecast_today: list
     pv_forecast_tomorrow: list
-    weather_forecast: dict
+    weather_forecast: dict | None
     price_forecast_today: list

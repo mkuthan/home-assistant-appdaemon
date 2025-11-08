@@ -8,10 +8,10 @@ from units.hourly_weather import HourlyWeather
 
 class WeatherForecast:
     @classmethod
-    def create(cls, raw_forecast: object) -> "WeatherForecast":
+    def create(cls, raw_forecast: dict | None) -> "WeatherForecast":
         periods = []
 
-        if raw_forecast and isinstance(raw_forecast, dict):
+        if raw_forecast is not None:
             weather_data = raw_forecast.get(WEATHER_FORECAST_ENTITY, {})
             if isinstance(weather_data, dict):
                 forecast_list = weather_data.get("forecast")
