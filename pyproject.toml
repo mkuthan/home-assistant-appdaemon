@@ -44,7 +44,6 @@ extraPaths = ["apps"]
 
 [tool.coverage.report]
 omit = [
-    "apps/base_app.py",
     "apps/hvac_app.py",
     "apps/solar_app.py",
 ]

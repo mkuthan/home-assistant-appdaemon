@@ -2,17 +2,25 @@
 appdaemon:
   production_mode: true
   ascii_encode: false
+
+  # disable HA service calls
+  dry_run: !secret dry_run
+
   latitude: !secret latitude
   longitude: !secret longitude
   elevation: !secret elevation
   time_zone: !secret time_zone
+
   plugins:
     HASS:
       type: hass
       ha_url: !secret ha_url
       token: !secret ha_token
       ws_timeout: 30
+
 http:
   url: http://0.0.0.0:5050
+
 admin:
+
 api:

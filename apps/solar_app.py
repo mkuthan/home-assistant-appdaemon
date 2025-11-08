@@ -1,7 +1,12 @@
 from datetime import time
 from decimal import Decimal
 
-from base_app import BaseApp
+import appdaemon.plugins.hass.hassapi as hass
+from appdaemon_protocols.appdaemon_factory import (
+    create_appdaemon_logger,
+    create_appdaemon_service,
+    create_appdaemon_state,
+)
 from entities.entities import BATTERY_SOC_ENTITY, HOURLY_PRICE_ENTITY
 from solar.battery_discharge_slot_estimator import BatteryDischargeSlotEstimator
 from solar.battery_reserve_soc_estimator import BatteryReserveSocEstimator
@@ -18,11 +23,11 @@ from units.energy_kwh import EnergyKwh
 from units.energy_price import EnergyPrice
 
 
-class SolarApp(BaseApp):
+class SolarApp(hass.Hass):
     def initialize(self) -> None:
-        appdaemon_logger = self
-        appdaemon_state = self
-        appdaemon_service = self
+        appdaemon_logger = create_appdaemon_logger(self)
+        appdaemon_state = create_appdaemon_state(self)
+        appdaemon_service = create_appdaemon_service(self)
 
         configuration = SolarConfiguration(
             battery_capacity=EnergyKwh(10.0),
@@ -65,10 +70,10 @@ class SolarApp(BaseApp):
 
         self.listen_event(self.solar_debug, "SOLAR_DEBUG")
 
-        self.info("Scheduling battery reserve SoC control every 5 minutes")
+        self.log("Scheduling battery reserve SoC control every 5 minutes")
         self.run_every(self.control_battery_reserve_soc, "00:00:00", 5 * 60)
 
-        self.info("Setting up storage mode control triggers on relevant state changes")
+        self.log("Setting up storage mode control triggers on relevant state changes")
         self.listen_state(
             self.control_storage_mode,
             [
@@ -79,11 +84,11 @@ class SolarApp(BaseApp):
             constrain_end_time="sunset -01:00:00",
         )
 
-        self.info("Scheduling battery discharge schedule")
+        self.log("Scheduling battery discharge schedule")
         self.run_daily(self.schedule_battery_discharge, "15:30:00")
         self.run_daily(self.schedule_battery_discharge, "16:00:00")  # backup call
 
-        self.info("Scheduling battery discharge disable")
+        self.log("Scheduling battery discharge disable")
         self.run_daily(self.disable_battery_discharge, "22:00:00")
         self.run_daily(self.disable_battery_discharge, "22:05:00")  # backup call
 
