@@ -46,7 +46,7 @@ class BatteryReserveSocEstimator:
         battery_reserve_soc_target = round(battery_reserve_soc_target)
 
         if battery_reserve_soc_target != state.battery_reserve_soc:
-            self.appdaemon_logger.info(f"Battery reserve SoC target: {battery_reserve_soc_target}")
+            self.appdaemon_logger.log("Battery reserve SoC target: %s", battery_reserve_soc_target)
             return battery_reserve_soc_target
         else:
             return None

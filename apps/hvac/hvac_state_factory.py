@@ -45,7 +45,7 @@ class DefaultHvacStateFactory:
         ]
 
         if missing:
-            self.appdaemon_logger.warn(f"Missing: {', '.join(missing)}")
+            self.appdaemon_logger.log(f"Missing: {', '.join(missing)}", level="warn")
             return None
 
         assert is_eco_mode is not None
