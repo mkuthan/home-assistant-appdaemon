@@ -189,4 +189,4 @@ def test_create_missing_field(
     result = DefaultSolarStateFactory(mock_appdaemon_logger, mock_appdaemon_state, mock_appdaemon_service).create()
 
     assert result is None
-    mock_appdaemon_logger.warn.assert_called_once_with(expected_message)
+    mock_appdaemon_logger.log.assert_called_once_with(expected_message, level="warn")

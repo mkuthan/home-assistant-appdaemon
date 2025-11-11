@@ -1,6 +1,6 @@
 from dataclasses import replace
 from datetime import datetime
-from unittest.mock import Mock
+from unittest.mock import ANY, Mock
 
 import pytest
 from entities.entities import COOLING_ENTITY, DHW_ENTITY, HEATING_ENTITY
@@ -89,21 +89,21 @@ def test_control(
 
     mock_appdaemon_service.call_service.assert_any_call(
         "water_heater/set_temperature",
-        callback=mock_appdaemon_service.service_call_callback,
+        callback=ANY,
         entity_id=DHW_ENTITY,
         temperature=new_dhw_temperature.value,
     )
 
     mock_appdaemon_service.call_service.assert_any_call(
         "climate/set_temperature",
-        callback=mock_appdaemon_service.service_call_callback,
+        callback=ANY,
         entity_id=HEATING_ENTITY,
         temperature=new_heating_temperature.value,
     )
 
     mock_appdaemon_service.call_service.assert_any_call(
         "climate/set_temperature",
-        callback=mock_appdaemon_service.service_call_callback,
+        callback=ANY,
         entity_id=COOLING_ENTITY,
         temperature=new_cooling_temperature.value,
     )

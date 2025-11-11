@@ -1,6 +1,6 @@
 from dataclasses import replace
 from datetime import datetime, time
-from unittest.mock import Mock
+from unittest.mock import ANY, Mock
 
 import pytest
 from entities.entities import (
@@ -86,7 +86,7 @@ def test_control_battery_reserve_soc(
 
     mock_appdaemon_service.call_service.assert_called_once_with(
         "number/set_value",
-        callback=mock_appdaemon_service.service_call_callback,
+        callback=ANY,
         entity_id=BATTERY_RESERVE_SOC_ENTITY,
         value=new_battery_reserve_soc.value,
     )
@@ -137,7 +137,7 @@ def test_control_storage_mode(
 
     mock_appdaemon_service.call_service.assert_called_once_with(
         "select/select_option",
-        callback=mock_appdaemon_service.service_call_callback,
+        callback=ANY,
         entity_id=INVERTER_STORAGE_MODE_ENTITY,
         option=new_storage_mode.value,
     )
@@ -215,13 +215,13 @@ def test_schedule_battery_discharge(
     assert mock_appdaemon_service.call_service.call_count == 6
     mock_appdaemon_service.call_service.assert_any_call(
         "text/set_value",
-        callback=mock_appdaemon_service.service_call_callback,
+        callback=ANY,
         entity_id=SLOT1_DISCHARGE_TIME_ENTITY,
         value=new_slot1_discharge_time,
     )
     mock_appdaemon_service.call_service.assert_any_call(
         "number/set_value",
-        callback=mock_appdaemon_service.service_call_callback,
+        callback=ANY,
         entity_id=SLOT1_DISCHARGE_CURRENT_ENTITY,
         value=new_slot1_discharge_current.value,
     )
@@ -231,13 +231,13 @@ def test_schedule_battery_discharge(
     )
     mock_appdaemon_service.call_service.assert_any_call(
         "text/set_value",
-        callback=mock_appdaemon_service.service_call_callback,
+        callback=ANY,
         entity_id=SLOT2_DISCHARGE_TIME_ENTITY,
         value=new_slot2_discharge_time,
     )
     mock_appdaemon_service.call_service.assert_any_call(
         "number/set_value",
-        callback=mock_appdaemon_service.service_call_callback,
+        callback=ANY,
         entity_id=SLOT2_DISCHARGE_CURRENT_ENTITY,
         value=new_slot2_discharge_current.value,
     )

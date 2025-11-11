@@ -1,11 +1,6 @@
 from datetime import time
 
 import appdaemon.plugins.hass.hassapi as hass
-from appdaemon_protocols.appdaemon_factory import (
-    create_appdaemon_logger,
-    create_appdaemon_service,
-    create_appdaemon_state,
-)
 from entities.entities import COOLING_ENTITY, ECO_MODE_ENTITY, HEATING_ENTITY
 from hvac.cooling_estimator import CoolingEstimator
 from hvac.dhw_estimator import DhwEstimator
@@ -14,13 +9,14 @@ from hvac.hvac import Hvac
 from hvac.hvac_configuration import HvacConfiguration
 from hvac.hvac_state_factory import DefaultHvacStateFactory
 from units.celsius import Celsius
+from utils.appdaemon_utils import LoggingAppdaemonService, is_dry_run
 
 
 class HvacApp(hass.Hass):
     def initialize(self) -> None:
-        appdaemon_logger = create_appdaemon_logger(self)
-        appdaemon_state = create_appdaemon_state(self)
-        appdaemon_service = create_appdaemon_service(self)
+        appdaemon_logger = self
+        appdaemon_state = self
+        appdaemon_service = LoggingAppdaemonService(self) if is_dry_run(self) else self
 
         configuration = HvacConfiguration(
             dhw_temp=Celsius(48.0),

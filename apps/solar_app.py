@@ -2,11 +2,6 @@ from datetime import time
 from decimal import Decimal
 
 import appdaemon.plugins.hass.hassapi as hass
-from appdaemon_protocols.appdaemon_factory import (
-    create_appdaemon_logger,
-    create_appdaemon_service,
-    create_appdaemon_state,
-)
 from entities.entities import BATTERY_SOC_ENTITY, HOURLY_PRICE_ENTITY
 from solar.battery_discharge_slot_estimator import BatteryDischargeSlotEstimator
 from solar.battery_reserve_soc_estimator import BatteryReserveSocEstimator
@@ -21,13 +16,14 @@ from units.battery_voltage import BatteryVoltage
 from units.celsius import Celsius
 from units.energy_kwh import EnergyKwh
 from units.energy_price import EnergyPrice
+from utils.appdaemon_utils import LoggingAppdaemonService, is_dry_run
 
 
 class SolarApp(hass.Hass):
     def initialize(self) -> None:
-        appdaemon_logger = create_appdaemon_logger(self)
-        appdaemon_state = create_appdaemon_state(self)
-        appdaemon_service = create_appdaemon_service(self)
+        appdaemon_logger = self
+        appdaemon_state = self
+        appdaemon_service = LoggingAppdaemonService(self) if is_dry_run(self) else self
 
         configuration = SolarConfiguration(
             battery_capacity=EnergyKwh(10.0),
