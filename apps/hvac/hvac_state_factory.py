@@ -1,3 +1,4 @@
+import logging
 from typing import Protocol
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
@@ -45,7 +46,7 @@ class DefaultHvacStateFactory:
         ]
 
         if missing:
-            self.appdaemon_logger.log(f"Missing: {', '.join(missing)}", level="warn")
+            self.appdaemon_logger.log(f"Missing: {', '.join(missing)}", level=logging.WARNING)
             return None
 
         assert is_eco_mode is not None

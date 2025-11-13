@@ -1,3 +1,4 @@
+import logging
 from unittest.mock import Mock
 
 import pytest
@@ -70,4 +71,4 @@ def test_create_missing_field(
     result = DefaultHvacStateFactory(mock_appdaemon_logger, mock_appdaemon_state, mock_appdaemon_service).create()
 
     assert result is None
-    mock_appdaemon_logger.log.assert_called_once_with(expected_message, level="warn")
+    mock_appdaemon_logger.log.assert_called_once_with(expected_message, level=logging.WARNING)

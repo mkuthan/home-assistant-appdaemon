@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
@@ -33,7 +34,7 @@ class Hvac:
 
     def control(self, now: datetime) -> None:
         if (state := self.state_factory.create()) is None:
-            self.appdaemon_logger.log("Unknown state, cannot control HVAC", level="warn")
+            self.appdaemon_logger.log("Unknown state, cannot control HVAC", level=logging.WARNING)
             return
 
         if (dhw_temperature := self.dhw_estimator.estimate_temperature(state, now)) is not None:

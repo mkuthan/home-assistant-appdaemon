@@ -1,3 +1,5 @@
+import logging
+
 import appdaemon.plugins.hass.hassapi as hass
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 
@@ -15,7 +17,7 @@ class LoggingAppdaemonCallback:
             case {"success": True}:
                 self.appdaemon_logger.log("Service call succeeded: %s", result)
             case _:
-                self.appdaemon_logger.log("Service call failed: %s", result, level="error")
+                self.appdaemon_logger.log("Service call failed: %s", result, level=logging.ERROR)
 
 
 class LoggingAppdaemonService:
