@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
@@ -43,16 +44,14 @@ class Solar:
         self.storage_mode_estimator = storage_mode_estimator
 
     def log_state(self) -> None:
-        state = self.state_factory.create()
-        if state is None:
-            self.appdaemon_logger.log("Unknown state, cannot log state", level="warn")
+        if (state := self.state_factory.create()) is None:
+            self.appdaemon_logger.log("Unknown state, cannot log state", level=logging.WARNING)
         else:
             self.appdaemon_logger.log("Current state: %s", state)
 
     def control_battery_reserve_soc(self, now: datetime) -> None:
-        state = self.state_factory.create()
-        if state is None:
-            self.appdaemon_logger.log("Unknown state, cannot control battery reserve SoC", level="warn")
+        if (state := self.state_factory.create()) is None:
+            self.appdaemon_logger.log("Unknown state, cannot control battery reserve SoC", level=logging.WARNING)
             return
 
         battery_reserve_soc = self.battery_reserve_soc_estimator.estimate_battery_reserve_soc(state, now)
@@ -64,9 +63,8 @@ class Solar:
             self._set_battery_reserve_soc(battery_reserve_soc)
 
     def control_storage_mode(self, now: datetime) -> None:
-        state = self.state_factory.create()
-        if state is None:
-            self.appdaemon_logger.log("Unknown state, cannot control storage mode", level="warn")
+        if (state := self.state_factory.create()) is None:
+            self.appdaemon_logger.log("Unknown state, cannot control storage mode", level=logging.WARNING)
             return
 
         storage_mode = self.storage_mode_estimator.estimate_storage_mode(state, now)
@@ -78,9 +76,8 @@ class Solar:
     def schedule_battery_discharge(self, now: datetime) -> None:
         self.appdaemon_logger.log("Schedule battery discharge at 4 PM")
 
-        state = self.state_factory.create()
-        if state is None:
-            self.appdaemon_logger.log("Unknown state, cannot schedule battery discharge", level="warn")
+        if (state := self.state_factory.create()) is None:
+            self.appdaemon_logger.log("Unknown state, cannot schedule battery discharge", level=logging.WARNING)
             return
 
         estimated_battery_discharge_slots = self.battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm(
@@ -103,9 +100,8 @@ class Solar:
     def disable_battery_discharge(self) -> None:
         self.appdaemon_logger.log("Disable battery discharge")
 
-        state = self.state_factory.create()
-        if state is None:
-            self.appdaemon_logger.log("Unknown state, cannot disable battery discharge", level="warn")
+        if (state := self.state_factory.create()) is None:
+            self.appdaemon_logger.log("Unknown state, cannot disable battery discharge", level=logging.WARNING)
             return
 
         for slot in range(1, self._NUM_DISCHARGE_SLOTS + 1):
@@ -131,7 +127,7 @@ class Solar:
         self, state: SolarState, slot: int, discharge_time: str, discharge_current: BatteryCurrent
     ) -> None:
         if not 1 <= slot <= self._NUM_DISCHARGE_SLOTS:
-            self.appdaemon_logger.log("Invalid slot number: %s", slot, level="error")
+            self.appdaemon_logger.log("Invalid slot number: %s", slot, level=logging.ERROR)
             return
 
         current_discharge_time = getattr(state, f"slot{slot}_discharge_time")
@@ -174,7 +170,7 @@ class Solar:
 
     def _enable_slot_discharge(self, state: SolarState, slot: int) -> None:
         if not 1 <= slot <= self._NUM_DISCHARGE_SLOTS:
-            self.appdaemon_logger.log("Invalid slot number: %s", slot, level="error")
+            self.appdaemon_logger.log("Invalid slot number: %s", slot, level=logging.ERROR)
             return
 
         if not getattr(state, f"is_slot{slot}_discharge_enabled"):
@@ -188,13 +184,15 @@ class Solar:
                 case {"success": True}:
                     self.appdaemon_logger.log("Successfully enabled slot %s discharge", slot)
                 case _:
-                    self.appdaemon_logger.log("Failed to enable slot %s discharge: %s", slot, result, level="error")
+                    self.appdaemon_logger.log(
+                        "Failed to enable slot %s discharge: %s", slot, result, level=logging.ERROR
+                    )
         else:
             self.appdaemon_logger.log("Slot %s battery discharge is already enabled", slot)
 
     def _disable_slot_discharge(self, state: SolarState, slot: int) -> None:
         if not 1 <= slot <= self._NUM_DISCHARGE_SLOTS:
-            self.appdaemon_logger.log("Invalid slot number: %s", slot, level="error")
+            self.appdaemon_logger.log("Invalid slot number: %s", slot, level=logging.ERROR)
             return
 
         if getattr(state, f"is_slot{slot}_discharge_enabled"):
@@ -208,6 +206,8 @@ class Solar:
                 case {"success": True}:
                     self.appdaemon_logger.log("Successfully disabled slot %s discharge", slot)
                 case _:
-                    self.appdaemon_logger.log("Failed to disable slot %s discharge: %s", slot, result, level="error")
+                    self.appdaemon_logger.log(
+                        "Failed to disable slot %s discharge: %s", slot, result, level=logging.ERROR
+                    )
         else:
             self.appdaemon_logger.log("Slot %s battery discharge is already disabled", slot)

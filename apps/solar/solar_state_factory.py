@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 from typing import Protocol
 
@@ -101,7 +102,7 @@ class DefaultSolarStateFactory:
         ]
 
         if missing:
-            self.appdaemon_logger.log(f"Missing: {', '.join(missing)}", level="warn")
+            self.appdaemon_logger.log(f"Missing: {', '.join(missing)}", level=logging.WARNING)
             return None
 
         assert battery_soc is not None
