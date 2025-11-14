@@ -9,10 +9,10 @@ from entities.entities import (
     BATTERY_SOC_ENTITY,
     ECO_MODE_ENTITY,
     HEATING_ENTITY,
-    HOURLY_PRICE_ENTITY,
     INDOOR_TEMPERATURE_ENTITY,
     INVERTER_STORAGE_MODE_ENTITY,
     OUTDOOR_TEMPERATURE_ENTITY,
+    PRICE_FORECAST_ENTITY,
     PV_FORECAST_TODAY_ENTITY,
     PV_FORECAST_TOMORROW_ENTITY,
     SLOT1_DISCHARGE_CURRENT_ENTITY,
@@ -59,7 +59,7 @@ def weather_forecast() -> dict:
 @pytest.fixture
 def price_forecast() -> list[dict]:
     return [
-        {"hour": "2025-10-03T16:00:00+00:00", "price": 426.1},
+        {"dtime": "2025-10-03T16:00:00+00:00", "rce_pln": 426.1},
     ]
 
 
@@ -85,10 +85,10 @@ def state_values(
         f"{SLOT2_DISCHARGE_CURRENT_ENTITY}:": "30.0",
         f"{HEATING_ENTITY}:": "heat",
         f"{HEATING_ENTITY}:temperature": "22.0",
-        f"{HOURLY_PRICE_ENTITY}:": "500.0",
+        f"{PRICE_FORECAST_ENTITY}:": "500.0",
         f"{PV_FORECAST_TODAY_ENTITY}:detailedHourly": pv_forecast_today,
         f"{PV_FORECAST_TOMORROW_ENTITY}:detailedHourly": pv_forecast_tomorrow,
-        f"{HOURLY_PRICE_ENTITY}:raw_today": price_forecast,
+        f"{PRICE_FORECAST_ENTITY}:prices": price_forecast,
     }
 
 
@@ -141,7 +141,7 @@ def test_create(
     assert result.pv_forecast_today == pv_forecast_today
     assert result.pv_forecast_tomorrow == pv_forecast_tomorrow
     assert result.weather_forecast == weather_forecast
-    assert result.price_forecast_today == price_forecast
+    assert result.price_forecast == price_forecast
 
 
 @pytest.mark.parametrize(
@@ -161,10 +161,10 @@ def test_create(
         (f"{SLOT2_DISCHARGE_CURRENT_ENTITY}:", "Missing: slot2_discharge_current"),
         (f"{HEATING_ENTITY}:", "Missing: hvac_heating_mode"),
         (f"{HEATING_ENTITY}:temperature", "Missing: hvac_heating_temperature"),
-        (f"{HOURLY_PRICE_ENTITY}:", "Missing: hourly_price"),
+        (f"{PRICE_FORECAST_ENTITY}:", "Missing: hourly_price"),
         (f"{PV_FORECAST_TODAY_ENTITY}:detailedHourly", "Missing: pv_forecast_today"),
         (f"{PV_FORECAST_TOMORROW_ENTITY}:detailedHourly", "Missing: pv_forecast_tomorrow"),
-        (f"{HOURLY_PRICE_ENTITY}:raw_today", "Missing: price_forecast_today"),
+        (f"{PRICE_FORECAST_ENTITY}:prices", "Missing: price_forecast"),
     ],
 )
 def test_create_missing_field(

@@ -4,30 +4,45 @@ from decimal import Decimal
 from units.energy_price import EnergyPrice
 from units.hourly_period import HourlyPeriod
 from units.hourly_price import HourlyPrice
+from utils.time_utils import truncate_to_hour
 
 
-# Electricity price forecast based on external integration
 class PriceForecast:
     @classmethod
-    def create(cls, raw_forecast: object) -> "PriceForecast":
+    def create_from_rce_15_mins(cls, raw_forecast: list | None) -> "PriceForecast":
         periods = []
 
-        if raw_forecast and isinstance(raw_forecast, list):
+        if raw_forecast is not None:
+            hourly_data: dict[datetime, list[Decimal]] = {}
+
             for item in raw_forecast:
                 if not isinstance(item, dict):
                     continue
-                if not all(key in item for key in ["hour", "price"]):
+                if not all(key in item for key in ["dtime", "rce_pln"]):
                     continue
 
                 try:
-                    periods.append(
-                        HourlyPrice(
-                            period=HourlyPeriod.parse(item["hour"]),
-                            price=EnergyPrice.pln_per_mwh(Decimal(str(item["price"]))),
-                        )
-                    )
+                    dtime = datetime.fromisoformat(item["dtime"])
+                    dtime_hour = truncate_to_hour(dtime)
+
+                    rce_pln = max(Decimal(str(item["rce_pln"])), Decimal("0"))
+
+                    if dtime_hour not in hourly_data:
+                        hourly_data[dtime_hour] = []
+                    hourly_data[dtime_hour].append(rce_pln)
                 except (ValueError, TypeError, KeyError):
                     continue
+
+            for dtime_hour in sorted(hourly_data.keys()):
+                prices = hourly_data[dtime_hour]
+                avg_price = sum(prices) / Decimal(len(prices))
+
+                periods.append(
+                    HourlyPrice(
+                        period=HourlyPeriod(dtime_hour),
+                        price=EnergyPrice.pln_per_mwh(avg_price),
+                    )
+                )
 
         return cls(periods)
 

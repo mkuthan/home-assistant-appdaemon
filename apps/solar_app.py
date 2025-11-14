@@ -2,7 +2,7 @@ from datetime import time
 from decimal import Decimal
 
 import appdaemon.plugins.hass.hassapi as hass
-from entities.entities import BATTERY_SOC_ENTITY, HOURLY_PRICE_ENTITY
+from entities.entities import BATTERY_SOC_ENTITY, PRICE_FORECAST_ENTITY
 from solar.battery_discharge_slot_estimator import BatteryDischargeSlotEstimator
 from solar.battery_reserve_soc_estimator import BatteryReserveSocEstimator
 from solar.forecast_factory import DefaultForecastFactory
@@ -41,7 +41,7 @@ class SolarApp(hass.Hass):
             regular_consumption_day=EnergyKwh(0.5),
             regular_consumption_evening=EnergyKwh(0.8),
             pv_export_min_price_margin=EnergyPrice.pln_per_mwh(Decimal(200)),
-            battery_export_threshold_price=EnergyPrice.pln_per_mwh(Decimal(1200)),
+            battery_export_threshold_price=EnergyPrice.pln_per_mwh(Decimal(1000)),  # net price
             battery_export_threshold_energy=EnergyKwh(1.0),
             night_low_tariff_time_start=time.fromisoformat("22:05:00"),
             night_low_tariff_time_end=time.fromisoformat("06:55:00"),
@@ -74,7 +74,7 @@ class SolarApp(hass.Hass):
             self.control_storage_mode,
             [
                 BATTERY_SOC_ENTITY,
-                HOURLY_PRICE_ENTITY,
+                PRICE_FORECAST_ENTITY,
             ],
             constrain_start_time="sunrise +01:00:00",
             constrain_end_time="sunset -01:00:00",
