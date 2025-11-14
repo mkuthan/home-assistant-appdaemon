@@ -58,7 +58,7 @@ class DefaultForecastFactory:
         return ConsumptionForecastComposite(regular, hvac_heating)
 
     def create_price_forecast(self, state: SolarState) -> PriceForecast:
-        return PriceForecast.create(state.price_forecast_today)
+        return PriceForecast.create_from_rce_15_mins(state.price_forecast)
 
     def create_weather_forecast(self, state: SolarState) -> WeatherForecast:
         return WeatherForecast.create(state.weather_forecast)

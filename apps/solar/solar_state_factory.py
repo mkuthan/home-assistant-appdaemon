@@ -11,10 +11,10 @@ from entities.entities import (
     BATTERY_SOC_ENTITY,
     ECO_MODE_ENTITY,
     HEATING_ENTITY,
-    HOURLY_PRICE_ENTITY,
     INDOOR_TEMPERATURE_ENTITY,
     INVERTER_STORAGE_MODE_ENTITY,
     OUTDOOR_TEMPERATURE_ENTITY,
+    PRICE_FORECAST_ENTITY,
     PV_FORECAST_TODAY_ENTITY,
     PV_FORECAST_TOMORROW_ENTITY,
     SLOT1_DISCHARGE_CURRENT_ENTITY,
@@ -62,7 +62,7 @@ class DefaultSolarStateFactory:
         slot2_discharge_current = safe_float(self.appdaemon_state.get_state(SLOT2_DISCHARGE_CURRENT_ENTITY))
         hvac_heating_mode = safe_str(self.appdaemon_state.get_state(HEATING_ENTITY))
         hvac_heating_temperature = safe_float(self.appdaemon_state.get_state(HEATING_ENTITY, "temperature"))
-        hourly_price = safe_float(self.appdaemon_state.get_state(HOURLY_PRICE_ENTITY))
+        hourly_price = safe_float(self.appdaemon_state.get_state(PRICE_FORECAST_ENTITY))
 
         pv_forecast_today = safe_list(self.appdaemon_state.get_state(PV_FORECAST_TODAY_ENTITY, "detailedHourly"))
         pv_forecast_tomorrow = safe_list(self.appdaemon_state.get_state(PV_FORECAST_TOMORROW_ENTITY, "detailedHourly"))
@@ -73,7 +73,7 @@ class DefaultSolarStateFactory:
             )
         )
 
-        price_forecast_today = safe_list(self.appdaemon_state.get_state(HOURLY_PRICE_ENTITY, "raw_today"))
+        price_forecast = safe_list(self.appdaemon_state.get_state(PRICE_FORECAST_ENTITY, "prices"))
 
         missing = [
             name
@@ -96,7 +96,7 @@ class DefaultSolarStateFactory:
                 ("hourly_price", hourly_price),
                 ("pv_forecast_today", pv_forecast_today),
                 ("pv_forecast_tomorrow", pv_forecast_tomorrow),
-                ("price_forecast_today", price_forecast_today),
+                ("price_forecast", price_forecast),
             ]
             if value is None
         ]
@@ -123,7 +123,7 @@ class DefaultSolarStateFactory:
         assert hourly_price is not None
         assert pv_forecast_today is not None
         assert pv_forecast_tomorrow is not None
-        assert price_forecast_today is not None
+        assert price_forecast is not None
 
         solar_state = SolarState(
             battery_soc=BatterySoc(battery_soc),
@@ -145,7 +145,7 @@ class DefaultSolarStateFactory:
             pv_forecast_today=pv_forecast_today,
             pv_forecast_tomorrow=pv_forecast_tomorrow,
             weather_forecast=weather_forecast,
-            price_forecast_today=price_forecast_today,
+            price_forecast=price_forecast,
         )
 
         return solar_state

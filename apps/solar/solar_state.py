@@ -28,4 +28,4 @@ class SolarState:
     pv_forecast_today: list
     pv_forecast_tomorrow: list
     weather_forecast: dict | None
-    price_forecast_today: list
+    price_forecast: list

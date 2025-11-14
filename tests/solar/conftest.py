@@ -90,5 +90,5 @@ def state() -> SolarState:
         pv_forecast_today=[],
         pv_forecast_tomorrow=[],
         weather_forecast={},
-        price_forecast_today=[],
+        price_forecast=[],
     )

@@ -25,7 +25,7 @@ OUTDOOR_TEMPERATURE_ENTITY = "sensor.heishamon_outside_ambient_temperature"
 WEATHER_FORECAST_ENTITY = "weather.forecast_wieprz"
 
 # Energy price entities
-HOURLY_PRICE_ENTITY = "sensor.rce"
+PRICE_FORECAST_ENTITY = "sensor.rce_pse_price"
 
 # Solar forecast entities
 PV_FORECAST_TODAY_ENTITY = "sensor.solcast_pv_forecast_forecast_today"
