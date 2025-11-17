@@ -11,6 +11,8 @@ from units.energy_price import EnergyPrice
 
 @dataclass(frozen=True)
 class SolarConfiguration:
+    time_zone: str
+
     battery_capacity: EnergyKwh  # nominal battery capacity
     battery_voltage: BatteryVoltage  # nominal battery voltage
     battery_maximum_current: BatteryCurrent  # maximum battery discharge/charge current

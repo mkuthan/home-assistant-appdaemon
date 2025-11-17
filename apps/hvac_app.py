@@ -19,6 +19,7 @@ class HvacApp(hass.Hass):
         appdaemon_service = LoggingAppdaemonService(self) if is_dry_run(self) else self
 
         configuration = HvacConfiguration(
+            time_zone=self.get_timezone(),
             dhw_temp=Celsius(48.0),
             dhw_temp_eco=Celsius(40.0),
             dhw_boost_delta_temp=Celsius(8.0),

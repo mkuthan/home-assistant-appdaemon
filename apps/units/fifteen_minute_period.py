@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, time, timedelta
+from zoneinfo import ZoneInfo
 
 
 @dataclass(frozen=True)
@@ -29,3 +30,10 @@ class FifteenMinutePeriod:
     @classmethod
     def parse(cls, date_string: str) -> "FifteenMinutePeriod":
         return cls(start=datetime.fromisoformat(date_string))
+
+    @classmethod
+    def parse_custom(cls, date_string: str, format: str, time_zone: str | None) -> "FifteenMinutePeriod":
+        start = datetime.strptime(date_string, format)
+        if time_zone is not None:
+            start = start.replace(tzinfo=ZoneInfo(time_zone))
+        return cls(start=start)
