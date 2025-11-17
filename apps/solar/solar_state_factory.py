@@ -96,7 +96,8 @@ class DefaultSolarStateFactory:
                 ("hourly_price", hourly_price),
                 ("pv_forecast_today", pv_forecast_today),
                 ("pv_forecast_tomorrow", pv_forecast_tomorrow),
-                ("price_forecast", price_forecast),
+                # weather_forecast is optional
+                # price_forecast is optional
             ]
             if value is None
         ]
@@ -123,7 +124,6 @@ class DefaultSolarStateFactory:
         assert hourly_price is not None
         assert pv_forecast_today is not None
         assert pv_forecast_tomorrow is not None
-        assert price_forecast is not None
 
         solar_state = SolarState(
             battery_soc=BatterySoc(battery_soc),

@@ -85,6 +85,37 @@ def test_sub(price1: str, price2: str, expected: str) -> None:
 
 
 @pytest.mark.parametrize(
+    ("price", "multiplier", "expected"),
+    [
+        ("100.0", "2", "200.0"),
+        ("50.5", "0.5", "25.25"),
+        ("0.0", "10", "0.0"),
+    ],
+)
+def test_mul(price: str, multiplier: str, expected: str) -> None:
+    result = EnergyPrice.pln_per_mwh(Decimal(price)) * Decimal(multiplier)
+    assert result == EnergyPrice.pln_per_mwh(Decimal(expected))
+
+
+@pytest.mark.parametrize(
+    ("price", "divisor", "expected"),
+    [
+        ("100.0", "2", "50.0"),
+        ("50.5", "0.5", "101.0"),
+        ("0.0", "10", "0.0"),
+    ],
+)
+def test_div(price: str, divisor: str, expected: str) -> None:
+    result = EnergyPrice.pln_per_mwh(Decimal(price)) / Decimal(divisor)
+    assert result == EnergyPrice.pln_per_mwh(Decimal(expected))
+
+
+def test_div_by_zero() -> None:
+    with pytest.raises(ValueError, match="Cannot divide by zero"):
+        EnergyPrice.pln_per_mwh(Decimal("100.0")) / Decimal("0")  # pyright: ignore[reportUnusedExpression]
+
+
+@pytest.mark.parametrize(
     ("price1", "price2", "expected"),
     [
         ("-10.0", "0.0", True),

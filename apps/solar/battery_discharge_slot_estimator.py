@@ -1,4 +1,6 @@
-from datetime import datetime
+from collections import defaultdict
+from datetime import datetime, timedelta
+from decimal import Decimal
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from solar.battery_discharge_slot import BatteryDischargeSlot
@@ -27,12 +29,12 @@ class BatteryDischargeSlotEstimator:
         low_tariff_hours = 6
 
         price_forecast = self.forecast_factory.create_price_forecast(state)
-        peak_periods = price_forecast.find_peak_periods(
+        peak_hours = price_forecast.find_peak_hours(
             today_4_pm, low_tariff_hours, self.configuration.battery_export_threshold_price
         )
-        if not peak_periods:
+        if not peak_hours:
             self.appdaemon_logger.log(
-                "Skip, no peak periods above the threshold %s found in the price forecast",
+                "Skip, no peak hours above the threshold %s found in the price forecast",
                 self.configuration.battery_export_threshold_price,
             )
             return []
@@ -58,12 +60,12 @@ class BatteryDischargeSlotEstimator:
         battery_discharge_current = energy_to_current(energy_surplus, self.configuration.battery_voltage)
         self.appdaemon_logger.log("Battery discharge current: %s", battery_discharge_current)
 
-        sorted_peak_periods = sorted(peak_periods, key=lambda period: period.price.value, reverse=True)
+        sorted_hours = sorted(peak_hours, key=lambda x: x.price, reverse=True)
 
         discharge_slots = []
         remaining_current = battery_discharge_current
 
-        for period in sorted_peak_periods:
+        for hour in sorted_hours:
             if remaining_current == BATTERY_CURRENT_ZERO:
                 break
 
@@ -72,16 +74,16 @@ class BatteryDischargeSlotEstimator:
             slot_energy = current_to_energy(slot_current, self.configuration.battery_voltage, duration_hours=1)
             if slot_energy <= self.configuration.battery_export_threshold_energy:
                 self.appdaemon_logger.log(
-                    "Skip slot %s, estimated energy %s <= %s",
-                    period,
+                    "Skip slot at %s, estimated energy %s <= %s",
+                    hour,
                     slot_energy,
                     self.configuration.battery_export_threshold_energy,
                 )
                 continue
 
             discharge_slot = BatteryDischargeSlot(
-                start_time=period.period.start_time(),
-                end_time=period.period.end_time(),
+                start_time=hour.period.start_time(),
+                end_time=hour.period.end_time(),
                 current=round(slot_current),
             )
             discharge_slots.append(discharge_slot)

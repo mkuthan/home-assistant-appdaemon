@@ -164,7 +164,6 @@ def test_create(
         (f"{PRICE_FORECAST_ENTITY}:", "Missing: hourly_price"),
         (f"{PV_FORECAST_TODAY_ENTITY}:detailedHourly", "Missing: pv_forecast_today"),
         (f"{PV_FORECAST_TOMORROW_ENTITY}:detailedHourly", "Missing: pv_forecast_tomorrow"),
-        (f"{PRICE_FORECAST_ENTITY}:prices", "Missing: price_forecast"),
     ],
 )
 def test_create_missing_field(
