@@ -32,6 +32,15 @@ class EnergyPrice:
 
         return EnergyPrice(value=self.value - other.value, currency=self.currency, unit=self.unit)
 
+    def __mul__(self, other: Decimal) -> "EnergyPrice":
+        return EnergyPrice(value=self.value * other, currency=self.currency, unit=self.unit)
+
+    def __truediv__(self, other: Decimal) -> "EnergyPrice":
+        if other == Decimal(0):
+            raise ValueError("Cannot divide by zero")
+
+        return EnergyPrice(value=self.value / other, currency=self.currency, unit=self.unit)
+
     def __lt__(self, other: "EnergyPrice") -> bool:
         if self.currency != other.currency or self.unit != other.unit:
             raise ValueError("Cannot compare energy prices with different currency or unit")

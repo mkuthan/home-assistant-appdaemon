@@ -1,7 +1,10 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
+from itertools import groupby
 
 from units.energy_price import EnergyPrice
+from units.fifteen_minute_period import FifteenMinutePeriod
+from units.fifteen_minute_price import FifteenMinutePrice
 from units.hourly_period import HourlyPeriod
 from units.hourly_price import HourlyPrice
 from utils.time_utils import truncate_to_hour
@@ -13,8 +16,6 @@ class PriceForecast:
         periods = []
 
         if raw_forecast is not None:
-            hourly_data: dict[datetime, list[Decimal]] = {}
-
             for item in raw_forecast:
                 if not isinstance(item, dict):
                     continue
@@ -22,46 +23,46 @@ class PriceForecast:
                     continue
 
                 try:
-                    dtime = datetime.fromisoformat(item["dtime"])
-                    dtime_hour = truncate_to_hour(dtime)
-
-                    rce_pln = max(Decimal(str(item["rce_pln"])), Decimal("0"))
-
-                    if dtime_hour not in hourly_data:
-                        hourly_data[dtime_hour] = []
-                    hourly_data[dtime_hour].append(rce_pln)
+                    periods.append(
+                        FifteenMinutePrice(
+                            period=FifteenMinutePeriod.parse(item["dtime"]),
+                            price=EnergyPrice.pln_per_mwh(Decimal(str(item["rce_pln"]))),
+                        )
+                    )
                 except (ValueError, TypeError, KeyError):
                     continue
 
-            for dtime_hour in sorted(hourly_data.keys()):
-                prices = hourly_data[dtime_hour]
-                avg_price = sum(prices) / Decimal(len(prices))
-
-                periods.append(
-                    HourlyPrice(
-                        period=HourlyPeriod(dtime_hour),
-                        price=EnergyPrice.pln_per_mwh(avg_price),
-                    )
-                )
-
         return cls(periods)
 
-    def __init__(self, periods: list[HourlyPrice]) -> None:
+    def __init__(self, periods: list[FifteenMinutePrice]) -> None:
         self.periods = periods
+        self.hourly_periods = [
+            HourlyPrice(
+                period=HourlyPeriod(start=hour),
+                price=sum(prices[1:], start=prices[0]) / Decimal(len(prices)),
+            )
+            for hour, group in groupby(periods, key=lambda p: truncate_to_hour(p.period.start))
+            if (prices := [p.price.non_negative() for p in group])
+        ]
 
-    def find_peak_periods(
+    def find_min_hour(self, period_start: datetime, period_hours: int) -> HourlyPrice | None:
+        period_end = period_start + timedelta(hours=period_hours)
+        hourly_prices = [
+            hourly_period
+            for hourly_period in self.hourly_periods
+            if period_start <= hourly_period.period.start < period_end
+        ]
+        if not hourly_prices:
+            return None
+
+        return min(hourly_prices, key=lambda p: p.price)
+
+    def find_peak_hours(
         self, period_start: datetime, period_hours: int, price_threshold: EnergyPrice
     ) -> list[HourlyPrice]:
         period_end = period_start + timedelta(hours=period_hours)
-        relevant_periods = [
-            p for p in self.periods if period_start <= p.period.start <= period_end and p.price >= price_threshold
+        return [
+            hourly_period
+            for hourly_period in self.hourly_periods
+            if period_start <= hourly_period.period.start < period_end and hourly_period.price >= price_threshold
         ]
-        return relevant_periods
-
-    def find_daily_min_price(self, period_start: datetime, period_hours: int) -> EnergyPrice | None:
-        period_end = period_start + timedelta(hours=period_hours)
-        daily_prices = [p.price for p in self.periods if period_start <= p.period.start <= period_end]
-        if not daily_prices:
-            return None
-
-        return min(daily_prices)

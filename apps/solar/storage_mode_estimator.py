@@ -33,13 +33,13 @@ class StorageModeEstimator:
         current_hour = truncate_to_hour(now)
 
         price_forecast = self.forecast_factory.create_price_forecast(state)
-        min_price = price_forecast.find_daily_min_price(current_hour, remaining_hours)
-        if min_price is None:
+        min_hour = price_forecast.find_min_hour(current_hour, remaining_hours)
+        if min_hour is None:
             reason = "minimum price not found in the forecast"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
         current_price = state.hourly_price.non_negative()
-        price_threshold = min_price.non_negative() + self.configuration.pv_export_min_price_margin
+        price_threshold = min_hour.price.non_negative() + self.configuration.pv_export_min_price_margin
         if current_price <= price_threshold:
             reason = f"current price {current_price} <= {price_threshold}"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)

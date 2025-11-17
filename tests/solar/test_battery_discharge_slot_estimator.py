@@ -72,11 +72,11 @@ def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_for_two_slots(
         period=HourlyPeriod.parse("2025-10-10T20:00:00+00:00"),
         price=EnergyPrice.pln_per_mwh(Decimal(1600)),
     )
-    mock_price_forecast.find_peak_periods.return_value = [peak_period_1, peak_period_2]
+    mock_price_forecast.find_peak_hours.return_value = [peak_period_1, peak_period_2]
 
     battery_discharge_slot = battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm(state, this_day)
 
-    mock_price_forecast.find_peak_periods.assert_called_once_with(
+    mock_price_forecast.find_peak_hours.assert_called_once_with(
         this_day_4_pm,
         low_tariff_hours,
         battery_discharge_slot_estimator.configuration.battery_export_threshold_price,
@@ -123,11 +123,11 @@ def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_for_one_slot(
         period=HourlyPeriod.parse("2025-10-10T20:00:00+00:00"),
         price=EnergyPrice.pln_per_mwh(Decimal(1600)),
     )
-    mock_price_forecast.find_peak_periods.return_value = [peak_period_1, peak_period_2]
+    mock_price_forecast.find_peak_hours.return_value = [peak_period_1, peak_period_2]
 
     battery_discharge_slot = battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm(state, this_day)
 
-    mock_price_forecast.find_peak_periods.assert_called_once_with(
+    mock_price_forecast.find_peak_hours.assert_called_once_with(
         this_day_4_pm,
         low_tariff_hours,
         battery_discharge_slot_estimator.configuration.battery_export_threshold_price,
@@ -171,11 +171,11 @@ def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_for_no_slots(
         period=HourlyPeriod.parse("2025-10-10T20:00:00+00:00"),
         price=EnergyPrice.pln_per_mwh(Decimal(1600)),
     )
-    mock_price_forecast.find_peak_periods.return_value = [peak_period_1, peak_period_2]
+    mock_price_forecast.find_peak_hours.return_value = [peak_period_1, peak_period_2]
 
     battery_discharge_slot = battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm(state, this_day)
 
-    mock_price_forecast.find_peak_periods.assert_called_once_with(
+    mock_price_forecast.find_peak_hours.assert_called_once_with(
         this_day_4_pm,
         low_tariff_hours,
         battery_discharge_slot_estimator.configuration.battery_export_threshold_price,
@@ -191,7 +191,7 @@ def test_estimate_battery_discharge_at_4_pm_when_no_peak_periods(
     state: SolarState,
     mock_price_forecast: Mock,
 ) -> None:
-    mock_price_forecast.find_peak_periods.return_value = []
+    mock_price_forecast.find_peak_hours.return_value = []
 
     this_day = datetime.fromisoformat("2025-10-10T13:30:00+00:00")
     this_day_4_pm = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
@@ -199,7 +199,7 @@ def test_estimate_battery_discharge_at_4_pm_when_no_peak_periods(
 
     battery_discharge_slot = battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm(state, this_day)
 
-    mock_price_forecast.find_peak_periods.assert_called_once_with(
+    mock_price_forecast.find_peak_hours.assert_called_once_with(
         this_day_4_pm,
         low_tariff_hours,
         battery_discharge_slot_estimator.configuration.battery_export_threshold_price,
