@@ -26,6 +26,7 @@ class SolarApp(hass.Hass):
         appdaemon_service = LoggingAppdaemonService(self) if is_dry_run(self) else self
 
         configuration = SolarConfiguration(
+            time_zone=self.get_timezone(),
             battery_capacity=EnergyKwh(10.0),
             battery_voltage=BatteryVoltage(52.0),
             battery_maximum_current=BatteryCurrent(80.0),

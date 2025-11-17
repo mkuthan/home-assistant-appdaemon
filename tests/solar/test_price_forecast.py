@@ -13,40 +13,40 @@ from units.hourly_price import HourlyPrice
 def test_create_from_rce_15_mins() -> None:
     raw_forecast = [
         {
-            "dtime": "2025-10-03T13:00:00+00:00",
+            "dtime": "2025-10-03 13:00:00",
             "rce_pln": -10,
         },
         {
-            "dtime": "2025-10-03T13:15:00+00:00",
+            "dtime": "2025-10-03 13:15:00",
             "rce_pln": 50,
         },
         {
-            "dtime": "2025-10-03T13:30:00+00:00",
+            "dtime": "2025-10-03 13:30:00",
             "rce_pln": 50,
         },
         {
-            "dtime": "2025-10-03T13:45:00+00:00",
+            "dtime": "2025-10-03 13:45:00",
             "rce_pln": 60,
         },
         {
-            "dtime": "2025-10-03T14:00:00+00:00",
+            "dtime": "2025-10-03 14:00:00",
             "rce_pln": 60,
         },
         {
-            "dtime": "2025-10-03T14:15:00+00:00",
+            "dtime": "2025-10-03 14:15:00",
             "rce_pln": 70,
         },
         {
-            "dtime": "2025-10-03T14:30:00+00:00",
+            "dtime": "2025-10-03 14:30:00",
             "rce_pln": 70,
         },
         {
-            "dtime": "2025-10-03T14:45:00+00:00",
+            "dtime": "2025-10-03 14:45:00",
             "rce_pln": 80,
         },
     ]
 
-    forecast_price = PriceForecast.create_from_rce_15_mins(raw_forecast)
+    forecast_price = PriceForecast.create_from_rce_15_mins(raw_forecast, "UTC")
 
     assert forecast_price.periods == [
         FifteenMinutePrice(

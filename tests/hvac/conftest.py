@@ -9,6 +9,7 @@ from units.celsius import CELSIUS_ZERO
 @pytest.fixture
 def configuration() -> HvacConfiguration:
     return HvacConfiguration(
+        time_zone="UTC",
         dhw_temp=CELSIUS_ZERO,
         dhw_temp_eco=CELSIUS_ZERO,
         dhw_boost_delta_temp=CELSIUS_ZERO,

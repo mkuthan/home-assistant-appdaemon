@@ -12,7 +12,7 @@ from utils.time_utils import truncate_to_hour
 
 class PriceForecast:
     @classmethod
-    def create_from_rce_15_mins(cls, raw_forecast: list | None) -> "PriceForecast":
+    def create_from_rce_15_mins(cls, raw_forecast: list | None, time_zone: str) -> "PriceForecast":
         periods = []
 
         if raw_forecast is not None:
@@ -25,7 +25,9 @@ class PriceForecast:
                 try:
                     periods.append(
                         FifteenMinutePrice(
-                            period=FifteenMinutePeriod.parse(item["dtime"]),
+                            period=FifteenMinutePeriod.parse_custom(
+                                item["dtime"], format="%Y-%m-%d %H:%M:%S", time_zone=time_zone
+                            ),
                             price=EnergyPrice.pln_per_mwh(Decimal(str(item["rce_pln"]))),
                         )
                     )

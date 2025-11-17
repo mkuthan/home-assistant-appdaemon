@@ -6,6 +6,8 @@ from units.celsius import Celsius
 
 @dataclass(frozen=True)
 class HvacConfiguration:
+    time_zone: str
+
     dhw_temp: Celsius  # domestic hot water temperature
     dhw_temp_eco: Celsius  # domestic hot water temperature in eco mode
     dhw_boost_delta_temp: Celsius
