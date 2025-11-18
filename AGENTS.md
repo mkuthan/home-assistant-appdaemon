@@ -45,6 +45,8 @@ Home Assistant AppDaemon applications for solar and HVAC energy optimization.
 - Avoid redundant test cases
 - Use dedicated tests for failure scenarios instead of mixing them with happy path cases
 - Use `dataclasses.replace()` to create modified copies of frozen dataclasses in tests
+- Create test data using `datetime.fromisoformat`
+- Use `pytest.approx` for floating point comparisons
 
 ## Architecture Patterns
 
