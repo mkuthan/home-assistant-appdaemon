@@ -67,6 +67,9 @@ class EnergyPrice:
     def non_negative(self) -> "EnergyPrice":
         return self if self.value >= Decimal(0) else EnergyPrice(Decimal(0), self.currency, self.unit)
 
+    def zeroed(self) -> "EnergyPrice":
+        return EnergyPrice(Decimal(0), self.currency, self.unit)
+
     @classmethod
     def eur_per_kwh(cls, value: Decimal) -> "EnergyPrice":
         return cls(value=value, currency=EnergyPrice._CURRENCY_EUR, unit=EnergyPrice._UNIT_KWH)
