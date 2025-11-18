@@ -211,3 +211,9 @@ def test_non_negative(input_value: str, expected_value: str) -> None:
     price = EnergyPrice.pln_per_mwh(Decimal(input_value))
     expected = EnergyPrice.pln_per_mwh(Decimal(expected_value))
     assert price.non_negative() == expected
+
+
+def test_zeroed() -> None:
+    price = EnergyPrice.pln_per_mwh(Decimal("123.45"))
+    expected = EnergyPrice.pln_per_mwh(Decimal("0.0"))
+    assert price.zeroed() == expected
