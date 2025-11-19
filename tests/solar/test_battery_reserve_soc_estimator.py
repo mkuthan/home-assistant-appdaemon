@@ -45,11 +45,11 @@ def test_estimate_soc_tomorrow_at_7_am_when_higher_than_current(
 ) -> None:
     state = replace(state, battery_reserve_soc=BatterySoc(30.0))
 
-    now = datetime.fromisoformat("2025-10-11T06:00:00+00:00")
+    now = datetime.fromisoformat("2025-10-10T22:05:00+00:00")
     high_tariff_hours = 6
 
-    today_7_am = datetime.fromisoformat("2025-10-11T07:00:00+00:00")
-    hourly_period = HourlyPeriod(today_7_am)
+    tomorrow_7_am = datetime.fromisoformat("2025-10-11T07:00:00+00:00")
+    hourly_period = HourlyPeriod(tomorrow_7_am)
 
     mock_production_forecast.hourly.return_value = [
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(2.0)),
@@ -60,8 +60,8 @@ def test_estimate_soc_tomorrow_at_7_am_when_higher_than_current(
 
     battery_reserve_soc = battery_reserve_soc_estimator.estimate_battery_reserve_soc(state, now)
 
-    mock_production_forecast.hourly.assert_called_once_with(today_7_am, high_tariff_hours)
-    mock_consumption_forecast.hourly.assert_called_once_with(today_7_am, high_tariff_hours)
+    mock_production_forecast.hourly.assert_called_once_with(tomorrow_7_am, high_tariff_hours)
+    mock_consumption_forecast.hourly.assert_called_once_with(tomorrow_7_am, high_tariff_hours)
 
     assert battery_reserve_soc == BatterySoc(65.0)
 
@@ -74,11 +74,11 @@ def test_estimate_soc_tomorrow_at_7_am_when_lower_than_current(
 ) -> None:
     state = replace(state, battery_reserve_soc=BatterySoc(50.0))
 
-    now = datetime.fromisoformat("2025-10-11T06:00:00+00:00")
+    now = datetime.fromisoformat("2025-10-10T22:05:00+00:00")
     high_tariff_hours = 6
 
-    today_7_am = datetime.fromisoformat("2025-10-11T07:00:00+00:00")
-    hourly_period = HourlyPeriod(today_7_am)
+    tomorrow_7_am = datetime.fromisoformat("2025-10-11T07:00:00+00:00")
+    hourly_period = HourlyPeriod(tomorrow_7_am)
 
     mock_production_forecast.hourly.return_value = [
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(5.0)),
@@ -89,29 +89,10 @@ def test_estimate_soc_tomorrow_at_7_am_when_lower_than_current(
 
     battery_reserve_soc = battery_reserve_soc_estimator.estimate_battery_reserve_soc(state, now)
 
-    mock_production_forecast.hourly.assert_called_once_with(today_7_am, high_tariff_hours)
-    mock_consumption_forecast.hourly.assert_called_once_with(today_7_am, high_tariff_hours)
+    mock_production_forecast.hourly.assert_called_once_with(tomorrow_7_am, high_tariff_hours)
+    mock_consumption_forecast.hourly.assert_called_once_with(tomorrow_7_am, high_tariff_hours)
 
     assert battery_reserve_soc is None
-
-
-def test_estimate_soc_tomorrow_at_7_am_before_5_am(
-    battery_reserve_soc_estimator: BatteryReserveSocEstimator,
-    state: SolarState,
-    mock_production_forecast: Mock,
-    mock_consumption_forecast: Mock,
-) -> None:
-    state = replace(state, battery_reserve_soc=BatterySoc(30.0))
-
-    now = datetime.fromisoformat("2025-10-11T04:00:00+00:00")
-
-    battery_reserve_soc = battery_reserve_soc_estimator.estimate_battery_reserve_soc(state, now)
-
-    mock_production_forecast.hourly.assert_not_called()
-    mock_consumption_forecast.hourly.assert_not_called()
-
-    assert battery_reserve_soc is None
-
 
 def test_estimate_soc_today_at_4_pm_when_grid_charging_needed(
     battery_reserve_soc_estimator: BatteryReserveSocEstimator,
@@ -208,24 +189,4 @@ def test_estimate_soc_today_at_4_pm_when_solar_only_charging_sufficient(
     # SoC target: (1.5 kWh / 10.0 kWh) = 15% + 20% min + 5% margin = 40%
     # SoC solar only: 20% + (4.0 kWh / 10.0 kWh) = 20% + 40% = 60%
     # Since soc_solar_only (60%) >= soc_target (40%), no grid charging needed
-    assert battery_reserve_soc is None
-
-
-def test_estimate_soc_today_at_4_pm_before_2_pm(
-    battery_reserve_soc_estimator: BatteryReserveSocEstimator,
-    state: SolarState,
-    mock_production_forecast: Mock,
-    mock_consumption_forecast: Mock,
-) -> None:
-    state = replace(state, battery_soc=BatterySoc(40.0), battery_reserve_soc=BatterySoc(20.0))
-
-    now = datetime.fromisoformat("2025-10-10T13:00:00+00:00")
-
-    afternoon_period = HourlyPeriod(now)
-
-    mock_consumption_forecast.hourly.return_value = [HourlyProductionEnergy(afternoon_period, energy=EnergyKwh(1.0))]
-    mock_production_forecast.hourly.return_value = [HourlyProductionEnergy(afternoon_period, energy=EnergyKwh(1.5))]
-
-    battery_reserve_soc = battery_reserve_soc_estimator.estimate_battery_reserve_soc(state, now)
-
     assert battery_reserve_soc is None

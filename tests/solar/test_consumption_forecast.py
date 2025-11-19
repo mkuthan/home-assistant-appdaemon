@@ -97,9 +97,8 @@ class TestForecastConsumptionHvacHeating:
         self, mock_forecast_weather: Mock, mock_energy_estimator: Mock
     ) -> ConsumptionForecastHvacHeating:
         return ConsumptionForecastHvacHeating(
-            indoor_temperature=Celsius(20.0),
+            is_eco_mode=False,
             hvac_heating_mode="heat",
-            hvac_heating_temperature=Celsius(22.0),
             t_in=Celsius(20.0),
             cop_at_7c=3.5,
             h=0.18,
@@ -109,14 +108,14 @@ class TestForecastConsumptionHvacHeating:
             energy_estimator=mock_energy_estimator,
         )
 
-    def test_hourly_overheated(
+    def test_hourly_eco_mode_on(
         self,
         any_consumption_forecast_hvac_heating: ConsumptionForecastHvacHeating,
         mock_forecast_weather: Mock,
         any_datetime: datetime,
     ) -> None:
         forecast_consumption = any_consumption_forecast_hvac_heating
-        forecast_consumption.indoor_temperature = Celsius(23.0)
+        forecast_consumption.is_eco_mode = True
 
         result = forecast_consumption.hourly(period_start=any_datetime, period_hours=2)
 
@@ -154,6 +153,7 @@ class TestForecastConsumptionHvacHeating:
         mock_energy_estimator: Mock,
     ) -> None:
         forecast_consumption = any_consumption_forecast_hvac_heating
+        forecast_consumption.is_eco_mode = False
         forecast_consumption.hvac_heating_mode = "heat"
 
         period_1 = datetime.fromisoformat("2025-10-03T10:00:00+00:00")
@@ -213,6 +213,7 @@ class TestForecastConsumptionHvacHeating:
         mock_energy_estimator: Mock,
     ) -> None:
         forecast_consumption = any_consumption_forecast_hvac_heating
+        forecast_consumption.is_eco_mode = False
         forecast_consumption.hvac_heating_mode = "heat"
 
         period_1 = datetime.fromisoformat("2025-10-03T10:00:00+00:00")
