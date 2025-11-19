@@ -5,6 +5,7 @@ from solar.battery_discharge_slot import BatteryDischargeSlot
 from solar.forecast_factory import ForecastFactory
 from solar.solar_configuration import SolarConfiguration
 from solar.solar_state import SolarState
+from units.energy_kwh import EnergyKwh
 from utils.battery_estimators import estimate_battery_surplus_energy
 from utils.energy_aggregators import maximum_cumulative_deficit
 from utils.revenue_estimators import find_max_revenue_period
@@ -52,11 +53,10 @@ class BatteryDischargeSlotEstimator:
             )
             return None
 
-        hours = (
-            energy_surplus.value
-            * 1000
-            / (self.configuration.battery_maximum_current.value * self.configuration.battery_voltage.value)
+        battery_discharge_energy_1h = EnergyKwh(
+            self.configuration.battery_maximum_current.value * self.configuration.battery_voltage.value / 1000
         )
+        hours = energy_surplus / battery_discharge_energy_1h
 
         price_forecast = self.forecast_factory.create_price_forecast(state)
         hourly_prices = price_forecast.select_hourly_prices(today_4_pm, today_10_pm)
@@ -76,5 +76,8 @@ class BatteryDischargeSlotEstimator:
 
                 return discharge_slot
             case None:
-                self.appdaemon_logger.log("Skip, no suitable revenue period found")
+                self.appdaemon_logger.log(
+                    "Skip, no suitable revenue period found, threshold price: %s",
+                    self.configuration.battery_export_threshold_price,
+                )
                 return None

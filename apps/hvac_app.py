@@ -60,10 +60,10 @@ class HvacApp(hass.Hass):
             cooling_estimator=CoolingEstimator(appdaemon_logger, configuration),
         )
 
-        self.log("Scheduling HVAC control every 5 minutes")
+        self.log("Setting up HVAC control every 5 minutes")
         self.run_every(self.control_scheduled, "00:00:00", 5 * 60)
 
-        self.log("Setting up HVAC control triggers on relevant state changes")
+        self.log("Setting up HVAC control triggers")
         self.listen_state(
             self.control_triggered,
             [
@@ -73,7 +73,7 @@ class HvacApp(hass.Hass):
             ],
         )
 
-    def control_scheduled(self, kwargs: dict) -> None:  # noqa: ARG002
+    def control_scheduled(self, **kwargs: dict) -> None:  # noqa: ARG002
         self.hvac.control(self.get_now())
 
     def control_triggered(self, entity, attribute, old, new, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
