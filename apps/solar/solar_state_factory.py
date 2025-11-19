@@ -20,9 +20,6 @@ from entities.entities import (
     SLOT1_DISCHARGE_CURRENT_ENTITY,
     SLOT1_DISCHARGE_ENABLED_ENTITY,
     SLOT1_DISCHARGE_TIME_ENTITY,
-    SLOT2_DISCHARGE_CURRENT_ENTITY,
-    SLOT2_DISCHARGE_ENABLED_ENTITY,
-    SLOT2_DISCHARGE_TIME_ENTITY,
     WEATHER_FORECAST_ENTITY,
 )
 from solar.solar_state import SolarState
@@ -57,9 +54,6 @@ class DefaultSolarStateFactory:
         is_slot1_discharge_enabled = safe_bool(self.appdaemon_state.get_state(SLOT1_DISCHARGE_ENABLED_ENTITY))
         slot1_discharge_time = safe_str(self.appdaemon_state.get_state(SLOT1_DISCHARGE_TIME_ENTITY))
         slot1_discharge_current = safe_float(self.appdaemon_state.get_state(SLOT1_DISCHARGE_CURRENT_ENTITY))
-        is_slot2_discharge_enabled = safe_bool(self.appdaemon_state.get_state(SLOT2_DISCHARGE_ENABLED_ENTITY))
-        slot2_discharge_time = safe_str(self.appdaemon_state.get_state(SLOT2_DISCHARGE_TIME_ENTITY))
-        slot2_discharge_current = safe_float(self.appdaemon_state.get_state(SLOT2_DISCHARGE_CURRENT_ENTITY))
         hvac_heating_mode = safe_str(self.appdaemon_state.get_state(HEATING_ENTITY))
         hvac_heating_temperature = safe_float(self.appdaemon_state.get_state(HEATING_ENTITY, "temperature"))
         hourly_price = safe_float(self.appdaemon_state.get_state(PRICE_FORECAST_ENTITY))
@@ -88,9 +82,6 @@ class DefaultSolarStateFactory:
                 ("is_slot1_discharge_enabled", is_slot1_discharge_enabled),
                 ("slot1_discharge_time", slot1_discharge_time),
                 ("slot1_discharge_current", slot1_discharge_current),
-                ("is_slot2_discharge_enabled", is_slot2_discharge_enabled),
-                ("slot2_discharge_time", slot2_discharge_time),
-                ("slot2_discharge_current", slot2_discharge_current),
                 ("hvac_heating_mode", hvac_heating_mode),
                 ("hvac_heating_temperature", hvac_heating_temperature),
                 ("hourly_price", hourly_price),
@@ -116,9 +107,6 @@ class DefaultSolarStateFactory:
         assert is_slot1_discharge_enabled is not None
         assert slot1_discharge_time is not None
         assert slot1_discharge_current is not None
-        assert is_slot2_discharge_enabled is not None
-        assert slot2_discharge_time is not None
-        assert slot2_discharge_current is not None
         assert hvac_heating_mode is not None
         assert hvac_heating_temperature is not None
         assert hourly_price is not None
@@ -136,9 +124,6 @@ class DefaultSolarStateFactory:
             is_slot1_discharge_enabled=is_slot1_discharge_enabled,
             slot1_discharge_time=slot1_discharge_time,
             slot1_discharge_current=BatteryCurrent(slot1_discharge_current),
-            is_slot2_discharge_enabled=is_slot2_discharge_enabled,
-            slot2_discharge_time=slot2_discharge_time,
-            slot2_discharge_current=BatteryCurrent(slot2_discharge_current),
             hvac_heating_mode=hvac_heating_mode,
             hvac_heating_temperature=Celsius(hvac_heating_temperature),
             hourly_price=EnergyPrice.pln_per_mwh(Decimal.from_float(hourly_price)),

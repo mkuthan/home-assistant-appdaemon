@@ -21,25 +21,24 @@ class ProductionForecastComposite:
 # Solar production forecast based on Solcast integration
 class ProductionForecastDefault:
     @classmethod
-    def create(cls, raw_forecast: object) -> "ProductionForecastDefault":
+    def create(cls, raw_forecast: list) -> "ProductionForecastDefault":
         periods = []
 
-        if raw_forecast and isinstance(raw_forecast, list):
-            for item in raw_forecast:
-                if not isinstance(item, dict):
-                    continue
-                if not all(key in item for key in ["period_start", "pv_estimate"]):
-                    continue
+        for item in raw_forecast:
+            if not isinstance(item, dict):
+                continue
+            if not all(key in item for key in ["period_start", "pv_estimate"]):
+                continue
 
-                try:
-                    periods.append(
-                        HourlyProductionEnergy(
-                            period=HourlyPeriod.parse(item["period_start"]),
-                            energy=EnergyKwh(item["pv_estimate"]),
-                        )
+            try:
+                periods.append(
+                    HourlyProductionEnergy(
+                        period=HourlyPeriod.parse(item["period_start"]),
+                        energy=EnergyKwh(item["pv_estimate"]),
                     )
-                except (ValueError, TypeError, KeyError):
-                    continue
+                )
+            except (ValueError, TypeError, KeyError):
+                continue
 
         return cls(periods)
 
