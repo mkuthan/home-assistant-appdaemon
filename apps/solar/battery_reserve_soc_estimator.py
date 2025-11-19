@@ -109,18 +109,18 @@ class BatteryReserveSocEstimator:
             self.configuration.battery_reserve_soc_max,
         )
 
-        # Don't set the battery reserve SoC target below the current value
-        battery_reserve_soc_target = max(battery_reserve_soc_target, state.battery_reserve_soc)
-
-        # Skip unnecessary Inverter register writes
-        if state.battery_soc >= battery_reserve_soc_target:
-            return state.battery_reserve_soc
-
         # Skip unnecessary grid charging
         battery_soc_solar_only = estimate_battery_max_soc(
             energy_surplus, state.battery_soc, self.configuration.battery_capacity
         )
         if battery_soc_solar_only >= battery_reserve_soc_target:
             return state.battery_reserve_soc
+
+        # Skip unnecessary Inverter register writes
+        if state.battery_soc >= battery_reserve_soc_target:
+            return state.battery_reserve_soc
+
+        # Don't set the battery reserve SoC target below the current value
+        battery_reserve_soc_target = max(battery_reserve_soc_target, state.battery_reserve_soc)
 
         return round(battery_reserve_soc_target)
