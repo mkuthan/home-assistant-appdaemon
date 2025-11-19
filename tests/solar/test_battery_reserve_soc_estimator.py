@@ -94,6 +94,7 @@ def test_estimate_soc_tomorrow_at_7_am_when_lower_than_current(
 
     assert battery_reserve_soc is None
 
+
 def test_estimate_soc_today_at_4_pm_when_grid_charging_needed(
     battery_reserve_soc_estimator: BatteryReserveSocEstimator,
     state: SolarState,
