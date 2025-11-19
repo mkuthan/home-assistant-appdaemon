@@ -97,7 +97,6 @@ class TestForecastConsumptionHvacHeating:
         self, mock_forecast_weather: Mock, mock_energy_estimator: Mock
     ) -> ConsumptionForecastHvacHeating:
         return ConsumptionForecastHvacHeating(
-            is_eco_mode=False,
             indoor_temperature=Celsius(20.0),
             hvac_heating_mode="heat",
             hvac_heating_temperature=Celsius(22.0),
@@ -109,25 +108,6 @@ class TestForecastConsumptionHvacHeating:
             humidity_out_fallback=75.0,
             energy_estimator=mock_energy_estimator,
         )
-
-    def test_hourly_eco_mode(
-        self,
-        any_consumption_forecast_hvac_heating: ConsumptionForecastHvacHeating,
-        mock_forecast_weather: Mock,
-        any_datetime: datetime,
-    ) -> None:
-        forecast_consumption = any_consumption_forecast_hvac_heating
-        forecast_consumption.is_eco_mode = True
-
-        result = forecast_consumption.hourly(period_start=any_datetime, period_hours=2)
-
-        assert len(result) == 2
-        assert result[0].period == HourlyPeriod(any_datetime)
-        assert result[0].energy.value == pytest.approx(0.0)
-        assert result[1].period == HourlyPeriod(any_datetime + timedelta(hours=1))
-        assert result[1].energy.value == pytest.approx(0.0)
-
-        mock_forecast_weather.find_by_datetime.assert_not_called()
 
     def test_hourly_overheated(
         self,
@@ -174,7 +154,6 @@ class TestForecastConsumptionHvacHeating:
         mock_energy_estimator: Mock,
     ) -> None:
         forecast_consumption = any_consumption_forecast_hvac_heating
-        forecast_consumption.is_eco_mode = False
         forecast_consumption.hvac_heating_mode = "heat"
 
         period_1 = datetime.fromisoformat("2025-10-03T10:00:00+00:00")
@@ -234,7 +213,6 @@ class TestForecastConsumptionHvacHeating:
         mock_energy_estimator: Mock,
     ) -> None:
         forecast_consumption = any_consumption_forecast_hvac_heating
-        forecast_consumption.is_eco_mode = False
         forecast_consumption.hvac_heating_mode = "heat"
 
         period_1 = datetime.fromisoformat("2025-10-03T10:00:00+00:00")
