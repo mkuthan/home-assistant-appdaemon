@@ -59,12 +59,9 @@ class PriceForecast:
 
         return min(hourly_prices, key=lambda p: p.price)
 
-    def find_peak_hours(
-        self, period_start: datetime, period_hours: int, price_threshold: EnergyPrice
-    ) -> list[HourlyPrice]:
-        period_end = period_start + timedelta(hours=period_hours)
+    def select_hourly_prices(self, period_start: datetime, period_end: datetime) -> list[HourlyPrice]:
         return [
             hourly_period
             for hourly_period in self.hourly_periods
-            if period_start <= hourly_period.period.start < period_end and hourly_period.price >= price_threshold
+            if period_start <= hourly_period.period.start < period_end
         ]

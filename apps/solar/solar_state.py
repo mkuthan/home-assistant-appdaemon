@@ -19,9 +19,6 @@ class SolarState:
     is_slot1_discharge_enabled: bool
     slot1_discharge_time: str
     slot1_discharge_current: BatteryCurrent
-    is_slot2_discharge_enabled: bool
-    slot2_discharge_time: str
-    slot2_discharge_current: BatteryCurrent
     hvac_heating_mode: str
     hvac_heating_temperature: Celsius
     hourly_price: EnergyPrice

@@ -149,14 +149,17 @@ def test_find_min_hour(forecast_price: PriceForecast) -> None:
     )
 
 
-def test_find_peak_hours(forecast_price: PriceForecast) -> None:
-    peak_hours = forecast_price.find_peak_hours(
+def test_select_hourly_prices(forecast_price: PriceForecast) -> None:
+    selected_hours = forecast_price.select_hourly_prices(
         period_start=datetime.fromisoformat("2025-10-03T16:00:00+00:00"),
-        period_hours=2,
-        price_threshold=EnergyPrice.pln_per_mwh(Decimal(500)),
+        period_end=datetime.fromisoformat("2025-10-03T18:00:00+00:00"),
     )
 
-    assert peak_hours == [
+    assert selected_hours == [
+        HourlyPrice(
+            period=HourlyPeriod.parse("2025-10-03T16:00:00+00:00"),
+            price=EnergyPrice.pln_per_mwh(Decimal(407.5)),
+        ),
         HourlyPrice(
             period=HourlyPeriod.parse("2025-10-03T17:00:00+00:00"),
             price=EnergyPrice.pln_per_mwh(Decimal(667.5)),

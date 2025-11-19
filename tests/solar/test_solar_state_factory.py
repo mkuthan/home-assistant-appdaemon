@@ -18,9 +18,6 @@ from entities.entities import (
     SLOT1_DISCHARGE_CURRENT_ENTITY,
     SLOT1_DISCHARGE_ENABLED_ENTITY,
     SLOT1_DISCHARGE_TIME_ENTITY,
-    SLOT2_DISCHARGE_CURRENT_ENTITY,
-    SLOT2_DISCHARGE_ENABLED_ENTITY,
-    SLOT2_DISCHARGE_TIME_ENTITY,
     WEATHER_FORECAST_ENTITY,
 )
 from solar.solar_state_factory import DefaultSolarStateFactory
@@ -80,9 +77,6 @@ def state_values(
         f"{SLOT1_DISCHARGE_ENABLED_ENTITY}:": "on",
         f"{SLOT1_DISCHARGE_TIME_ENTITY}:": "19:00-20:00",
         f"{SLOT1_DISCHARGE_CURRENT_ENTITY}:": "45.0",
-        f"{SLOT2_DISCHARGE_ENABLED_ENTITY}:": "on",
-        f"{SLOT2_DISCHARGE_TIME_ENTITY}:": "20:00-21:00",
-        f"{SLOT2_DISCHARGE_CURRENT_ENTITY}:": "30.0",
         f"{HEATING_ENTITY}:": "heat",
         f"{HEATING_ENTITY}:temperature": "22.0",
         f"{PRICE_FORECAST_ENTITY}:": "500.0",
@@ -132,9 +126,6 @@ def test_create(
     assert result.is_slot1_discharge_enabled is True
     assert result.slot1_discharge_time == "19:00-20:00"
     assert result.slot1_discharge_current == BatteryCurrent(45.0)
-    assert result.is_slot2_discharge_enabled is True
-    assert result.slot2_discharge_time == "20:00-21:00"
-    assert result.slot2_discharge_current == BatteryCurrent(30.0)
     assert result.hvac_heating_mode == "heat"
     assert result.hvac_heating_temperature == Celsius(22.0)
     assert result.hourly_price == EnergyPrice.pln_per_mwh(Decimal(500))
@@ -156,9 +147,6 @@ def test_create(
         (f"{SLOT1_DISCHARGE_ENABLED_ENTITY}:", "Missing: is_slot1_discharge_enabled"),
         (f"{SLOT1_DISCHARGE_TIME_ENTITY}:", "Missing: slot1_discharge_time"),
         (f"{SLOT1_DISCHARGE_CURRENT_ENTITY}:", "Missing: slot1_discharge_current"),
-        (f"{SLOT2_DISCHARGE_ENABLED_ENTITY}:", "Missing: is_slot2_discharge_enabled"),
-        (f"{SLOT2_DISCHARGE_TIME_ENTITY}:", "Missing: slot2_discharge_time"),
-        (f"{SLOT2_DISCHARGE_CURRENT_ENTITY}:", "Missing: slot2_discharge_current"),
         (f"{HEATING_ENTITY}:", "Missing: hvac_heating_mode"),
         (f"{HEATING_ENTITY}:temperature", "Missing: hvac_heating_temperature"),
         (f"{PRICE_FORECAST_ENTITY}:", "Missing: hourly_price"),
