@@ -34,13 +34,10 @@ class HeatingEnergyEstimator(Protocol):
 
 
 # Heating energy consumption forecast excluding energy consumption
-# during low-tariff periods (outside forecasted hours):
-# - Domestic Hot Water (DHW)
-# - HVAC heating in eco mode
+# during low-tariff periods (outside forecasted hours)
 class ConsumptionForecastHvacHeating:
     def __init__(
         self,
-        is_eco_mode: bool,
         indoor_temperature: Celsius,
         hvac_heating_mode: str,
         hvac_heating_temperature: Celsius,
@@ -52,7 +49,6 @@ class ConsumptionForecastHvacHeating:
         humidity_out_fallback: float,
         energy_estimator: HeatingEnergyEstimator = estimate_heating_energy_consumption,
     ) -> None:
-        self.is_eco_mode = is_eco_mode
         self.indoor_temperature = indoor_temperature
         self.hvac_heating_mode = hvac_heating_mode
         self.hvac_heating_temperature = hvac_heating_temperature
@@ -73,7 +69,7 @@ class ConsumptionForecastHvacHeating:
         for hour_offset in range(period_hours):
             current = period_start + timedelta(hours=hour_offset)
 
-            if is_heating_enabled(self.hvac_heating_mode) and not self.is_eco_mode and not is_overheated:
+            if is_heating_enabled(self.hvac_heating_mode) and not is_overheated:
                 weather_period = self.forecast_weather.find_by_datetime(current)
                 energy = self.energy_estimator(
                     t_in=self.t_in,
