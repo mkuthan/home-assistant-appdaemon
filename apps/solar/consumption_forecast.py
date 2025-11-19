@@ -33,8 +33,7 @@ class HeatingEnergyEstimator(Protocol):
     ) -> EnergyKwh: ...
 
 
-# Heating energy consumption forecast excluding energy consumption
-# during low-tariff periods (outside forecasted hours).
+# Heating energy consumption forecast excluding energy consumption in eco mode.
 class ConsumptionForecastHvacHeating:
     def __init__(
         self,

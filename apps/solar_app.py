@@ -41,7 +41,7 @@ class SolarApp(hass.Hass):
             regular_consumption_away=EnergyKwh(0.35),
             regular_consumption_day=EnergyKwh(0.5),
             regular_consumption_evening=EnergyKwh(0.8),
-            pv_export_min_price_margin=EnergyPrice.pln_per_mwh(Decimal(200)),
+            pv_export_min_price_margin=EnergyPrice.pln_per_mwh(Decimal(200)),  # net price
             battery_export_threshold_price=EnergyPrice.pln_per_mwh(Decimal(1000)),  # net price
             battery_export_threshold_energy=EnergyKwh(1.0),
             night_low_tariff_time_start=time.fromisoformat("22:05:00"),
