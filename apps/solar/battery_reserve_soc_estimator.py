@@ -12,8 +12,6 @@ from utils.time_utils import hours_difference, is_time_in_range, truncate_to_hou
 
 
 class BatteryReserveSocEstimator:
-    _HOURS_BEFORE_TARGET_ESTIMATION = 2
-
     def __init__(
         self,
         appdaemon_logger: AppdaemonLogger,
@@ -59,15 +57,12 @@ class BatteryReserveSocEstimator:
         else:
             upcoming_7_am = now.replace(hour=7, minute=0, second=0, microsecond=0)
 
-        if upcoming_7_am - now < timedelta(hours=self._HOURS_BEFORE_TARGET_ESTIMATION):
-            consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
-            production_forecast = self.forecast_factory.create_production_forecast(state)
+        consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
+        production_forecast = self.forecast_factory.create_production_forecast(state)
 
-            morning_consumptions = consumption_forecast.hourly(upcoming_7_am, next_high_tariff_hours)
-            morning_productions = production_forecast.hourly(upcoming_7_am, next_high_tariff_hours)
-            energy_reserve = maximum_cumulative_deficit(morning_consumptions, morning_productions)
-        else:
-            energy_reserve = ENERGY_KWH_ZERO
+        morning_consumptions = consumption_forecast.hourly(upcoming_7_am, next_high_tariff_hours)
+        morning_productions = production_forecast.hourly(upcoming_7_am, next_high_tariff_hours)
+        energy_reserve = maximum_cumulative_deficit(morning_consumptions, morning_productions)
 
         battery_reserve_soc_target = estimate_battery_reserve_soc(
             energy_reserve,
@@ -99,13 +94,10 @@ class BatteryReserveSocEstimator:
 
         energy_surplus = total_surplus(remaining_consumptions, remaining_productions)
 
-        if upcoming_4_pm - now < timedelta(hours=self._HOURS_BEFORE_TARGET_ESTIMATION):
-            evening_consumptions = consumption_forecast.hourly(upcoming_4_pm, next_high_tariff_hours)
-            evening_productions = production_forecast.hourly(upcoming_4_pm, next_high_tariff_hours)
+        evening_consumptions = consumption_forecast.hourly(upcoming_4_pm, next_high_tariff_hours)
+        evening_productions = production_forecast.hourly(upcoming_4_pm, next_high_tariff_hours)
 
-            evening_deficit = maximum_cumulative_deficit(evening_consumptions, evening_productions)
-        else:
-            evening_deficit = ENERGY_KWH_ZERO
+        evening_deficit = maximum_cumulative_deficit(evening_consumptions, evening_productions)
 
         energy_reserve = max(evening_deficit - energy_surplus, ENERGY_KWH_ZERO)
 
