@@ -67,10 +67,10 @@ class SolarApp(hass.Hass):
 
         self.listen_event(self.solar_debug, "SOLAR_DEBUG")
 
-        self.log("Scheduling battery reserve SoC control every 5 minutes")
+        self.log("Setting up battery reserve SoC control every 5 minutes")
         self.run_every(self.control_battery_reserve_soc, "00:00:00", 5 * 60)
 
-        self.log("Setting up storage mode control triggers on relevant state changes")
+        self.log("Setting up storage mode control triggers")
         self.listen_state(
             self.control_storage_mode,
             [
@@ -81,25 +81,25 @@ class SolarApp(hass.Hass):
             constrain_end_time="sunset -01:00:00",
         )
 
-        self.log("Scheduling battery discharge schedule")
+        self.log("Setting up battery discharge schedule")
         self.run_daily(self.schedule_battery_discharge, "15:30:00")
         self.run_daily(self.schedule_battery_discharge, "16:00:00")  # backup call
 
-        self.log("Scheduling battery discharge disable")
+        self.log("Setting up battery discharge disable")
         self.run_daily(self.disable_battery_discharge, "22:00:00")
-        self.run_daily(self.disable_battery_discharge, "22:05:00")  # backup call
+        self.run_daily(self.disable_battery_discharge, "22:30:00")  # backup call
 
     def solar_debug(self, event_type, data, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
         self.solar.log_state()
 
-    def control_battery_reserve_soc(self, **_kwargs: object) -> None:
+    def control_battery_reserve_soc(self, **kwargs: object) -> None:  # noqa: ARG002
         self.solar.control_battery_reserve_soc(self.get_now())
 
     def control_storage_mode(self, entity, attribute, old, new, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
         self.solar.control_storage_mode(self.get_now())
 
-    def schedule_battery_discharge(self, **_kwargs: object) -> None:
+    def schedule_battery_discharge(self, **kwargs: object) -> None:  # noqa: ARG002
         self.solar.schedule_battery_discharge(self.get_now())
 
-    def disable_battery_discharge(self, **_kwargs: object) -> None:
+    def disable_battery_discharge(self, **kwargs: object) -> None:  # noqa: ARG002
         self.solar.disable_battery_discharge()
