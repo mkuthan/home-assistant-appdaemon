@@ -38,18 +38,20 @@ class Hvac:
             return
 
         if (dhw_temperature := self.dhw_estimator.estimate_temperature(state, now)) is not None:
-            self.appdaemon_logger.log("Change DHW temperature from %s to %s", state.dhw_temperature, dhw_temperature)
+            self.appdaemon_logger.log(
+                "Change DHW temperature from %s to %s", state.dhw_target_temperature, dhw_temperature
+            )
             self._set_dhw_temperature(dhw_temperature)
 
         if (heating_temperature := self.heating_estimator.estimate_temperature(state, now)) is not None:
             self.appdaemon_logger.log(
-                "Change heating temperature from %s to %s", state.heating_temperature, heating_temperature
+                "Change heating temperature from %s to %s", state.heating_target_temperature, heating_temperature
             )
             self._set_heating_temperature(heating_temperature)
 
         if (cooling_temperature := self.cooling_estimator.estimate_temperature(state, now)) is not None:
             self.appdaemon_logger.log(
-                "Change cooling temperature from %s to %s", state.cooling_temperature, cooling_temperature
+                "Change cooling temperature from %s to %s", state.cooling_target_temperature, cooling_temperature
             )
             self._set_cooling_temperature(cooling_temperature)
 

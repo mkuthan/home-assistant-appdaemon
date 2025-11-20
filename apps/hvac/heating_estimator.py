@@ -43,7 +43,7 @@ class HeatingEstimator:
 
         temperature_target = round(temperature_target)
 
-        if temperature_target != state.heating_temperature:
+        if temperature_target != state.heating_target_temperature:
             self.appdaemon_logger.log(
                 "Heating temperature target: %s, boost: %s, adjustment: %s",
                 temperature_target,

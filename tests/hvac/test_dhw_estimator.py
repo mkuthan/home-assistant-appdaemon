@@ -94,7 +94,7 @@ def test_estimate_temperature_no_change(
     )
     dhw_estimator = DhwEstimator(mock_appdaemon_logger, configuration)
 
-    state = replace(state, is_eco_mode=False, dhw_temperature=Celsius(48.0))
+    state = replace(state, is_eco_mode=False, dhw_target_temperature=Celsius(48.0))
 
     result = dhw_estimator.estimate_temperature(state, datetime.fromisoformat("2025-10-29T08:00:00+00:00"))
 

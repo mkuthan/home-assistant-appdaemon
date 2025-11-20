@@ -71,9 +71,9 @@ def test_control(
 
     state = replace(
         state,
-        dhw_temperature=current_dhw_temperature,
-        heating_temperature=current_heating_temperature,
-        cooling_temperature=current_cooling_temperature,
+        dhw_target_temperature=current_dhw_temperature,
+        heating_target_temperature=current_heating_temperature,
+        cooling_target_temperature=current_cooling_temperature,
     )
     mock_state_factory.create.return_value = state
 
@@ -124,9 +124,9 @@ def test_control_no_change(
 
     state = replace(
         state,
-        dhw_temperature=current_dhw_temperature,
-        heating_temperature=current_heating_temperature,
-        cooling_temperature=current_cooling_temperature,
+        dhw_target_temperature=current_dhw_temperature,
+        heating_target_temperature=current_heating_temperature,
+        cooling_target_temperature=current_cooling_temperature,
     )
     mock_state_factory.create.return_value = state
 

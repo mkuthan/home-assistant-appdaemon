@@ -35,7 +35,7 @@ class DhwEstimator:
 
         temperature_target = round(temperature_target)
 
-        if temperature_target != state.dhw_temperature:
+        if temperature_target != state.dhw_target_temperature:
             self.appdaemon_logger.log("DHW temperature target: %s, boost: %s", temperature_target, temperature_boost)
             return temperature_target
         else:

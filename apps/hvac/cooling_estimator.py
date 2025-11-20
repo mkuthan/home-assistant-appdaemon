@@ -43,7 +43,7 @@ class CoolingEstimator:
 
         temperature_target = round(temperature_target)
 
-        if temperature_target != state.cooling_temperature:
+        if temperature_target != state.cooling_target_temperature:
             self.appdaemon_logger.log(
                 "Cooling temperature target: %s, boost: %s, adjustment: %s",
                 temperature_target,
