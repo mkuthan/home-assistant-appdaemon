@@ -98,7 +98,7 @@ def test_estimate_temperature_adjustment(
         state,
         heating_mode="heat",
         is_eco_mode=False,
-        heating_temperature=Celsius(21.0),
+        heating_target_temperature=Celsius(21.0),
         temperature_adjustment=Celsius(1.0),
     )
 
@@ -120,7 +120,7 @@ def test_estimate_temperature_no_change(
     )
     heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
 
-    state = replace(state, heating_mode="heat", is_eco_mode=False, heating_temperature=Celsius(21.0))
+    state = replace(state, heating_mode="heat", is_eco_mode=False, heating_target_temperature=Celsius(21.0))
 
     result = heating_estimator.estimate_temperature(state, datetime.fromisoformat("2025-10-29T04:00:00+00:00"))
 

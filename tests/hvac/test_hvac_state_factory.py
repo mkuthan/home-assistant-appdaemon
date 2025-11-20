@@ -2,7 +2,15 @@ import logging
 from unittest.mock import Mock
 
 import pytest
-from entities.entities import COOLING_ENTITY, DHW_ENTITY, ECO_MODE_ENTITY, HEATING_ENTITY, TEMPERATURE_ADJUSTMENT_ENTITY
+from entities.entities import (
+    COOLING_ENTITY,
+    DHW_ENTITY,
+    DHW_TEMPERATURE_ENTITY,
+    ECO_MODE_ENTITY,
+    HEATING_ENTITY,
+    INDOOR_TEMPERATURE_ENTITY,
+    TEMPERATURE_ADJUSTMENT_ENTITY,
+)
 from hvac.hvac_state_factory import DefaultHvacStateFactory
 from units.celsius import Celsius
 
@@ -11,7 +19,9 @@ from units.celsius import Celsius
 def state_values() -> dict:
     return {
         f"{ECO_MODE_ENTITY}:": "off",
+        f"{DHW_TEMPERATURE_ENTITY}:": "35.0",
         f"{DHW_ENTITY}:temperature": "40.0",
+        f"{INDOOR_TEMPERATURE_ENTITY}:": "20.0",
         f"{HEATING_ENTITY}:temperature": "21",
         f"{HEATING_ENTITY}:": "heat",
         f"{COOLING_ENTITY}:temperature": "24",
@@ -34,10 +44,12 @@ def test_create(
 
     assert result is not None
     assert result.is_eco_mode is False
-    assert result.dhw_temperature == Celsius(40.0)
-    assert result.heating_temperature == Celsius(21.0)
+    assert result.dhw_actual_temperature == Celsius(35.0)
+    assert result.dhw_target_temperature == Celsius(40.0)
+    assert result.indoor_actual_temperature == Celsius(20.0)
+    assert result.heating_target_temperature == Celsius(21.0)
     assert result.heating_mode == "heat"
-    assert result.cooling_temperature == Celsius(24.0)
+    assert result.cooling_target_temperature == Celsius(24.0)
     assert result.cooling_mode == "cool"
     assert result.temperature_adjustment == Celsius(0.0)
 
@@ -46,10 +58,12 @@ def test_create(
     ("missing_entity_or_service", "expected_message"),
     [
         (f"{ECO_MODE_ENTITY}:", "Missing: is_eco_mode"),
-        (f"{DHW_ENTITY}:temperature", "Missing: dhw_temperature"),
-        (f"{HEATING_ENTITY}:temperature", "Missing: heating_temperature"),
+        (f"{DHW_TEMPERATURE_ENTITY}:", "Missing: dhw_actual_temperature"),
+        (f"{DHW_ENTITY}:temperature", "Missing: dhw_target_temperature"),
+        (f"{INDOOR_TEMPERATURE_ENTITY}:", "Missing: indoor_actual_temperature"),
+        (f"{HEATING_ENTITY}:temperature", "Missing: heating_target_temperature"),
         (f"{HEATING_ENTITY}:", "Missing: heating_mode"),
-        (f"{COOLING_ENTITY}:temperature", "Missing: cooling_temperature"),
+        (f"{COOLING_ENTITY}:temperature", "Missing: cooling_target_temperature"),
         (f"{COOLING_ENTITY}:", "Missing: cooling_mode"),
         (f"{TEMPERATURE_ADJUSTMENT_ENTITY}:", "Missing: temperature_adjustment"),
     ],

@@ -23,8 +23,8 @@ Additionally, it provides smart HVAC control for heating, cooling, and domestic 
 ### HVAC Control
 
 - *Domestic Hot Water (DHW) Management* - Intelligent temperature control with eco-mode support and solar-aligned boost periods
-- *Heating Temperature Control* - Dynamic heating setpoint adjustment based on eco-mode and time-based temperature boosting
-- *Cooling Temperature Control* - Automatic cooling temperature management with eco-mode and configurable boost windows
+- *Heating Temperature Control* - Dynamic heating setpoint adjustment based on eco-mode and configurable boost windows
+- *Cooling Temperature Control* - Automatic cooling setpoint adjustment based on eco-mode and configurable boost windows
 
 ## Architecture
 
