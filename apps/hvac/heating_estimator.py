@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from entities.entities import is_heating_enabled
