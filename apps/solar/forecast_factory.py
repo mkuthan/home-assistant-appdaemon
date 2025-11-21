@@ -47,6 +47,7 @@ class DefaultForecastFactory:
             forecast_weather=weather_forecast,
             hvac_heating_mode=state.hvac_heating_mode,
             t_in=self.configuration.temp_in,
+            t_out_threshold=self.configuration.temp_out_threshold,
             cop_at_7c=self.configuration.heating_cop_at_7c,
             h=self.configuration.heating_h,
             temp_out_fallback=self.configuration.temp_out_fallback,
