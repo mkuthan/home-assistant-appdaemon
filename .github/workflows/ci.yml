@@ -33,7 +33,10 @@ jobs:
       - name: Check formatting
         run: uv run ruff format --check
 
-      - name: Run type checker
+      - name: Run type checker (ty)
+        run: uv run ty check
+
+      - name: Run type checker (pyright)
         run: uv run pyright
 
       - name: Run tests
