@@ -15,6 +15,9 @@ class Celsius:
     def __sub__(self, other: "Celsius") -> "Celsius":
         return Celsius(value=self.value - other.value)
 
+    def __mul__(self, other: float) -> "Celsius":
+        return Celsius(value=self.value * other)
+
     def __truediv__(self, other: "Celsius") -> float:
         if other == CELSIUS_ZERO:
             raise ValueError("Cannot divide by zero temperature")

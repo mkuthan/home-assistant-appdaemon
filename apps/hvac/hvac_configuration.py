@@ -10,8 +10,7 @@ class HvacConfiguration:
 
     dhw_temp: Celsius  # domestic hot water temperature
     dhw_temp_eco: Celsius  # domestic hot water temperature in eco mode
-    dhw_boost_delta_temp: Celsius
-    dhw_boost_delta_temp_eco: Celsius
+    dhw_delta_temp: Celsius
     dhw_boost_start: time
     dhw_boost_end: time
 

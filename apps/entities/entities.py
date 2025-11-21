@@ -8,7 +8,9 @@ INDOOR_TEMPERATURE_ENTITY = "sensor.heishamon_z1_actual_temperature"
 OUTDOOR_TEMPERATURE_ENTITY = "sensor.heishamon_outside_ambient_temperature"
 
 DHW_ENTITY = "water_heater.panasonic_heat_pump_main_dhw_target_temp"
+DHW_TEMP_ENTITY = "sensor.panasonic_heat_pump_main_dhw_temp"
 HEATING_ENTITY = "climate.panasonic_heat_pump_main_z1_temp"
+MAIN_TEMP_ENTITY = "sensor.panasonic_heat_pump_main_z1_temp"
 COOLING_ENTITY = "climate.panasonic_heat_pump_main_z1_temp_cooling"
 
 TEMPERATURE_ADJUSTMENT_ENTITY = "input_number.heat_pump_temperature_adjustment"
