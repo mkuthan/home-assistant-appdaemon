@@ -100,6 +100,7 @@ class TestForecastConsumptionHvacHeating:
             is_eco_mode=False,
             hvac_heating_mode="heat",
             t_in=Celsius(20.0),
+            t_out_threshold=Celsius(2.0),
             cop_at_7c=3.5,
             h=0.18,
             forecast_weather=mock_forecast_weather,
@@ -117,6 +118,8 @@ class TestForecastConsumptionHvacHeating:
         forecast_consumption = any_consumption_forecast_hvac_heating
         forecast_consumption.is_eco_mode = True
 
+        mock_forecast_weather.find_by_datetime.return_value = None
+
         result = forecast_consumption.hourly(period_start=any_datetime, period_hours=2)
 
         assert len(result) == 2
@@ -125,7 +128,38 @@ class TestForecastConsumptionHvacHeating:
         assert result[1].period == HourlyPeriod(any_datetime + timedelta(hours=1))
         assert result[1].energy.value == pytest.approx(0.0)
 
-        mock_forecast_weather.find_by_datetime.assert_not_called()
+    def test_hourly_eco_mode_on_below_threshold(
+        self,
+        any_consumption_forecast_hvac_heating: ConsumptionForecastHvacHeating,
+        mock_forecast_weather: Mock,
+        mock_energy_estimator: Mock,
+    ) -> None:
+        forecast_consumption = any_consumption_forecast_hvac_heating
+        forecast_consumption.is_eco_mode = True
+        forecast_consumption.t_out_threshold = Celsius(10.0)
+
+        period_1 = datetime.fromisoformat("2025-10-03T10:00:00+00:00")
+        period_2 = period_1 + timedelta(hours=1)
+        period_3 = period_2 + timedelta(hours=1)
+
+        mock_forecast_weather.find_by_datetime.return_value = None
+
+        mock_energy_estimator.side_effect = [EnergyKwh(1.5), EnergyKwh(2.0), EnergyKwh(1.0)]
+
+        result = forecast_consumption.hourly(period_start=period_1, period_hours=3)
+
+        assert len(result) == 3
+        assert result[0].period == HourlyPeriod(period_1)
+        assert result[0].energy.value == pytest.approx(1.5)
+        assert result[1].period == HourlyPeriod(period_2)
+        assert result[1].energy.value == pytest.approx(2.0)
+        assert result[2].period == HourlyPeriod(period_3)
+        assert result[2].energy.value == pytest.approx(1.0)
+
+        assert mock_energy_estimator.call_count == 3
+        mock_energy_estimator.assert_any_call(
+            t_in=Celsius(20.0), t_out=Celsius(5.0), humidity=75.0, cop_at_7c=3.5, h=0.18
+        )
 
     def test_hourly_heating_mode_off(
         self,
@@ -136,6 +170,8 @@ class TestForecastConsumptionHvacHeating:
         forecast_consumption = any_consumption_forecast_hvac_heating
         forecast_consumption.hvac_heating_mode = "off"
 
+        mock_forecast_weather.find_by_datetime.return_value = None
+
         result = forecast_consumption.hourly(period_start=any_datetime, period_hours=2)
 
         assert len(result) == 2
@@ -143,8 +179,6 @@ class TestForecastConsumptionHvacHeating:
         assert result[0].energy.value == pytest.approx(0.0)
         assert result[1].period == HourlyPeriod(any_datetime + timedelta(hours=1))
         assert result[1].energy.value == pytest.approx(0.0)
-
-        mock_forecast_weather.find_by_datetime.assert_not_called()
 
     def test_hourly_heating_mode_heat_with_weather_data(
         self,
@@ -233,11 +267,6 @@ class TestForecastConsumptionHvacHeating:
         assert result[1].energy.value == pytest.approx(2.0)
         assert result[2].period == HourlyPeriod(period_3)
         assert result[2].energy.value == pytest.approx(1.0)
-
-        assert mock_forecast_weather.find_by_datetime.call_count == 3
-        mock_forecast_weather.find_by_datetime.assert_any_call(period_1)
-        mock_forecast_weather.find_by_datetime.assert_any_call(period_2)
-        mock_forecast_weather.find_by_datetime.assert_any_call(period_3)
 
         assert mock_energy_estimator.call_count == 3
         mock_energy_estimator.assert_any_call(

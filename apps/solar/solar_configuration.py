@@ -21,6 +21,7 @@ class SolarConfiguration:
     battery_reserve_soc_max: BatterySoc  # maximum reserve SOC
 
     temp_in: Celsius  # indoor temperature setpoint
+    temp_out_threshold: Celsius  # outdoor temperature threshold for heating energy consumption in eco mode
 
     heating_cop_at_7c: float  # coefficient of heat-pump performance at 7 degrees Celsius
     heating_h: float  # coefficient representing building heat loss rate in kW/°C

@@ -40,6 +40,7 @@ class ConsumptionForecastHvacHeating:
         is_eco_mode: bool,
         hvac_heating_mode: str,
         t_in: Celsius,
+        t_out_threshold: Celsius,
         cop_at_7c: float,
         h: float,
         forecast_weather: WeatherForecast,
@@ -50,6 +51,7 @@ class ConsumptionForecastHvacHeating:
         self.is_eco_mode = is_eco_mode
         self.hvac_heating_mode = hvac_heating_mode
         self.t_in = t_in
+        self.t_out_threshold = t_out_threshold
         self.cop_at_7c = cop_at_7c
         self.h = h
         self.forecast_weather = forecast_weather
@@ -63,17 +65,23 @@ class ConsumptionForecastHvacHeating:
 
         for hour_offset in range(period_hours):
             current = period_start + timedelta(hours=hour_offset)
-            if is_heating_enabled(self.hvac_heating_mode) and not self.is_eco_mode:
-                weather_period = self.forecast_weather.find_by_datetime(current)
+
+            weather_period = self.forecast_weather.find_by_datetime(current)
+            temp_out = weather_period.temperature if weather_period else self.temp_out_fallback
+            humidity_out = weather_period.humidity if weather_period else self.humidity_out_fallback
+
+            if not is_heating_enabled(self.hvac_heating_mode):
+                energy = ENERGY_KWH_ZERO
+            elif self.is_eco_mode and temp_out > self.t_out_threshold:
+                energy = ENERGY_KWH_ZERO
+            else:
                 energy = self.energy_estimator(
                     t_in=self.t_in,
-                    t_out=weather_period.temperature if weather_period else self.temp_out_fallback,
-                    humidity=weather_period.humidity if weather_period else self.humidity_out_fallback,
+                    t_out=temp_out,
+                    humidity=humidity_out,
                     cop_at_7c=self.cop_at_7c,
                     h=self.h,
                 )
-            else:
-                energy = ENERGY_KWH_ZERO
 
             periods.append(
                 HourlyConsumptionEnergy(

@@ -31,7 +31,7 @@ class HvacApp(hass.Hass):
             heating_boost_delta_temp=Celsius(1.0),
             heating_boost_delta_temp_eco=Celsius(2.0),
             heating_boost_time_start_eco_on=time.fromisoformat("22:05:00"),
-            heating_boost_time_end_eco_on=time.fromisoformat("06:55:00"),
+            heating_boost_time_end_eco_on=time.fromisoformat("06:45:00"),
             heating_boost_time_start_eco_off=time.fromisoformat("05:00:00"),
             heating_boost_time_end_eco_off=time.fromisoformat("21:00:00"),
             cooling_temp=Celsius(24.0),

@@ -34,9 +34,10 @@ class SolarApp(hass.Hass):
             battery_reserve_soc_margin=BatterySoc(8.0),
             battery_reserve_soc_max=BatterySoc(95.0),
             temp_in=Celsius(21.0),
+            temp_out_threshold=Celsius(2.0),
             heating_cop_at_7c=4.0,  # ratio
             heating_h=0.18,  # kW/°C
-            temp_out_fallback=Celsius(5.0),
+            temp_out_fallback=Celsius(2.0),
             humidity_out_fallback=80.0,  # %
             regular_consumption_away=EnergyKwh(0.35),
             regular_consumption_day=EnergyKwh(0.5),
