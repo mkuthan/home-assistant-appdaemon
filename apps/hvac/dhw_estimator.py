@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from hvac.hvac_configuration import HvacConfiguration
@@ -8,6 +8,8 @@ from utils.time_utils import is_time_in_range
 
 
 class DhwEstimator:
+    _BOOST_LEAD_TIME_HOURS = 1
+
     def __init__(
         self,
         appdaemon_logger: AppdaemonLogger,
@@ -19,16 +21,26 @@ class DhwEstimator:
     def estimate_temperature(self, state: HvacState, now: datetime) -> Celsius | None:
         if state.is_eco_mode:
             temperature_target = self.configuration.dhw_temp_eco
-            temperature_boost = self.configuration.dhw_boost_delta_temp_eco
         else:
             temperature_target = self.configuration.dhw_temp
-            temperature_boost = self.configuration.dhw_boost_delta_temp
 
-        in_boost_period = is_time_in_range(
+        in_boost_window = is_time_in_range(
             now.time(), self.configuration.dhw_boost_start, self.configuration.dhw_boost_end
         )
+        in_boost_start_window = is_time_in_range(
+            (now + timedelta(hours=self._BOOST_LEAD_TIME_HOURS)).time(),
+            self.configuration.dhw_boost_start,
+            self.configuration.dhw_boost_end,
+        )
 
-        if in_boost_period:
+        needs_temperature_boost = temperature_target - state.dhw_actual_temperature >= self.configuration.dhw_delta_temp
+
+        is_boost_active = state.dhw_target_temperature > temperature_target
+
+        should_apply_boost = is_boost_active or (needs_temperature_boost and in_boost_start_window)
+
+        if in_boost_window and should_apply_boost:
+            temperature_boost = self.configuration.dhw_delta_temp
             temperature_target += temperature_boost
         else:
             temperature_boost = CELSIUS_ZERO

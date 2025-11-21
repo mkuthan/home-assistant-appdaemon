@@ -12,14 +12,16 @@ from units.celsius import Celsius
 @pytest.mark.parametrize(
     "now, expected_temp",
     [
-        # Outside boost period
-        ("2025-10-29T08:00:00+00:00", Celsius(24.0)),
-        # Inside boost period
-        ("2025-10-29T14:00:00+00:00", Celsius(22.0)),
+        # Just before boost period
+        ("2025-10-29T09:59:00+00:00", 24.0),
         # At boost start boundary
-        ("2025-10-29T10:00:00+00:00", Celsius(22.0)),
+        ("2025-10-29T10:00:00+00:00", 22.0),
+        # Inside boost period
+        ("2025-10-29T14:00:00+00:00", 22.0),
         # At boost end boundary
-        ("2025-10-29T18:00:00+00:00", Celsius(22.0)),
+        ("2025-10-29T18:00:00+00:00", 22.0),
+        # Just after boost period
+        ("2025-10-29T18:01:00+00:00", 24.0),
     ],
 )
 def test_estimate_temperature_normal_mode(
@@ -27,7 +29,7 @@ def test_estimate_temperature_normal_mode(
     configuration: HvacConfiguration,
     state: HvacState,
     now: str,
-    expected_temp: Celsius,
+    expected_temp: float,
 ) -> None:
     configuration = replace(
         configuration,
@@ -42,20 +44,22 @@ def test_estimate_temperature_normal_mode(
 
     result = cooling_estimator.estimate_temperature(state, datetime.fromisoformat(now))
 
-    assert result == expected_temp
+    assert result == Celsius(expected_temp)
 
 
 @pytest.mark.parametrize(
     "now, expected_temp",
     [
-        # Outside boost period
-        ("2025-10-29T10:00:00+00:00", Celsius(26.0)),
-        # Inside boost period
-        ("2025-10-29T14:00:00+00:00", Celsius(24.0)),
+        # Just before boost period
+        ("2025-10-29T11:59:00+00:00", 26.0),
         # At boost start boundary
-        ("2025-10-29T12:00:00+00:00", Celsius(24.0)),
+        ("2025-10-29T12:00:00+00:00", 24.0),
+        # Inside boost period
+        ("2025-10-29T13:00:00+00:00", 24.0),
         # At boost end boundary
-        ("2025-10-29T16:00:00+00:00", Celsius(24.0)),
+        ("2025-10-29T16:00:00+00:00", 24.0),
+        # Just after boost period
+        ("2025-10-29T16:01:00+00:00", 26.0),
     ],
 )
 def test_estimate_temperature_eco_mode(
@@ -63,7 +67,7 @@ def test_estimate_temperature_eco_mode(
     configuration: HvacConfiguration,
     state: HvacState,
     now: str,
-    expected_temp: Celsius,
+    expected_temp: float,
 ) -> None:
     configuration = replace(
         configuration,
@@ -78,7 +82,7 @@ def test_estimate_temperature_eco_mode(
 
     result = cooling_estimator.estimate_temperature(state, datetime.fromisoformat(now))
 
-    assert result == expected_temp
+    assert result == Celsius(expected_temp)
 
 
 def test_estimate_temperature_adjustment(
@@ -102,7 +106,8 @@ def test_estimate_temperature_adjustment(
         temperature_adjustment=Celsius(-1.0),
     )
 
-    result = cooling_estimator.estimate_temperature(state, datetime.fromisoformat("2025-10-29T08:00:00+00:00"))
+    outside_boost_datetime = datetime.fromisoformat("2025-10-29T08:00:00+00:00")
+    result = cooling_estimator.estimate_temperature(state, outside_boost_datetime)
 
     assert result == Celsius(23.0)
 
@@ -122,7 +127,8 @@ def test_estimate_temperature_no_change(
 
     state = replace(state, heating_mode="cool", is_eco_mode=False, cooling_target_temperature=Celsius(24.0))
 
-    result = cooling_estimator.estimate_temperature(state, datetime.fromisoformat("2025-10-29T08:00:00+00:00"))
+    outside_boost_datetime = datetime.fromisoformat("2025-10-29T08:00:00+00:00")
+    result = cooling_estimator.estimate_temperature(state, outside_boost_datetime)
 
     assert result is None
 
@@ -136,6 +142,7 @@ def test_estimate_temperature_heating_mode_off(
 
     state = replace(state, heating_mode="off")
 
-    result = cooling_estimator.estimate_temperature(state, datetime.fromisoformat("2025-10-29T08:00:00+00:00"))
+    any_datetime = datetime.fromisoformat("2025-10-29T04:00:00+00:00")
+    result = cooling_estimator.estimate_temperature(state, any_datetime)
 
     assert result is None

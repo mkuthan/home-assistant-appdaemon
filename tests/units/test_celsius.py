@@ -44,6 +44,19 @@ def test_sub(temp1: float, temp2: float, expected: float) -> None:
 
 
 @pytest.mark.parametrize(
+    ("temp", "multiplier", "expected"),
+    [
+        (-10.0, 2.0, -20.0),
+        (0.0, 20.0, 0.0),
+        (15.5, 3.0, 46.5),
+    ],
+)
+def test_mul(temp: float, multiplier: float, expected: float) -> None:
+    result = Celsius(temp) * multiplier
+    assert result.value == expected
+
+
+@pytest.mark.parametrize(
     ("temp1", "temp2", "expected"),
     [
         (-10.0, 2.0, -5.0),
