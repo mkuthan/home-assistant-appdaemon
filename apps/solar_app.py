@@ -32,7 +32,7 @@ class SolarApp(hass.Hass):
             battery_maximum_current=BatteryCurrent(80.0),
             battery_reserve_soc_min=BatterySoc(20.0),
             battery_reserve_soc_margin=BatterySoc(8.0),
-            battery_reserve_soc_max=BatterySoc(95.0),
+            battery_reserve_soc_max=BatterySoc(90.0),
             temp_in=Celsius(21.0),
             temp_out_threshold=Celsius(2.0),
             heating_cop_at_7c=4.0,  # ratio
