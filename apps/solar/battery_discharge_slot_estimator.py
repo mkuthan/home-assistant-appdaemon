@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
@@ -28,13 +29,13 @@ class BatteryDischargeSlotEstimator:
         low_tariff_hours = 6
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
-        hourly_consumptions = consumption_forecast.hourly(today_4_pm, low_tariff_hours)
-
         production_forecast = self.forecast_factory.create_production_forecast(state)
+
+        hourly_consumptions = consumption_forecast.hourly(today_4_pm, low_tariff_hours)
         hourly_productions = production_forecast.hourly(today_4_pm, low_tariff_hours)
 
         energy_reserve = maximum_cumulative_deficit(hourly_consumptions, hourly_productions)
-        self.appdaemon_logger.log("Energy reserve: %s", energy_reserve)
+        self.appdaemon_logger.log("Energy reserve: %s", energy_reserve, level=logging.DEBUG)
 
         energy_surplus = estimate_battery_surplus_energy(
             energy_reserve,
@@ -43,11 +44,11 @@ class BatteryDischargeSlotEstimator:
             self.configuration.battery_reserve_soc_min,
             self.configuration.battery_reserve_soc_margin,
         )
-        self.appdaemon_logger.log("Energy surplus: %s", energy_surplus)
+        self.appdaemon_logger.log("Energy surplus: %s", energy_surplus, level=logging.DEBUG)
 
         if energy_surplus < self.configuration.battery_export_threshold_energy:
             self.appdaemon_logger.log(
-                "Skip, estimated energy surplus %s <= threshold %s",
+                "Skip, estimated energy surplus %s < threshold %s",
                 energy_surplus,
                 self.configuration.battery_export_threshold_energy,
             )

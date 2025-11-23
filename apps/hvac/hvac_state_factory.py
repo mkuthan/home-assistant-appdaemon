@@ -41,7 +41,7 @@ class DefaultHvacStateFactory:
         cooling_mode = safe_str(self.appdaemon_state.get_state(COOLING_ENTITY))
         temperature_adjustment = safe_float(self.appdaemon_state.get_state(TEMPERATURE_ADJUSTMENT_ENTITY))
 
-        missing = [
+        missing_mandatory = [
             name
             for name, value in [
                 ("is_eco_mode", is_eco_mode),
@@ -57,8 +57,10 @@ class DefaultHvacStateFactory:
             if value is None
         ]
 
-        if missing:
-            self.appdaemon_logger.log(f"Missing: {', '.join(missing)}", level=logging.WARNING)
+        if missing_mandatory:
+            self.appdaemon_logger.log(
+                f"Can't create state, missing: {', '.join(missing_mandatory)}", level=logging.WARNING
+            )
             return None
 
         assert is_eco_mode is not None

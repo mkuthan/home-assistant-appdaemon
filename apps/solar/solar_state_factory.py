@@ -69,7 +69,7 @@ class DefaultSolarStateFactory:
 
         price_forecast = safe_list(self.appdaemon_state.get_state(PRICE_FORECAST_ENTITY, "prices"))
 
-        missing = [
+        missing_mandatory = [
             name
             for name, value in [
                 ("battery_soc", battery_soc),
@@ -87,14 +87,14 @@ class DefaultSolarStateFactory:
                 ("hourly_price", hourly_price),
                 ("pv_forecast_today", pv_forecast_today),
                 ("pv_forecast_tomorrow", pv_forecast_tomorrow),
-                # weather_forecast is optional
-                # price_forecast is optional
             ]
             if value is None
         ]
 
-        if missing:
-            self.appdaemon_logger.log(f"Missing: {', '.join(missing)}", level=logging.WARNING)
+        if missing_mandatory:
+            self.appdaemon_logger.log(
+                f"Can't create state, missing: {', '.join(missing_mandatory)}", level=logging.WARNING
+            )
             return None
 
         assert battery_soc is not None
@@ -112,6 +112,18 @@ class DefaultSolarStateFactory:
         assert hourly_price is not None
         assert pv_forecast_today is not None
         assert pv_forecast_tomorrow is not None
+
+        missing_optional = [
+            name
+            for name, value in [
+                ("weather_forecast", weather_forecast),
+                ("price_forecast", price_forecast),
+            ]
+            if value is None
+        ]
+
+        if missing_optional:
+            self.appdaemon_logger.log(f"Fallback mode, missing: {', '.join(missing_optional)}", level=logging.WARNING)
 
         solar_state = SolarState(
             battery_soc=BatterySoc(battery_soc),
