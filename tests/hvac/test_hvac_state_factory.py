@@ -57,15 +57,15 @@ def test_create(
 @pytest.mark.parametrize(
     ("missing_entity_or_service", "expected_message"),
     [
-        (f"{ECO_MODE_ENTITY}:", "Missing: is_eco_mode"),
-        (f"{DHW_TEMPERATURE_ENTITY}:", "Missing: dhw_actual_temperature"),
-        (f"{DHW_ENTITY}:temperature", "Missing: dhw_target_temperature"),
-        (f"{INDOOR_TEMPERATURE_ENTITY}:", "Missing: indoor_actual_temperature"),
-        (f"{HEATING_ENTITY}:temperature", "Missing: heating_target_temperature"),
-        (f"{HEATING_ENTITY}:", "Missing: heating_mode"),
-        (f"{COOLING_ENTITY}:temperature", "Missing: cooling_target_temperature"),
-        (f"{COOLING_ENTITY}:", "Missing: cooling_mode"),
-        (f"{TEMPERATURE_ADJUSTMENT_ENTITY}:", "Missing: temperature_adjustment"),
+        (f"{ECO_MODE_ENTITY}:", "Can't create state, missing: is_eco_mode"),
+        (f"{DHW_TEMPERATURE_ENTITY}:", "Can't create state, missing: dhw_actual_temperature"),
+        (f"{DHW_ENTITY}:temperature", "Can't create state, missing: dhw_target_temperature"),
+        (f"{INDOOR_TEMPERATURE_ENTITY}:", "Can't create state, missing: indoor_actual_temperature"),
+        (f"{HEATING_ENTITY}:temperature", "Can't create state, missing: heating_target_temperature"),
+        (f"{HEATING_ENTITY}:", "Can't create state, missing: heating_mode"),
+        (f"{COOLING_ENTITY}:temperature", "Can't create state, missing: cooling_target_temperature"),
+        (f"{COOLING_ENTITY}:", "Can't create state, missing: cooling_mode"),
+        (f"{TEMPERATURE_ADJUSTMENT_ENTITY}:", "Can't create state, missing: temperature_adjustment"),
     ],
 )
 def test_create_missing_field(

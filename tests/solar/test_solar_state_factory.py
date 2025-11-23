@@ -138,23 +138,23 @@ def test_create(
 @pytest.mark.parametrize(
     ("missing_entity_or_service", "expected_message"),
     [
-        (f"{BATTERY_SOC_ENTITY}:", "Missing: battery_soc"),
-        (f"{BATTERY_RESERVE_SOC_ENTITY}:", "Missing: battery_reserve_soc"),
-        (f"{OUTDOOR_TEMPERATURE_ENTITY}:", "Missing: outdoor_temperature"),
-        (f"{AWAY_MODE_ENTITY}:", "Missing: is_away_mode"),
-        (f"{ECO_MODE_ENTITY}:", "Missing: is_eco_mode"),
-        (f"{INVERTER_STORAGE_MODE_ENTITY}:", "Missing: inverter_storage_mode"),
-        (f"{SLOT1_DISCHARGE_ENABLED_ENTITY}:", "Missing: is_slot1_discharge_enabled"),
-        (f"{SLOT1_DISCHARGE_TIME_ENTITY}:", "Missing: slot1_discharge_time"),
-        (f"{SLOT1_DISCHARGE_CURRENT_ENTITY}:", "Missing: slot1_discharge_current"),
-        (f"{HEATING_ENTITY}:", "Missing: hvac_heating_mode"),
-        (f"{HEATING_ENTITY}:temperature", "Missing: hvac_heating_temperature"),
-        (f"{PRICE_FORECAST_ENTITY}:", "Missing: hourly_price"),
-        (f"{PV_FORECAST_TODAY_ENTITY}:detailedHourly", "Missing: pv_forecast_today"),
-        (f"{PV_FORECAST_TOMORROW_ENTITY}:detailedHourly", "Missing: pv_forecast_tomorrow"),
+        (f"{BATTERY_SOC_ENTITY}:", "Can't create state, missing: battery_soc"),
+        (f"{BATTERY_RESERVE_SOC_ENTITY}:", "Can't create state, missing: battery_reserve_soc"),
+        (f"{OUTDOOR_TEMPERATURE_ENTITY}:", "Can't create state, missing: outdoor_temperature"),
+        (f"{AWAY_MODE_ENTITY}:", "Can't create state, missing: is_away_mode"),
+        (f"{ECO_MODE_ENTITY}:", "Can't create state, missing: is_eco_mode"),
+        (f"{INVERTER_STORAGE_MODE_ENTITY}:", "Can't create state, missing: inverter_storage_mode"),
+        (f"{SLOT1_DISCHARGE_ENABLED_ENTITY}:", "Can't create state, missing: is_slot1_discharge_enabled"),
+        (f"{SLOT1_DISCHARGE_TIME_ENTITY}:", "Can't create state, missing: slot1_discharge_time"),
+        (f"{SLOT1_DISCHARGE_CURRENT_ENTITY}:", "Can't create state, missing: slot1_discharge_current"),
+        (f"{HEATING_ENTITY}:", "Can't create state, missing: hvac_heating_mode"),
+        (f"{HEATING_ENTITY}:temperature", "Can't create state, missing: hvac_heating_temperature"),
+        (f"{PRICE_FORECAST_ENTITY}:", "Can't create state, missing: hourly_price"),
+        (f"{PV_FORECAST_TODAY_ENTITY}:detailedHourly", "Can't create state, missing: pv_forecast_today"),
+        (f"{PV_FORECAST_TOMORROW_ENTITY}:detailedHourly", "Can't create state, missing: pv_forecast_tomorrow"),
     ],
 )
-def test_create_missing_field(
+def test_create_missing_mandatory_field(
     mock_appdaemon_logger: Mock,
     mock_appdaemon_state: Mock,
     mock_appdaemon_service: Mock,
@@ -177,4 +177,37 @@ def test_create_missing_field(
     result = DefaultSolarStateFactory(mock_appdaemon_logger, mock_appdaemon_state, mock_appdaemon_service).create()
 
     assert result is None
+    mock_appdaemon_logger.log.assert_called_once_with(expected_message, level=logging.WARNING)
+
+
+@pytest.mark.parametrize(
+    ("missing_entity_or_service", "expected_message"),
+    [
+        ("weather/get_forecasts", "Fallback mode, missing: weather_forecast"),
+        (f"{PRICE_FORECAST_ENTITY}:prices", "Fallback mode, missing: price_forecast"),
+    ],
+)
+def test_create_missing_optional_field(
+    mock_appdaemon_logger: Mock,
+    mock_appdaemon_state: Mock,
+    mock_appdaemon_service: Mock,
+    state_values: dict,
+    service_call_values: dict,
+    missing_entity_or_service: str,
+    expected_message: str,
+) -> None:
+    mock_appdaemon_state.get_state.side_effect = (
+        lambda entity_id, attribute="", *_args, **_kwargs: state_values.get(f"{entity_id}:{attribute}")
+        if f"{entity_id}:{attribute}" != missing_entity_or_service
+        else None
+    )
+    mock_appdaemon_service.call_service.side_effect = (
+        lambda service, *_args, **_kwargs: service_call_values.get(service)
+        if service != missing_entity_or_service
+        else None
+    )
+
+    result = DefaultSolarStateFactory(mock_appdaemon_logger, mock_appdaemon_state, mock_appdaemon_service).create()
+
+    assert result is not None
     mock_appdaemon_logger.log.assert_called_once_with(expected_message, level=logging.WARNING)

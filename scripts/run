@@ -6,4 +6,4 @@ cd "$(dirname "$0")/.."
 
 export PYTHONPATH="${PYTHONPATH}:${PWD}/custom_components"
 
-uv run appdaemon -c ${PWD}
+uv run appdaemon -c ${PWD} -m hvac_app DEBUG -m solar_app DEBUG

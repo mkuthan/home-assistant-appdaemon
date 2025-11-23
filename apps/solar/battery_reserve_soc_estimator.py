@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
@@ -62,7 +63,9 @@ class BatteryReserveSocEstimator:
 
         morning_consumptions = consumption_forecast.hourly(upcoming_7_am, next_high_tariff_hours)
         morning_productions = production_forecast.hourly(upcoming_7_am, next_high_tariff_hours)
+
         energy_reserve = maximum_cumulative_deficit(morning_consumptions, morning_productions)
+        self.appdaemon_logger.log("Energy reserve: %s", energy_reserve, level=logging.DEBUG)
 
         battery_reserve_soc_target = estimate_battery_reserve_soc(
             energy_reserve,
@@ -93,13 +96,16 @@ class BatteryReserveSocEstimator:
         remaining_productions = production_forecast.hourly(current_hour, remaining_hours)
 
         energy_surplus = total_surplus(remaining_consumptions, remaining_productions)
+        self.appdaemon_logger.log("Energy surplus: %s", energy_surplus, level=logging.DEBUG)
 
         evening_consumptions = consumption_forecast.hourly(upcoming_4_pm, next_high_tariff_hours)
         evening_productions = production_forecast.hourly(upcoming_4_pm, next_high_tariff_hours)
 
         evening_deficit = maximum_cumulative_deficit(evening_consumptions, evening_productions)
+        self.appdaemon_logger.log("Evening deficit: %s", evening_deficit, level=logging.DEBUG)
 
         energy_reserve = max(evening_deficit - energy_surplus, ENERGY_KWH_ZERO)
+        self.appdaemon_logger.log("Energy reserve: %s", energy_reserve, level=logging.DEBUG)
 
         battery_reserve_soc_target = estimate_battery_reserve_soc(
             energy_reserve,
@@ -114,10 +120,22 @@ class BatteryReserveSocEstimator:
             energy_surplus, state.battery_soc, self.configuration.battery_capacity
         )
         if battery_soc_solar_only >= battery_reserve_soc_target:
+            self.appdaemon_logger.log(
+                "Skip, battery_soc_solar_only=%s >= battery_reserve_soc_target=%s",
+                battery_soc_solar_only,
+                battery_reserve_soc_target,
+                level=logging.DEBUG,
+            )
             return state.battery_reserve_soc
 
         # Skip unnecessary Inverter register writes
         if state.battery_soc >= battery_reserve_soc_target:
+            self.appdaemon_logger.log(
+                "Skip, current_battery_soc=%s >= battery_reserve_soc_target=%s",
+                state.battery_soc,
+                battery_reserve_soc_target,
+                level=logging.DEBUG,
+            )
             return state.battery_reserve_soc
 
         # Don't set the battery reserve SoC target below the current value

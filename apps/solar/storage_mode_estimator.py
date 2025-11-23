@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
@@ -79,4 +80,5 @@ class StorageModeEstimator:
             self.appdaemon_logger.log("Use %s, %s", storage_mode, reason)
             return storage_mode
         else:
+            self.appdaemon_logger.log("Skip, storage mode unchanged: %s, %s", storage_mode, reason, level=logging.DEBUG)
             return None
