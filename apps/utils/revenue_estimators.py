@@ -23,8 +23,7 @@ def find_max_revenue_period(
         Tuple of (revenue, start_time, end_time) if a valid period exists,
         None otherwise.
 
-    Time Complexity: O(n * m) where n is number of periods and m is minutes per period
-    Space Complexity: O(1) auxiliary space
+    Time Complexity: O(n * d) where n is number of periods and d is max_duration_minutes
     """
     if max_duration_minutes < 1:
         raise ValueError(f"max_duration_minutes must be at least 1, got {max_duration_minutes}")

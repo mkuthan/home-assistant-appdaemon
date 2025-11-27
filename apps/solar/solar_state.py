@@ -9,20 +9,20 @@ from units.energy_price import EnergyPrice
 
 @dataclass(frozen=True)
 class SolarState:
-    battery_soc: BatterySoc
-    battery_reserve_soc: BatterySoc
+    battery_soc: BatterySoc # current battery state of charge
+    battery_reserve_soc: BatterySoc # configured battery reserve state of charge
     indoor_temperature: Celsius  # unused
     outdoor_temperature: Celsius  # unused
-    is_away_mode: bool
-    is_eco_mode: bool
-    inverter_storage_mode: StorageMode
-    is_slot1_discharge_enabled: bool
-    slot1_discharge_time: str
-    slot1_discharge_current: BatteryCurrent
-    hvac_heating_mode: str
+    is_away_mode: bool # away mode status
+    is_eco_mode: bool # eco mode status
+    inverter_storage_mode: StorageMode # current inverter storage mode
+    is_slot1_discharge_enabled: bool # whether slot 1 discharge is enabled
+    slot1_discharge_time: str # discharge time for slot 1
+    slot1_discharge_current: BatteryCurrent # discharge current for slot 1
+    hvac_heating_mode: str # heating mode
     hvac_heating_temperature: Celsius  # unused
-    hourly_price: EnergyPrice
-    pv_forecast_today: list
-    pv_forecast_tomorrow: list
-    weather_forecast: dict | None
-    price_forecast: list | None
+    hourly_price: EnergyPrice # current hourly energy price
+    pv_forecast_today: list # today's PV forecast
+    pv_forecast_tomorrow: list # tomorrow's PV forecast
+    weather_forecast: dict | None # weather forecast data
+    price_forecast: list | None # energy price forecast
