@@ -20,25 +20,44 @@ class HvacApp(hass.Hass):
 
         configuration = HvacConfiguration(
             time_zone=self.get_timezone(),
+            # domestic hot water temperature
             dhw_temp=Celsius(48.0),
+            # domestic hot water temperature in eco mode
             dhw_temp_eco=Celsius(40.0),
+            # when to start boosting DHW depends on temperature difference
             dhw_delta_temp=Celsius(6.0),
+            # 5 minutes after low tariff starts to avoid clocks drift issues
             dhw_boost_start=time.fromisoformat("13:05:00"),
+            # 5 minutes before high tariff starts to avoid clocks drift issues
             dhw_boost_end=time.fromisoformat("15:55:00"),
+            # heating temperature
             heating_temp=Celsius(20.0),
+            # heating temperature in eco mode
             heating_temp_eco=Celsius(18.0),
+            # heating boost delta
             heating_boost_delta_temp=Celsius(1.0),
+            # heating boost delta in eco mode
             heating_boost_delta_temp_eco=Celsius(2.0),
+            # 5 minutes after low tariff starts to avoid clocks drift issues
             heating_boost_time_start_eco_on=time.fromisoformat("22:05:00"),
+            # 15 minutes before high tariff starts because stop heating takes longer
             heating_boost_time_end_eco_on=time.fromisoformat("06:45:00"),
+            # 1 hour before wake up time
             heating_boost_time_start_eco_off=time.fromisoformat("05:00:00"),
+            # 1 hour before bed time
             heating_boost_time_end_eco_off=time.fromisoformat("21:00:00"),
+            # cooling temperature
             cooling_temp=Celsius(24.0),
+            # cooling temperature in eco mode
             cooling_temp_eco=Celsius(26.0),
+            # cooling boost delta
             cooling_boost_delta_temp=Celsius(2.0),
+            # cooling boost delta in eco mode
             cooling_boost_delta_temp_eco=Celsius(2.0),
+            # cool when there is plenty of solar energy
             cooling_boost_time_start_eco_on=time.fromisoformat("12:00:00"),
             cooling_boost_time_end_eco_on=time.fromisoformat("16:00:00"),
+            # extends cooling period a bit when eco mode is off
             cooling_boost_time_start_eco_off=time.fromisoformat("10:00:00"),
             cooling_boost_time_end_eco_off=time.fromisoformat("18:00:00"),
         )

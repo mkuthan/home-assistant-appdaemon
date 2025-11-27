@@ -27,27 +27,49 @@ class SolarApp(hass.Hass):
 
         configuration = SolarConfiguration(
             time_zone=self.get_timezone(),
+            # nominal battery capacity
             battery_capacity=EnergyKwh(10.0),
+            # nominal battery voltage
             battery_voltage=BatteryVoltage(52.0),
+            # maximum battery discharge/charge current
             battery_maximum_current=BatteryCurrent(80.0),
+            # minimum reserve SOC
             battery_reserve_soc_min=BatterySoc(20.0),
+            # margin above minimum reserve SOC
             battery_reserve_soc_margin=BatterySoc(8.0),
+            # upper limit when charging from the grid
             battery_reserve_soc_max=BatterySoc(90.0),
+            # indoor temperature setpoint to estimate heating needs
             temp_in=Celsius(21.0),
+            # outdoor temperature threshold to apply heating energy consumption in eco mode
             temp_out_threshold=Celsius(2.0),
-            heating_cop_at_7c=4.0,  # ratio
-            heating_h=0.18,  # kW/°C
+            # coefficient of heat-pump performance at 7 degrees Celsius
+            heating_cop_at_7c=4.0,
+            # coefficient representing building heat loss rate in kW/°C
+            heating_h=0.18,
+            # outdoor temperature if weather forecast isn't available
             temp_out_fallback=Celsius(2.0),
-            humidity_out_fallback=80.0,  # %
+            # outdoor humidity if weather forecast isn't available
+            humidity_out_fallback=80.0,
+            # regular consumption when in away mode
             regular_consumption_away=EnergyKwh(0.35),
+            # consumption during daytime
             regular_consumption_day=EnergyKwh(0.5),
+            # consumption during evening
             regular_consumption_evening=EnergyKwh(0.8),
-            pv_export_min_price_margin=EnergyPrice.pln_per_mwh(Decimal(200)),  # net price
-            battery_export_threshold_price=EnergyPrice.pln_per_mwh(Decimal(1000)),  # net price
+            # threshold for exporting PV energy, net price
+            pv_export_min_price_margin=EnergyPrice.pln_per_mwh(Decimal(200)),
+            # threshold for exporting battery energy, net price
+            battery_export_threshold_price=EnergyPrice.pln_per_mwh(Decimal(1000)),
+            # skip battery export below this threshold
             battery_export_threshold_energy=EnergyKwh(1.0),
+            # start time of night low tariff period (with margin)
             night_low_tariff_time_start=time.fromisoformat("22:05:00"),
+            # end time of night low tariff period (with margin)
             night_low_tariff_time_end=time.fromisoformat("06:55:00"),
+            # start time of day low tariff period (with margin)
             day_low_tariff_time_start=time.fromisoformat("13:05:00"),
+            # end time of day low tariff period (with margin)
             day_low_tariff_time_end=time.fromisoformat("15:55:00"),
         )
 
