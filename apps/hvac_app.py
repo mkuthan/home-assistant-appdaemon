@@ -1,7 +1,7 @@
 from datetime import time
 
 import appdaemon.plugins.hass.hassapi as hass
-from entities.entities import COOLING_ENTITY, ECO_MODE_ENTITY, HEATING_ENTITY
+from entities.entities import COOLING_ENTITY, ECO_MODE_ENTITY, HEATING_ENTITY, TEMPERATURE_ADJUSTMENT_ENTITY
 from hvac.cooling_estimator import CoolingEstimator
 from hvac.dhw_estimator import DhwEstimator
 from hvac.heating_estimator import HeatingEstimator
@@ -86,6 +86,7 @@ class HvacApp(hass.Hass):
             self.control_triggered,
             [
                 ECO_MODE_ENTITY,
+                TEMPERATURE_ADJUSTMENT_ENTITY,
                 HEATING_ENTITY,  # on/off changes
                 COOLING_ENTITY,  # on/off changes
             ],
