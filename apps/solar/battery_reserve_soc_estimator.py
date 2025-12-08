@@ -42,6 +42,9 @@ class BatteryReserveSocEstimator:
             )
             battery_reserve_soc_target = self._estimate_soc_at_4_pm(state, now, next_high_tariff_hours)
         else:
+            self.appdaemon_logger.log(
+                "Outside low tariff periods, set battery reserve SoC to %s", self.configuration.battery_reserve_soc_min
+            )
             battery_reserve_soc_target = self.configuration.battery_reserve_soc_min
 
         battery_reserve_soc_target = round(battery_reserve_soc_target)
