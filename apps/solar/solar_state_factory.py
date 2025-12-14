@@ -61,11 +61,14 @@ class DefaultSolarStateFactory:
         pv_forecast_today = safe_list(self.appdaemon_state.get_state(PV_FORECAST_TODAY_ENTITY, "detailedHourly"))
         pv_forecast_tomorrow = safe_list(self.appdaemon_state.get_state(PV_FORECAST_TOMORROW_ENTITY, "detailedHourly"))
 
-        weather_forecast = safe_dict(
-            self.appdaemon_service.call_service(
-                "weather/get_forecasts", entity_id=WEATHER_FORECAST_ENTITY, type="hourly"
-            )
+        weather_forecast_response = self.appdaemon_service.call_service(
+            "weather/get_forecasts", entity_id=WEATHER_FORECAST_ENTITY, type="hourly"
         )
+        match weather_forecast_response:
+            case {"success": True, "result": {"response": response}}:
+                weather_forecast = safe_dict(response)
+            case _:
+                weather_forecast = None
 
         price_forecast = safe_list(self.appdaemon_state.get_state(PRICE_FORECAST_ENTITY, "prices"))
 

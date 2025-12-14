@@ -90,8 +90,10 @@ def state_values(
 def service_call_values(
     weather_forecast: dict,
 ) -> dict:
+    result = {"success": True, "result": {"response": weather_forecast}}
+
     return {
-        "weather/get_forecasts": weather_forecast,
+        "weather/get_forecasts": result,
     }
 
 
