@@ -44,8 +44,6 @@ class BatteryReserveSocEstimator:
         else:
             battery_reserve_soc_target = self.configuration.battery_reserve_soc_min
 
-        battery_reserve_soc_target = round(battery_reserve_soc_target)
-
         if battery_reserve_soc_target != state.battery_reserve_soc:
             self.appdaemon_logger.log("Battery reserve SoC target: %s", battery_reserve_soc_target)
             return battery_reserve_soc_target
@@ -77,6 +75,8 @@ class BatteryReserveSocEstimator:
             self.configuration.battery_reserve_soc_margin,
             self.configuration.battery_reserve_soc_max,
         )
+
+        battery_reserve_soc_target = round(battery_reserve_soc_target)
 
         # Prevent unnecessary charging and discharging cycles
         if battery_reserve_soc_target < state.battery_reserve_soc:
@@ -124,6 +124,8 @@ class BatteryReserveSocEstimator:
             self.configuration.battery_reserve_soc_margin,
             self.configuration.battery_reserve_soc_max,
         )
+
+        battery_reserve_soc_target = round(battery_reserve_soc_target)
 
         # Skip unnecessary grid charging
         battery_soc_solar_only = estimate_battery_max_soc(
