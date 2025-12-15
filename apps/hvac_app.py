@@ -62,11 +62,7 @@ class HvacApp(hass.Hass):
             cooling_boost_time_end_eco_off=time.fromisoformat("18:00:00"),
         )
 
-        state_factory = DefaultHvacStateFactory(
-            appdaemon_logger=appdaemon_logger,
-            appdaemon_state=appdaemon_state,
-            appdaemon_service=appdaemon_service,
-        )
+        state_factory = DefaultHvacStateFactory(appdaemon_logger, appdaemon_state)
 
         self.hvac = Hvac(
             appdaemon_logger=appdaemon_logger,

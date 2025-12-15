@@ -33,14 +33,13 @@ def state_values() -> dict:
 def test_create(
     mock_appdaemon_logger: Mock,
     mock_appdaemon_state: Mock,
-    mock_appdaemon_service: Mock,
     state_values: dict,
 ) -> None:
     mock_appdaemon_state.get_state.side_effect = lambda entity_id, attribute="", *_args, **_kwargs: state_values.get(
         f"{entity_id}:{attribute}"
     )
 
-    result = DefaultHvacStateFactory(mock_appdaemon_logger, mock_appdaemon_state, mock_appdaemon_service).create()
+    result = DefaultHvacStateFactory(mock_appdaemon_logger, mock_appdaemon_state).create()
 
     assert result is not None
     assert result.is_eco_mode is False
@@ -55,7 +54,7 @@ def test_create(
 
 
 @pytest.mark.parametrize(
-    ("missing_entity_or_service", "expected_message"),
+    ("missing_entity", "expected_message"),
     [
         (f"{ECO_MODE_ENTITY}:", "Can't create state, missing: is_eco_mode"),
         (f"{DHW_TEMPERATURE_ENTITY}:", "Can't create state, missing: dhw_actual_temperature"),
@@ -71,18 +70,17 @@ def test_create(
 def test_create_missing_field(
     mock_appdaemon_logger: Mock,
     mock_appdaemon_state: Mock,
-    mock_appdaemon_service: Mock,
     state_values: dict,
-    missing_entity_or_service: str,
+    missing_entity: str,
     expected_message: str,
 ) -> None:
     mock_appdaemon_state.get_state.side_effect = (
         lambda entity_id, attribute="", *_args, **_kwargs: state_values.get(f"{entity_id}:{attribute}")
-        if f"{entity_id}:{attribute}" != missing_entity_or_service
+        if f"{entity_id}:{attribute}" != missing_entity
         else None
     )
 
-    result = DefaultHvacStateFactory(mock_appdaemon_logger, mock_appdaemon_state, mock_appdaemon_service).create()
+    result = DefaultHvacStateFactory(mock_appdaemon_logger, mock_appdaemon_state).create()
 
     assert result is None
     mock_appdaemon_logger.log.assert_called_once_with(expected_message, level=logging.WARNING)

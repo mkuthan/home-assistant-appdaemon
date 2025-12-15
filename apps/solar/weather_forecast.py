@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from entities.entities import WEATHER_FORECAST_ENTITY
 from units.celsius import Celsius
 from units.hourly_period import HourlyPeriod
 from units.hourly_weather import HourlyWeather
@@ -8,30 +7,25 @@ from units.hourly_weather import HourlyWeather
 
 class WeatherForecast:
     @classmethod
-    def create(cls, raw_forecast: dict | None) -> "WeatherForecast":
+    def create(cls, raw_forecast: list | None) -> "WeatherForecast":
         periods = []
 
         if raw_forecast is not None:
-            weather_data = raw_forecast.get(WEATHER_FORECAST_ENTITY, {})
-            if isinstance(weather_data, dict):
-                forecast_list = weather_data.get("forecast")
-
-                if forecast_list and isinstance(forecast_list, list):
-                    for item in forecast_list:
-                        if not isinstance(item, dict):
-                            continue
-                        if not all(key in item for key in ["datetime", "temperature", "humidity"]):
-                            continue
-                        try:
-                            periods.append(
-                                HourlyWeather(
-                                    period=HourlyPeriod.parse(item["datetime"]),
-                                    temperature=Celsius(float(item["temperature"])),
-                                    humidity=float(item["humidity"]),
-                                )
-                            )
-                        except (ValueError, TypeError, KeyError):
-                            continue
+            for item in raw_forecast:
+                if not isinstance(item, dict):
+                    continue
+                if not all(key in item for key in ["datetime", "temperature", "humidity"]):
+                    continue
+                try:
+                    periods.append(
+                        HourlyWeather(
+                            period=HourlyPeriod.parse(item["datetime"]),
+                            temperature=Celsius(float(item["temperature"])),
+                            humidity=float(item["humidity"]),
+                        )
+                    )
+                except (ValueError, TypeError, KeyError):
+                    continue
 
         return cls(periods)
 

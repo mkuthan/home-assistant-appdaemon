@@ -24,7 +24,7 @@ SLOT1_DISCHARGE_TIME_ENTITY = "text.solis_control_slot1_discharge_time"
 SLOT1_DISCHARGE_CURRENT_ENTITY = "number.solis_control_slot1_discharge_current"
 
 # Weather entities
-WEATHER_FORECAST_ENTITY = "weather.forecast_wieprz"
+WEATHER_FORECAST_ENTITY = "sensor.weather_forecast"
 
 # Energy price entities
 PRICE_FORECAST_ENTITY = "sensor.rce_pse_price"

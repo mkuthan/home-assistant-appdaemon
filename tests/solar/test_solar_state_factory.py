@@ -43,14 +43,10 @@ def pv_forecast_tomorrow() -> list[dict]:
 
 
 @pytest.fixture
-def weather_forecast() -> dict:
-    return {
-        WEATHER_FORECAST_ENTITY: {
-            "forecast": [
-                {"datetime": "2025-10-05T14:00:00+00:00", "temperature": 12.0, "humidity": 46.0},
-            ]
-        }
-    }
+def weather_forecast() -> list[dict]:
+    return [
+        {"datetime": "2025-10-05T14:00:00+00:00", "temperature": 12.0, "humidity": 46.0},
+    ]
 
 
 @pytest.fixture
@@ -64,6 +60,7 @@ def price_forecast() -> list[dict]:
 def state_values(
     pv_forecast_today: list[dict],
     pv_forecast_tomorrow: list[dict],
+    weather_forecast: list[dict],
     price_forecast: list[dict],
 ) -> dict:
     return {
@@ -82,40 +79,25 @@ def state_values(
         f"{PRICE_FORECAST_ENTITY}:": "500.0",
         f"{PV_FORECAST_TODAY_ENTITY}:detailedHourly": pv_forecast_today,
         f"{PV_FORECAST_TOMORROW_ENTITY}:detailedHourly": pv_forecast_tomorrow,
+        f"{WEATHER_FORECAST_ENTITY}:forecast": weather_forecast,
         f"{PRICE_FORECAST_ENTITY}:prices": price_forecast,
-    }
-
-
-@pytest.fixture
-def service_call_values(
-    weather_forecast: dict,
-) -> dict:
-    result = {"success": True, "result": {"response": weather_forecast}}
-
-    return {
-        "weather/get_forecasts": result,
     }
 
 
 def test_create(
     mock_appdaemon_logger: Mock,
     mock_appdaemon_state: Mock,
-    mock_appdaemon_service: Mock,
     state_values: dict,
-    service_call_values: dict,
     pv_forecast_today: list[dict],
     pv_forecast_tomorrow: list[dict],
-    weather_forecast: dict,
+    weather_forecast: list[dict],
     price_forecast: list[dict],
 ) -> None:
     mock_appdaemon_state.get_state.side_effect = lambda entity_id, attribute="", *_args, **_kwargs: state_values.get(
         f"{entity_id}:{attribute}"
     )
-    mock_appdaemon_service.call_service.side_effect = lambda service, *_args, **_kwargs: service_call_values.get(
-        service
-    )
 
-    result = DefaultSolarStateFactory(mock_appdaemon_logger, mock_appdaemon_state, mock_appdaemon_service).create()
+    result = DefaultSolarStateFactory(mock_appdaemon_logger, mock_appdaemon_state).create()
 
     assert result is not None
     assert result.battery_soc == BatterySoc(75.5)
@@ -138,7 +120,7 @@ def test_create(
 
 
 @pytest.mark.parametrize(
-    ("missing_entity_or_service", "expected_message"),
+    ("missing_entity", "expected_message"),
     [
         (f"{BATTERY_SOC_ENTITY}:", "Can't create state, missing: battery_soc"),
         (f"{BATTERY_RESERVE_SOC_ENTITY}:", "Can't create state, missing: battery_reserve_soc"),
@@ -159,57 +141,43 @@ def test_create(
 def test_create_missing_mandatory_field(
     mock_appdaemon_logger: Mock,
     mock_appdaemon_state: Mock,
-    mock_appdaemon_service: Mock,
     state_values: dict,
-    service_call_values: dict,
-    missing_entity_or_service: str,
+    missing_entity: str,
     expected_message: str,
 ) -> None:
     mock_appdaemon_state.get_state.side_effect = (
         lambda entity_id, attribute="", *_args, **_kwargs: state_values.get(f"{entity_id}:{attribute}")
-        if f"{entity_id}:{attribute}" != missing_entity_or_service
-        else None
-    )
-    mock_appdaemon_service.call_service.side_effect = (
-        lambda service, *_args, **_kwargs: service_call_values.get(service)
-        if service != missing_entity_or_service
+        if f"{entity_id}:{attribute}" != missing_entity
         else None
     )
 
-    result = DefaultSolarStateFactory(mock_appdaemon_logger, mock_appdaemon_state, mock_appdaemon_service).create()
+    result = DefaultSolarStateFactory(mock_appdaemon_logger, mock_appdaemon_state).create()
 
     assert result is None
     mock_appdaemon_logger.log.assert_called_once_with(expected_message, level=logging.WARNING)
 
 
 @pytest.mark.parametrize(
-    ("missing_entity_or_service", "expected_message"),
+    ("missing_entity", "expected_message"),
     [
-        ("weather/get_forecasts", "Fallback mode, missing: weather_forecast"),
+        (f"{WEATHER_FORECAST_ENTITY}:forecast", "Fallback mode, missing: weather_forecast"),
         (f"{PRICE_FORECAST_ENTITY}:prices", "Fallback mode, missing: price_forecast"),
     ],
 )
 def test_create_missing_optional_field(
     mock_appdaemon_logger: Mock,
     mock_appdaemon_state: Mock,
-    mock_appdaemon_service: Mock,
     state_values: dict,
-    service_call_values: dict,
-    missing_entity_or_service: str,
+    missing_entity: str,
     expected_message: str,
 ) -> None:
     mock_appdaemon_state.get_state.side_effect = (
         lambda entity_id, attribute="", *_args, **_kwargs: state_values.get(f"{entity_id}:{attribute}")
-        if f"{entity_id}:{attribute}" != missing_entity_or_service
-        else None
-    )
-    mock_appdaemon_service.call_service.side_effect = (
-        lambda service, *_args, **_kwargs: service_call_values.get(service)
-        if service != missing_entity_or_service
+        if f"{entity_id}:{attribute}" != missing_entity
         else None
     )
 
-    result = DefaultSolarStateFactory(mock_appdaemon_logger, mock_appdaemon_state, mock_appdaemon_service).create()
+    result = DefaultSolarStateFactory(mock_appdaemon_logger, mock_appdaemon_state).create()
 
     assert result is not None
     mock_appdaemon_logger.log.assert_called_once_with(expected_message, level=logging.WARNING)

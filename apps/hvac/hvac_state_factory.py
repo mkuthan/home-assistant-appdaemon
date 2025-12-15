@@ -2,7 +2,6 @@ import logging
 from typing import Protocol
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
-from appdaemon_protocols.appdaemon_service import AppdaemonService
 from appdaemon_protocols.appdaemon_state import AppdaemonState
 from entities.entities import (
     COOLING_ENTITY,
@@ -23,12 +22,9 @@ class HvacStateFactory(Protocol):
 
 
 class DefaultHvacStateFactory:
-    def __init__(
-        self, appdaemon_logger: AppdaemonLogger, appdaemon_state: AppdaemonState, appdaemon_service: AppdaemonService
-    ) -> None:
+    def __init__(self, appdaemon_logger: AppdaemonLogger, appdaemon_state: AppdaemonState) -> None:
         self.appdaemon_logger = appdaemon_logger
         self.appdaemon_state = appdaemon_state
-        self.appdaemon_service = appdaemon_service
 
     def create(self) -> HvacState | None:
         is_eco_mode = safe_bool(self.appdaemon_state.get_state(ECO_MODE_ENTITY))
