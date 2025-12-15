@@ -3,7 +3,6 @@ from decimal import Decimal
 from typing import Protocol
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
-from appdaemon_protocols.appdaemon_service import AppdaemonService
 from appdaemon_protocols.appdaemon_state import AppdaemonState
 from entities.entities import (
     AWAY_MODE_ENTITY,
@@ -28,7 +27,7 @@ from units.battery_current import BatteryCurrent
 from units.battery_soc import BatterySoc
 from units.celsius import Celsius
 from units.energy_price import EnergyPrice
-from utils.safe_converters import safe_bool, safe_dict, safe_float, safe_list, safe_str
+from utils.safe_converters import safe_bool, safe_float, safe_list, safe_str
 
 
 class SolarStateFactory(Protocol):
@@ -37,11 +36,12 @@ class SolarStateFactory(Protocol):
 
 class DefaultSolarStateFactory:
     def __init__(
-        self, appdaemon_logger: AppdaemonLogger, appdaemon_state: AppdaemonState, appdaemon_service: AppdaemonService
+        self,
+        appdaemon_logger: AppdaemonLogger,
+        appdaemon_state: AppdaemonState,
     ) -> None:
         self.appdaemon_logger = appdaemon_logger
         self.appdaemon_state = appdaemon_state
-        self.appdaemon_service = appdaemon_service
 
     def create(self) -> SolarState | None:
         battery_soc = safe_float(self.appdaemon_state.get_state(BATTERY_SOC_ENTITY))
@@ -61,14 +61,7 @@ class DefaultSolarStateFactory:
         pv_forecast_today = safe_list(self.appdaemon_state.get_state(PV_FORECAST_TODAY_ENTITY, "detailedHourly"))
         pv_forecast_tomorrow = safe_list(self.appdaemon_state.get_state(PV_FORECAST_TOMORROW_ENTITY, "detailedHourly"))
 
-        weather_forecast_response = self.appdaemon_service.call_service(
-            "weather/get_forecasts", entity_id=WEATHER_FORECAST_ENTITY, type="hourly"
-        )
-        match weather_forecast_response:
-            case {"success": True, "result": {"response": response}}:
-                weather_forecast = safe_dict(response)
-            case _:
-                weather_forecast = None
+        weather_forecast = safe_list(self.appdaemon_state.get_state(WEATHER_FORECAST_ENTITY, "forecast"))
 
         price_forecast = safe_list(self.appdaemon_state.get_state(PRICE_FORECAST_ENTITY, "prices"))
 

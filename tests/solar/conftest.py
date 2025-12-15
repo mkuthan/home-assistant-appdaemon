@@ -88,6 +88,6 @@ def state() -> SolarState:
         hourly_price=EnergyPrice.pln_per_mwh(Decimal(0)),
         pv_forecast_today=[],
         pv_forecast_tomorrow=[],
-        weather_forecast={},
+        weather_forecast=[],
         price_forecast=[],
     )

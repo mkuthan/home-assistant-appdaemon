@@ -73,7 +73,7 @@ class SolarApp(hass.Hass):
             day_low_tariff_time_end=time.fromisoformat("15:55:00"),
         )
 
-        state_factory = DefaultSolarStateFactory(appdaemon_logger, appdaemon_state, appdaemon_service)
+        state_factory = DefaultSolarStateFactory(appdaemon_logger, appdaemon_state)
         forecast_factory = DefaultForecastFactory(appdaemon_logger, configuration)
 
         self.solar = Solar(

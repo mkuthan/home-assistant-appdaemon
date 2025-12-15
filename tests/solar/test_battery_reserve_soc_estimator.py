@@ -93,8 +93,8 @@ def test_estimate_soc_tomorrow_at_7_am_when_lower_than_current(
     mock_production_forecast.hourly.assert_called_once_with(tomorrow_7_am, high_tariff_hours)
     mock_consumption_forecast.hourly.assert_called_once_with(tomorrow_7_am, high_tariff_hours)
 
-    # 1.0 kWh deficit (10%) + 20% min + 5% margin = 35%
-    assert battery_reserve_soc == BatterySoc(35.0)
+    # 1.0 kWh deficit (10%) + 20% min + 5% margin = 35% < 50%
+    assert battery_reserve_soc is None
 
 
 def test_estimate_soc_today_at_4_pm_when_grid_charging_needed(

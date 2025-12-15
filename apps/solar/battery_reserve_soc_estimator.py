@@ -78,6 +78,16 @@ class BatteryReserveSocEstimator:
             self.configuration.battery_reserve_soc_max,
         )
 
+        # Don't set the battery reserve SoC target below the current value
+        if battery_reserve_soc_target < state.battery_reserve_soc:
+            self.appdaemon_logger.log(
+                "Skip, battery_reserve_soc_target=%s < current_battery_reserve_soc=%s",
+                battery_reserve_soc_target,
+                state.battery_reserve_soc,
+                level=logging.DEBUG,
+            )
+            return state.battery_reserve_soc
+
         return battery_reserve_soc_target
 
     def _estimate_soc_at_4_pm(self, state: SolarState, now: datetime, next_high_tariff_hours: int) -> BatterySoc:
