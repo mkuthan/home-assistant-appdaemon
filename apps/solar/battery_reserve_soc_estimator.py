@@ -78,7 +78,7 @@ class BatteryReserveSocEstimator:
             self.configuration.battery_reserve_soc_max,
         )
 
-        # Don't set the battery reserve SoC target below the current value
+        # Prevent unnecessary charging and discharging cycles
         if battery_reserve_soc_target < state.battery_reserve_soc:
             self.appdaemon_logger.log(
                 "Skip, battery_reserve_soc_target=%s < current_battery_reserve_soc=%s",
@@ -138,7 +138,7 @@ class BatteryReserveSocEstimator:
             )
             return state.battery_reserve_soc
 
-        # Skip unnecessary Inverter register writes
+        # Skip unnecessary inverter register writes
         if state.battery_soc >= battery_reserve_soc_target:
             self.appdaemon_logger.log(
                 "Skip, current_battery_soc=%s >= battery_reserve_soc_target=%s",
@@ -148,7 +148,7 @@ class BatteryReserveSocEstimator:
             )
             return state.battery_reserve_soc
 
-        # Don't set the battery reserve SoC target below the current value
+        # Prevent unnecessary charging and discharging cycles
         if battery_reserve_soc_target < state.battery_reserve_soc:
             self.appdaemon_logger.log(
                 "Skip, battery_reserve_soc_target=%s < current_battery_reserve_soc=%s",
