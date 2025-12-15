@@ -88,6 +88,9 @@ class HvacApp(hass.Hass):
             ],
         )
 
+        self.log("Initial HVAC control run")
+        self.hvac.control(self.get_now())
+
     def control_scheduled(self, **kwargs: dict) -> None:  # noqa: ARG002
         self.hvac.control(self.get_now())
 

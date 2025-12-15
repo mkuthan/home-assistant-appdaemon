@@ -112,6 +112,9 @@ class SolarApp(hass.Hass):
         self.run_daily(self.disable_battery_discharge, "22:00:00")
         self.run_daily(self.disable_battery_discharge, "22:30:00")  # backup call
 
+        self.log("Initial battery reserve SoC control run")
+        self.solar.control_battery_reserve_soc(self.get_now())
+
     def solar_debug(self, event_type, data, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
         self.solar.log_state()
 
