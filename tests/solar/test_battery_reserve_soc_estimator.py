@@ -43,7 +43,7 @@ def test_estimate_soc_tomorrow_at_7_am_when_higher_than_current(
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_reserve_soc=BatterySoc(30.0))
+    state = replace(state, battery_reserve_soc=BatterySoc(50.0))
 
     now = datetime.fromisoformat("2025-10-10T22:05:00+00:00")
     high_tariff_hours = 6
@@ -63,6 +63,7 @@ def test_estimate_soc_tomorrow_at_7_am_when_higher_than_current(
     mock_production_forecast.hourly.assert_called_once_with(tomorrow_7_am, high_tariff_hours)
     mock_consumption_forecast.hourly.assert_called_once_with(tomorrow_7_am, high_tariff_hours)
 
+    # 4.0 kWh deficit (40%) + 20% min + 5% margin = 65%
     assert battery_reserve_soc == BatterySoc(65.0)
 
 
@@ -92,7 +93,8 @@ def test_estimate_soc_tomorrow_at_7_am_when_lower_than_current(
     mock_production_forecast.hourly.assert_called_once_with(tomorrow_7_am, high_tariff_hours)
     mock_consumption_forecast.hourly.assert_called_once_with(tomorrow_7_am, high_tariff_hours)
 
-    assert battery_reserve_soc is None
+    # 1.0 kWh deficit (10%) + 20% min + 5% margin = 35%
+    assert battery_reserve_soc == BatterySoc(35.0)
 
 
 def test_estimate_soc_today_at_4_pm_when_grid_charging_needed(

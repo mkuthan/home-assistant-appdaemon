@@ -78,7 +78,7 @@ class HvacApp(hass.Hass):
             cooling_estimator=CoolingEstimator(appdaemon_logger, configuration),
         )
 
-        self.log("Setting up HVAC control every 5 minutes")
+        self.log("Setting up HVAC control")
         self.run_every(self.control_scheduled, "00:00:00", 5 * 60)
 
         self.log("Setting up HVAC control triggers")

@@ -42,11 +42,6 @@ class BatteryReserveSocEstimator:
             )
             battery_reserve_soc_target = self._estimate_soc_at_4_pm(state, now, next_high_tariff_hours)
         else:
-            self.appdaemon_logger.log(
-                "Outside low tariff periods, set battery reserve SoC to %s",
-                self.configuration.battery_reserve_soc_min,
-                level=logging.DEBUG,
-            )
             battery_reserve_soc_target = self.configuration.battery_reserve_soc_min
 
         battery_reserve_soc_target = round(battery_reserve_soc_target)
@@ -55,6 +50,9 @@ class BatteryReserveSocEstimator:
             self.appdaemon_logger.log("Battery reserve SoC target: %s", battery_reserve_soc_target)
             return battery_reserve_soc_target
         else:
+            self.appdaemon_logger.log(
+                "Battery reserve SoC target unchanged: %s", battery_reserve_soc_target, level=logging.DEBUG
+            )
             return None
 
     def _estimate_soc_at_7_am(self, state: SolarState, now: datetime, next_high_tariff_hours: int) -> BatterySoc:
@@ -80,10 +78,7 @@ class BatteryReserveSocEstimator:
             self.configuration.battery_reserve_soc_max,
         )
 
-        # Don't set the battery reserve SoC target below the current value
-        battery_reserve_soc_target = max(battery_reserve_soc_target, state.battery_reserve_soc)
-
-        return round(battery_reserve_soc_target)
+        return battery_reserve_soc_target
 
     def _estimate_soc_at_4_pm(self, state: SolarState, now: datetime, next_high_tariff_hours: int) -> BatterySoc:
         if now.hour >= 16:
@@ -144,6 +139,13 @@ class BatteryReserveSocEstimator:
             return state.battery_reserve_soc
 
         # Don't set the battery reserve SoC target below the current value
-        battery_reserve_soc_target = max(battery_reserve_soc_target, state.battery_reserve_soc)
+        if battery_reserve_soc_target < state.battery_reserve_soc:
+            self.appdaemon_logger.log(
+                "Skip, battery_reserve_soc_target=%s < current_battery_reserve_soc=%s",
+                battery_reserve_soc_target,
+                state.battery_reserve_soc,
+                level=logging.DEBUG,
+            )
+            return state.battery_reserve_soc
 
-        return round(battery_reserve_soc_target)
+        return battery_reserve_soc_target

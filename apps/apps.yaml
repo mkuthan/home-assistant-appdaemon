@@ -2,6 +2,8 @@
 hvac_app:
   module: hvac_app
   class: HvacApp
+  log_level: !secret hvac_log_level
 solar_app:
   module: solar_app
   class: SolarApp
+  log_level: !secret solar_log_level

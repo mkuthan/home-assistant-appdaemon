@@ -90,7 +90,7 @@ class SolarApp(hass.Hass):
 
         self.listen_event(self.solar_debug, "SOLAR_DEBUG")
 
-        self.log("Setting up battery reserve SoC control every 5 minutes")
+        self.log("Setting up battery reserve SoC control")
         self.run_every(self.control_battery_reserve_soc, "00:00:00", 5 * 60)
 
         self.log("Setting up storage mode control triggers")
