@@ -33,11 +33,11 @@ class HvacApp(hass.Hass):
             # heating temperature
             heating_temp=Celsius(20.0),
             # heating temperature in eco mode
-            heating_temp_eco=Celsius(18.0),
+            heating_temp_eco=Celsius(19.0),
             # heating boost delta
             heating_boost_delta_temp=Celsius(1.0),
             # heating boost delta in eco mode
-            heating_boost_delta_temp_eco=Celsius(2.0),
+            heating_boost_delta_temp_eco=Celsius(1.0),
             # 5 minutes after low tariff starts to avoid clocks drift issues
             heating_boost_time_start_eco_on=time.fromisoformat("22:05:00"),
             # 15 minutes before high tariff starts because stop heating takes longer
