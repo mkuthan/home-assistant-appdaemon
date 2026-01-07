@@ -40,8 +40,8 @@ class HvacApp(hass.Hass):
             heating_boost_delta_temp_eco=Celsius(1.0),
             # 5 minutes after low tariff starts to avoid clocks drift issues
             heating_boost_time_start_eco_on=time.fromisoformat("22:05:00"),
-            # 15 minutes before high tariff starts because stop heating takes longer
-            heating_boost_time_end_eco_on=time.fromisoformat("06:45:00"),
+            # 5 minutes before high tariff starts to avoid clocks drift issues
+            heating_boost_time_end_eco_on=time.fromisoformat("06:55:00"),
             # 1 hour before wake up time
             heating_boost_time_start_eco_off=time.fromisoformat("05:00:00"),
             # 1 hour before bed time
