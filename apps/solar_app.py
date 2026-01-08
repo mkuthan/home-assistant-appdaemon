@@ -40,7 +40,7 @@ class SolarApp(hass.Hass):
             # upper limit when charging from the grid
             battery_reserve_soc_max=BatterySoc(90.0),
             # indoor temperature setpoint to estimate heating needs
-            temp_in=Celsius(21.0),
+            temp_in=Celsius(20.0),
             # outdoor temperature threshold to apply heating energy consumption in eco mode
             temp_out_threshold=Celsius(-1.0),
             # coefficient of heat-pump performance at 7 degrees Celsius
