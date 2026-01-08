@@ -33,7 +33,7 @@ class HvacApp(hass.Hass):
             # heating temperature
             heating_temp=Celsius(20.0),
             # heating temperature in eco mode
-            heating_temp_eco=Celsius(19.0),
+            heating_temp_eco=Celsius(18.0),
             # heating boost delta
             heating_boost_delta_temp=Celsius(1.0),
             # heating boost delta in eco mode
