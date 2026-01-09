@@ -3,7 +3,13 @@ from datetime import datetime
 from unittest.mock import ANY, Mock
 
 import pytest
-from entities.entities import COOLING_ENTITY, DHW_ENTITY, HEATING_ENTITY
+from entities.entities import (
+    COOLING_ENTITY,
+    DHW_ENTITY,
+    HEATING_CURVE_TARGET_HIGH_TEMP_ENTITY,
+    HEATING_CURVE_TARGET_LOW_TEMP_ENTITY,
+    HEATING_ENTITY,
+)
 from hvac.hvac import Hvac
 from hvac.hvac_configuration import HvacConfiguration
 from hvac.hvac_state import HvacState
@@ -69,16 +75,26 @@ def test_control(
     current_cooling_temperature = Celsius(26.0)
     new_cooling_temperature = Celsius(24.0)
 
+    current_heating_curve_high_temp = Celsius(28.0)
+    new_heating_curve_high_temp = Celsius(30.0)
+
+    current_heating_curve_low_temp = Celsius(24.0)
+    new_heating_curve_low_temp = Celsius(26.0)
+
     state = replace(
         state,
         dhw_target_temperature=current_dhw_temperature,
         heating_target_temperature=current_heating_temperature,
         cooling_target_temperature=current_cooling_temperature,
+        heating_curve_target_high_temp=current_heating_curve_high_temp,
+        heating_curve_target_low_temp=current_heating_curve_low_temp,
     )
     mock_state_factory.create.return_value = state
 
     mock_dhw_estimator.estimate_temperature.return_value = new_dhw_temperature
     mock_heating_estimator.estimate_temperature.return_value = new_heating_temperature
+    mock_heating_estimator.estimate_curve_high_temperature.return_value = new_heating_curve_high_temp
+    mock_heating_estimator.estimate_curve_low_temperature.return_value = new_heating_curve_low_temp
     mock_cooling_estimator.estimate_temperature.return_value = new_cooling_temperature
 
     now = datetime.now()
@@ -108,6 +124,20 @@ def test_control(
         temperature=new_cooling_temperature.value,
     )
 
+    mock_appdaemon_service.call_service.assert_any_call(
+        "number/set_value",
+        callback=ANY,
+        entity_id=HEATING_CURVE_TARGET_HIGH_TEMP_ENTITY,
+        value=new_heating_curve_high_temp.value,
+    )
+
+    mock_appdaemon_service.call_service.assert_any_call(
+        "number/set_value",
+        callback=ANY,
+        entity_id=HEATING_CURVE_TARGET_LOW_TEMP_ENTITY,
+        value=new_heating_curve_low_temp.value,
+    )
+
 
 def test_control_no_change(
     hvac: Hvac,
@@ -121,17 +151,23 @@ def test_control_no_change(
     current_dhw_temperature = Celsius(35.0)
     current_heating_temperature = Celsius(20.0)
     current_cooling_temperature = Celsius(26.0)
+    current_heating_curve_high_temp = Celsius(28.0)
+    current_heating_curve_low_temp = Celsius(24.0)
 
     state = replace(
         state,
         dhw_target_temperature=current_dhw_temperature,
         heating_target_temperature=current_heating_temperature,
         cooling_target_temperature=current_cooling_temperature,
+        heating_curve_target_high_temp=current_heating_curve_high_temp,
+        heating_curve_target_low_temp=current_heating_curve_low_temp,
     )
     mock_state_factory.create.return_value = state
 
     mock_dhw_estimator.estimate_temperature.return_value = None
     mock_heating_estimator.estimate_temperature.return_value = None
+    mock_heating_estimator.estimate_curve_high_temperature.return_value = None
+    mock_heating_estimator.estimate_curve_low_temperature.return_value = None
     mock_cooling_estimator.estimate_temperature.return_value = None
 
     now = datetime.now()
@@ -139,6 +175,8 @@ def test_control_no_change(
 
     mock_dhw_estimator.estimate_temperature.assert_called_once_with(state, now)
     mock_heating_estimator.estimate_temperature.assert_called_once_with(state, now)
+    mock_heating_estimator.estimate_curve_high_temperature.assert_called_once_with(state)
+    mock_heating_estimator.estimate_curve_low_temperature.assert_called_once_with(state)
     mock_cooling_estimator.estimate_temperature.assert_called_once_with(state, now)
 
     mock_appdaemon_service.call_service.assert_not_called()

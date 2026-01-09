@@ -45,5 +45,7 @@ def state() -> HvacState:
         heating_mode="",
         cooling_target_temperature=CELSIUS_ZERO,
         cooling_mode="",
+        heating_curve_target_high_temp=CELSIUS_ZERO,
+        heating_curve_target_low_temp=CELSIUS_ZERO,
         temperature_adjustment=CELSIUS_ZERO,
     )

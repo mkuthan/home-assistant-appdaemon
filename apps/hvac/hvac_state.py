@@ -13,4 +13,6 @@ class HvacState:
     heating_mode: str  # heating mode
     cooling_target_temperature: Celsius  # target cooling temperature
     cooling_mode: str  # cooling mode
+    heating_curve_target_high_temp: Celsius  # heating curve target high temperature
+    heating_curve_target_low_temp: Celsius  # heating curve target low temperature
     temperature_adjustment: Celsius  # temperature adjustment

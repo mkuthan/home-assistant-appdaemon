@@ -8,6 +8,8 @@ from entities.entities import (
     DHW_ENTITY,
     DHW_TEMPERATURE_ENTITY,
     ECO_MODE_ENTITY,
+    HEATING_CURVE_TARGET_HIGH_TEMP_ENTITY,
+    HEATING_CURVE_TARGET_LOW_TEMP_ENTITY,
     HEATING_ENTITY,
     INDOOR_TEMPERATURE_ENTITY,
     TEMPERATURE_ADJUSTMENT_ENTITY,
@@ -35,6 +37,11 @@ class DefaultHvacStateFactory:
         heating_mode = safe_str(self.appdaemon_state.get_state(HEATING_ENTITY))
         cooling_target_temperature = safe_float(self.appdaemon_state.get_state(COOLING_ENTITY, "temperature"))
         cooling_mode = safe_str(self.appdaemon_state.get_state(COOLING_ENTITY))
+        heating_curve_target_high_temp = safe_float(
+            self.appdaemon_state.get_state(HEATING_CURVE_TARGET_HIGH_TEMP_ENTITY)
+        )
+        heating_curve_target_low_temp = safe_float(
+            self.appdaemon_state.get_state(HEATING_CURVE_TARGET_LOW_TEMP_ENTITY))
         temperature_adjustment = safe_float(self.appdaemon_state.get_state(TEMPERATURE_ADJUSTMENT_ENTITY))
 
         missing_mandatory = [
@@ -48,6 +55,8 @@ class DefaultHvacStateFactory:
                 ("heating_mode", heating_mode),
                 ("cooling_target_temperature", cooling_target_temperature),
                 ("cooling_mode", cooling_mode),
+                ("heating_curve_target_high_temp", heating_curve_target_high_temp),
+                ("heating_curve_target_low_temp", heating_curve_target_low_temp),
                 ("temperature_adjustment", temperature_adjustment),
             ]
             if value is None
@@ -67,6 +76,8 @@ class DefaultHvacStateFactory:
         assert heating_mode is not None
         assert cooling_target_temperature is not None
         assert cooling_mode is not None
+        assert heating_curve_target_high_temp is not None
+        assert heating_curve_target_low_temp is not None
         assert temperature_adjustment is not None
 
         return HvacState(
@@ -78,5 +89,7 @@ class DefaultHvacStateFactory:
             heating_mode=heating_mode,
             cooling_target_temperature=Celsius(cooling_target_temperature),
             cooling_mode=cooling_mode,
+            heating_curve_target_high_temp=Celsius(heating_curve_target_high_temp),
+            heating_curve_target_low_temp=Celsius(heating_curve_target_low_temp),
             temperature_adjustment=Celsius(temperature_adjustment),
         )

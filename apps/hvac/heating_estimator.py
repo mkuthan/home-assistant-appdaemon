@@ -53,3 +53,37 @@ class HeatingEstimator:
             return temperature_target
         else:
             return None
+
+    def estimate_curve_high_temperature(self, state: HvacState) -> Celsius | None:
+        if not is_heating_enabled(state.heating_mode):
+            return None
+
+        if state.is_eco_mode:
+            temperature_target = self.configuration.heating_temp_eco
+        else:
+            temperature_target = self.configuration.heating_temp
+
+        temperature_high = temperature_target + Celsius(10.0)
+
+        if temperature_high != state.heating_curve_target_high_temp:
+            self.appdaemon_logger.log("Heating curve target high temperature: %s", temperature_high)
+            return temperature_high
+        else:
+            return None
+
+    def estimate_curve_low_temperature(self, state: HvacState) -> Celsius | None:
+        if not is_heating_enabled(state.heating_mode):
+            return None
+
+        if state.is_eco_mode:
+            temperature_target = self.configuration.heating_temp_eco
+        else:
+            temperature_target = self.configuration.heating_temp
+
+        temperature_low = temperature_target + Celsius(5.0)
+
+        if temperature_low != state.heating_curve_target_low_temp:
+            self.appdaemon_logger.log("Heating curve target low temperature: %s", temperature_low)
+            return temperature_low
+        else:
+            return None
