@@ -40,8 +40,7 @@ class DefaultHvacStateFactory:
         heating_curve_target_high_temp = safe_float(
             self.appdaemon_state.get_state(HEATING_CURVE_TARGET_HIGH_TEMP_ENTITY)
         )
-        heating_curve_target_low_temp = safe_float(
-            self.appdaemon_state.get_state(HEATING_CURVE_TARGET_LOW_TEMP_ENTITY))
+        heating_curve_target_low_temp = safe_float(self.appdaemon_state.get_state(HEATING_CURVE_TARGET_LOW_TEMP_ENTITY))
         temperature_adjustment = safe_float(self.appdaemon_state.get_state(TEMPERATURE_ADJUSTMENT_ENTITY))
 
         missing_mandatory = [
