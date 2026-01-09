@@ -7,6 +7,8 @@ from entities.entities import (
     DHW_ENTITY,
     DHW_TEMPERATURE_ENTITY,
     ECO_MODE_ENTITY,
+    HEATING_CURVE_TARGET_HIGH_TEMP_ENTITY,
+    HEATING_CURVE_TARGET_LOW_TEMP_ENTITY,
     HEATING_ENTITY,
     INDOOR_TEMPERATURE_ENTITY,
     TEMPERATURE_ADJUSTMENT_ENTITY,
@@ -26,6 +28,8 @@ def state_values() -> dict:
         f"{HEATING_ENTITY}:": "heat",
         f"{COOLING_ENTITY}:temperature": "24",
         f"{COOLING_ENTITY}:": "cool",
+        f"{HEATING_CURVE_TARGET_HIGH_TEMP_ENTITY}:": "28.0",
+        f"{HEATING_CURVE_TARGET_LOW_TEMP_ENTITY}:": "24.0",
         f"{TEMPERATURE_ADJUSTMENT_ENTITY}:": "0.0",
     }
 
@@ -50,6 +54,8 @@ def test_create(
     assert result.heating_mode == "heat"
     assert result.cooling_target_temperature == Celsius(24.0)
     assert result.cooling_mode == "cool"
+    assert result.heating_curve_target_high_temp == Celsius(28.0)
+    assert result.heating_curve_target_low_temp == Celsius(24.0)
     assert result.temperature_adjustment == Celsius(0.0)
 
 
@@ -64,6 +70,8 @@ def test_create(
         (f"{HEATING_ENTITY}:", "Can't create state, missing: heating_mode"),
         (f"{COOLING_ENTITY}:temperature", "Can't create state, missing: cooling_target_temperature"),
         (f"{COOLING_ENTITY}:", "Can't create state, missing: cooling_mode"),
+        (f"{HEATING_CURVE_TARGET_HIGH_TEMP_ENTITY}:", "Can't create state, missing: heating_curve_target_high_temp"),
+        (f"{HEATING_CURVE_TARGET_LOW_TEMP_ENTITY}:", "Can't create state, missing: heating_curve_target_low_temp"),
         (f"{TEMPERATURE_ADJUSTMENT_ENTITY}:", "Can't create state, missing: temperature_adjustment"),
     ],
 )
