@@ -15,11 +15,11 @@ from units.celsius import Celsius
         # Just before boost period
         ("2025-10-29T13:04:00+00:00", 48.0),
         # At boost start boundary
-        ("2025-10-29T13:05:00+00:00", 54.0),
+        ("2025-10-29T13:05:00+00:00", 52.0),
         # Inside boost period
-        ("2025-10-29T14:00:00+00:00", 54.0),
+        ("2025-10-29T14:00:00+00:00", 52.0),
         # At boost start deadline
-        ("2025-10-29T14:55:00+00:00", 54.0),
+        ("2025-10-29T14:55:00+00:00", 52.0),
         # Just after boost start deadline
         ("2025-10-29T14:56:00+00:00", 48.0),
         # At boost end boundary
@@ -37,7 +37,7 @@ def test_estimate_temperature_normal_mode(
 ) -> None:
     configuration = replace(
         configuration,
-        dhw_temp=Celsius(48.0),
+        dhw_temp_eco_off=Celsius(48.0),
         dhw_delta_temp=Celsius(6.0),
         dhw_boost_start=time.fromisoformat("13:05:00"),
         dhw_boost_end=time.fromisoformat("15:55:00"),
@@ -57,11 +57,11 @@ def test_estimate_temperature_normal_mode(
         # Just before boost period
         ("2025-10-29T13:04:00+00:00", 40.0),
         # At boost start boundary
-        ("2025-10-29T13:05:00+00:00", 46.0),
+        ("2025-10-29T13:05:00+00:00", 44.0),
         # Inside boost period
-        ("2025-10-29T14:00:00+00:00", 46.0),
+        ("2025-10-29T14:00:00+00:00", 44.0),
         # At boost start deadline
-        ("2025-10-29T14:55:00+00:00", 46.0),
+        ("2025-10-29T14:55:00+00:00", 44.0),
         # Just after boost start deadline
         ("2025-10-29T14:56:00+00:00", 40.0),
         # At boost end boundary
@@ -79,7 +79,7 @@ def test_estimate_temperature_eco_mode(
 ) -> None:
     configuration = replace(
         configuration,
-        dhw_temp_eco=Celsius(40.0),
+        dhw_temp_eco_on=Celsius(40.0),
         dhw_delta_temp=Celsius(6.0),
         dhw_boost_start=time.fromisoformat("13:05:00"),
         dhw_boost_end=time.fromisoformat("15:55:00"),
@@ -100,7 +100,7 @@ def test_estimate_temperature_no_change(
 ) -> None:
     configuration = replace(
         configuration,
-        dhw_temp=Celsius(48.0),
+        dhw_temp_eco_off=Celsius(48.0),
         dhw_boost_start=time.fromisoformat("13:05:00"),
         dhw_boost_end=time.fromisoformat("15:55:00"),
     )
@@ -120,7 +120,7 @@ def test_estimate_temperature_no_boost_when_temp_delta_too_small(
 ) -> None:
     configuration = replace(
         configuration,
-        dhw_temp=Celsius(48.0),
+        dhw_temp_eco_off=Celsius(48.0),
         dhw_delta_temp=Celsius(6.0),
         dhw_boost_start=time.fromisoformat("13:05:00"),
         dhw_boost_end=time.fromisoformat("15:55:00"),
