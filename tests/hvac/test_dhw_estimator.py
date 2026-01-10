@@ -38,13 +38,13 @@ def test_estimate_temperature_normal_mode(
     configuration = replace(
         configuration,
         dhw_temp_eco_off=Celsius(48.0),
-        dhw_delta_temp=Celsius(6.0),
+        dhw_delta_temp_eco_off=Celsius(4.0),
         dhw_boost_start=time.fromisoformat("13:05:00"),
         dhw_boost_end=time.fromisoformat("15:55:00"),
     )
     dhw_estimator = DhwEstimator(mock_appdaemon_logger, configuration)
 
-    state = replace(state, is_eco_mode=False)
+    state = replace(state, is_eco_mode=False, dhw_actual_temperature=Celsius(47.0))
 
     result = dhw_estimator.estimate_temperature(state, datetime.fromisoformat(now))
 
@@ -57,11 +57,11 @@ def test_estimate_temperature_normal_mode(
         # Just before boost period
         ("2025-10-29T13:04:00+00:00", 40.0),
         # At boost start boundary
-        ("2025-10-29T13:05:00+00:00", 44.0),
+        ("2025-10-29T13:05:00+00:00", 48.0),
         # Inside boost period
-        ("2025-10-29T14:00:00+00:00", 44.0),
+        ("2025-10-29T14:00:00+00:00", 48.0),
         # At boost start deadline
-        ("2025-10-29T14:55:00+00:00", 44.0),
+        ("2025-10-29T14:55:00+00:00", 48.0),
         # Just after boost start deadline
         ("2025-10-29T14:56:00+00:00", 40.0),
         # At boost end boundary
@@ -80,13 +80,13 @@ def test_estimate_temperature_eco_mode(
     configuration = replace(
         configuration,
         dhw_temp_eco_on=Celsius(40.0),
-        dhw_delta_temp=Celsius(6.0),
+        dhw_delta_temp_eco_on=Celsius(8.0),
         dhw_boost_start=time.fromisoformat("13:05:00"),
         dhw_boost_end=time.fromisoformat("15:55:00"),
     )
     dhw_estimator = DhwEstimator(mock_appdaemon_logger, configuration)
 
-    state = replace(state, is_eco_mode=True)
+    state = replace(state, is_eco_mode=True, dhw_actual_temperature=Celsius(39.0))
 
     result = dhw_estimator.estimate_temperature(state, datetime.fromisoformat(now))
 
@@ -101,6 +101,7 @@ def test_estimate_temperature_no_change(
     configuration = replace(
         configuration,
         dhw_temp_eco_off=Celsius(48.0),
+        dhw_delta_temp_eco_off=Celsius(4.0),
         dhw_boost_start=time.fromisoformat("13:05:00"),
         dhw_boost_end=time.fromisoformat("15:55:00"),
     )
@@ -113,7 +114,7 @@ def test_estimate_temperature_no_change(
     assert result is None
 
 
-def test_estimate_temperature_no_boost_when_temp_delta_too_small(
+def test_estimate_temperature_no_boost_when_actual_temp_too_high(
     mock_appdaemon_logger: Mock,
     configuration: HvacConfiguration,
     state: HvacState,
@@ -121,15 +122,69 @@ def test_estimate_temperature_no_boost_when_temp_delta_too_small(
     configuration = replace(
         configuration,
         dhw_temp_eco_off=Celsius(48.0),
-        dhw_delta_temp=Celsius(6.0),
+        dhw_delta_temp_eco_off=Celsius(4.0),
         dhw_boost_start=time.fromisoformat("13:05:00"),
         dhw_boost_end=time.fromisoformat("15:55:00"),
     )
     dhw_estimator = DhwEstimator(mock_appdaemon_logger, configuration)
 
-    state = replace(state, is_eco_mode=False, dhw_actual_temperature=Celsius(43.0))
+    state = replace(state, is_eco_mode=False, dhw_actual_temperature=Celsius(48.0))
 
     inside_boost_datetime = datetime.fromisoformat("2025-10-29T14:00:00+00:00")
     result = dhw_estimator.estimate_temperature(state, inside_boost_datetime)
 
     assert result == Celsius(48.0)
+
+
+def test_estimate_delta_temperature_normal_mode(
+    mock_appdaemon_logger: Mock,
+    configuration: HvacConfiguration,
+    state: HvacState,
+) -> None:
+    configuration = replace(
+        configuration,
+        dhw_delta_temp_eco_off=Celsius(4.0),
+    )
+    dhw_estimator = DhwEstimator(mock_appdaemon_logger, configuration)
+
+    state = replace(state, is_eco_mode=False, dhw_delta_temperature=Celsius(3.0))
+
+    result = dhw_estimator.estimate_delta_temperature(state)
+
+    assert result == Celsius(4.0)
+
+
+def test_estimate_delta_temperature_eco_mode(
+    mock_appdaemon_logger: Mock,
+    configuration: HvacConfiguration,
+    state: HvacState,
+) -> None:
+    configuration = replace(
+        configuration,
+        dhw_delta_temp_eco_on=Celsius(8.0),
+    )
+    dhw_estimator = DhwEstimator(mock_appdaemon_logger, configuration)
+
+    state = replace(state, is_eco_mode=True, dhw_delta_temperature=Celsius(3.0))
+
+    result = dhw_estimator.estimate_delta_temperature(state)
+
+    assert result == Celsius(8.0)
+
+
+def test_estimate_delta_temperature_no_change(
+    mock_appdaemon_logger: Mock,
+    configuration: HvacConfiguration,
+    state: HvacState,
+) -> None:
+    configuration = replace(
+        configuration,
+        dhw_delta_temp_eco_off=Celsius(4.0),
+    )
+    dhw_estimator = DhwEstimator(mock_appdaemon_logger, configuration)
+
+    state = replace(state, is_eco_mode=False, dhw_delta_temperature=Celsius(4.0))
+
+    result = dhw_estimator.estimate_delta_temperature(state)
+
+    assert result is None

@@ -13,6 +13,8 @@ HEATING_ENTITY = "climate.panasonic_heat_pump_main_z1_temp"
 MAIN_TEMP_ENTITY = "sensor.panasonic_heat_pump_main_z1_temp"
 COOLING_ENTITY = "climate.panasonic_heat_pump_main_z1_temp_cooling"
 
+DHW_DELTA_TEMP_ENTITY = "number.panasonic_heat_pump_main_dhw_heat_delta"
+
 HEATING_CURVE_TARGET_HIGH_TEMP_ENTITY = "number.panasonic_heat_pump_main_z1_heat_curve_target_high_temp"
 HEATING_CURVE_TARGET_LOW_TEMP_ENTITY = "number.panasonic_heat_pump_main_z1_heat_curve_target_low_temp"
 

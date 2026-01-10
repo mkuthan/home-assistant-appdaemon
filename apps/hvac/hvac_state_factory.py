@@ -5,6 +5,7 @@ from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from appdaemon_protocols.appdaemon_state import AppdaemonState
 from entities.entities import (
     COOLING_ENTITY,
+    DHW_DELTA_TEMP_ENTITY,
     DHW_ENTITY,
     DHW_TEMPERATURE_ENTITY,
     ECO_MODE_ENTITY,
@@ -32,6 +33,7 @@ class DefaultHvacStateFactory:
         is_eco_mode = safe_bool(self.appdaemon_state.get_state(ECO_MODE_ENTITY))
         dhw_actual_temperature = safe_float(self.appdaemon_state.get_state(DHW_TEMPERATURE_ENTITY))
         dhw_target_temperature = safe_float(self.appdaemon_state.get_state(DHW_ENTITY, "temperature"))
+        dhw_delta_temperature = safe_float(self.appdaemon_state.get_state(DHW_DELTA_TEMP_ENTITY))
         indoor_actual_temperature = safe_float(self.appdaemon_state.get_state(INDOOR_TEMPERATURE_ENTITY))
         heating_target_temperature = safe_float(self.appdaemon_state.get_state(HEATING_ENTITY, "temperature"))
         heating_mode = safe_str(self.appdaemon_state.get_state(HEATING_ENTITY))
@@ -49,6 +51,7 @@ class DefaultHvacStateFactory:
                 ("is_eco_mode", is_eco_mode),
                 ("dhw_actual_temperature", dhw_actual_temperature),
                 ("dhw_target_temperature", dhw_target_temperature),
+                ("dhw_delta_temperature", dhw_delta_temperature),
                 ("indoor_actual_temperature", indoor_actual_temperature),
                 ("heating_target_temperature", heating_target_temperature),
                 ("heating_mode", heating_mode),
@@ -70,6 +73,7 @@ class DefaultHvacStateFactory:
         assert is_eco_mode is not None
         assert dhw_actual_temperature is not None
         assert dhw_target_temperature is not None
+        assert dhw_delta_temperature is not None
         assert indoor_actual_temperature is not None
         assert heating_target_temperature is not None
         assert heating_mode is not None
@@ -83,6 +87,7 @@ class DefaultHvacStateFactory:
             is_eco_mode=is_eco_mode,
             dhw_actual_temperature=Celsius(dhw_actual_temperature),
             dhw_target_temperature=Celsius(dhw_target_temperature),
+            dhw_delta_temperature=Celsius(dhw_delta_temperature),
             indoor_actual_temperature=Celsius(indoor_actual_temperature),
             heating_target_temperature=Celsius(heating_target_temperature),
             heating_mode=heating_mode,

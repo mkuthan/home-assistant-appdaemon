@@ -20,12 +20,14 @@ class HvacApp(hass.Hass):
 
         configuration = HvacConfiguration(
             time_zone=self.get_timezone(),
-            # domestic hot water temperature
+            # domestic hot water temperature in normal mode
             dhw_temp_eco_off=Celsius(48.0),
             # domestic hot water temperature in eco mode
             dhw_temp_eco_on=Celsius(40.0),
-            # when to start boosting DHW depends on temperature difference
-            dhw_delta_temp=Celsius(6.0),
+            # DHW delta temperature in normal mode
+            dhw_delta_temp_eco_off=Celsius(4.0),
+            # DHW delta temperature in eco mode
+            dhw_delta_temp_eco_on=Celsius(8.0),
             # 5 minutes after low tariff starts to avoid clocks drift issues
             dhw_boost_start=time.fromisoformat("13:05:00"),
             # 5 minutes before high tariff starts to avoid clocks drift issues
@@ -36,8 +38,8 @@ class HvacApp(hass.Hass):
             heating_temp_eco_on=Celsius(18.0),
             # 5 minutes after low tariff starts to avoid clocks drift issues
             heating_boost_time_start_eco_on=time.fromisoformat("22:05:00"),
-            # 5 minutes before high tariff starts to avoid clocks drift issues
-            heating_boost_time_end_eco_on=time.fromisoformat("06:55:00"),
+            # 12 hours of boost should be enough to cover next period
+            heating_boost_time_end_eco_on=time.fromisoformat("10:05:00"),
             # 1 hour before wake up time
             heating_boost_time_start_eco_off=time.fromisoformat("05:00:00"),
             # 1 hour before bed time
