@@ -8,6 +8,7 @@ class HvacState:
     is_eco_mode: bool  # eco mode status
     dhw_actual_temperature: Celsius  # actual domestic hot water temperature
     dhw_target_temperature: Celsius  # target domestic hot water temperature
+    dhw_delta_temperature: Celsius  # domestic hot water delta temperature
     indoor_actual_temperature: Celsius  # actual indoor temperature
     heating_target_temperature: Celsius  # target heating temperature
     heating_mode: str  # heating mode

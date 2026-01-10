@@ -10,7 +10,8 @@ class HvacConfiguration:
 
     dhw_temp_eco_off: Celsius
     dhw_temp_eco_on: Celsius
-    dhw_delta_temp: Celsius
+    dhw_delta_temp_eco_off: Celsius
+    dhw_delta_temp_eco_on: Celsius
     dhw_boost_start: time
     dhw_boost_end: time
 

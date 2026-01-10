@@ -5,6 +5,7 @@ from unittest.mock import ANY, Mock
 import pytest
 from entities.entities import (
     COOLING_ENTITY,
+    DHW_DELTA_TEMP_ENTITY,
     DHW_ENTITY,
     HEATING_CURVE_TARGET_HIGH_TEMP_ENTITY,
     HEATING_CURVE_TARGET_LOW_TEMP_ENTITY,
@@ -69,6 +70,9 @@ def test_control(
     current_dhw_temperature = Celsius(35.0)
     new_dhw_temperature = Celsius(45.0)
 
+    current_dhw_delta_temperature = Celsius(4.0)
+    new_dhw_delta_temperature = Celsius(6.0)
+
     current_heating_temperature = Celsius(20.0)
     new_heating_temperature = Celsius(22.0)
 
@@ -84,6 +88,7 @@ def test_control(
     state = replace(
         state,
         dhw_target_temperature=current_dhw_temperature,
+        dhw_delta_temperature=current_dhw_delta_temperature,
         heating_target_temperature=current_heating_temperature,
         cooling_target_temperature=current_cooling_temperature,
         heating_curve_target_high_temp=current_heating_curve_high_temp,
@@ -92,6 +97,7 @@ def test_control(
     mock_state_factory.create.return_value = state
 
     mock_dhw_estimator.estimate_temperature.return_value = new_dhw_temperature
+    mock_dhw_estimator.estimate_delta_temperature.return_value = new_dhw_delta_temperature
     mock_heating_estimator.estimate_temperature.return_value = new_heating_temperature
     mock_heating_estimator.estimate_curve_high_temperature.return_value = new_heating_curve_high_temp
     mock_heating_estimator.estimate_curve_low_temperature.return_value = new_heating_curve_low_temp
@@ -101,7 +107,10 @@ def test_control(
     hvac.control(now)
 
     mock_dhw_estimator.estimate_temperature.assert_called_once_with(state, now)
+    mock_dhw_estimator.estimate_delta_temperature.assert_called_once_with(state)
     mock_heating_estimator.estimate_temperature.assert_called_once_with(state, now)
+    mock_heating_estimator.estimate_curve_high_temperature.assert_called_once_with(state)
+    mock_heating_estimator.estimate_curve_low_temperature.assert_called_once_with(state)
 
     mock_appdaemon_service.call_service.assert_any_call(
         "water_heater/set_temperature",
@@ -138,6 +147,13 @@ def test_control(
         value=new_heating_curve_low_temp.value,
     )
 
+    mock_appdaemon_service.call_service.assert_any_call(
+        "number/set_value",
+        callback=ANY,
+        entity_id=DHW_DELTA_TEMP_ENTITY,
+        value=new_dhw_delta_temperature.value,
+    )
+
 
 def test_control_no_change(
     hvac: Hvac,
@@ -149,6 +165,7 @@ def test_control_no_change(
     mock_cooling_estimator: Mock,
 ) -> None:
     current_dhw_temperature = Celsius(35.0)
+    current_dhw_delta_temperature = Celsius(4.0)
     current_heating_temperature = Celsius(20.0)
     current_cooling_temperature = Celsius(26.0)
     current_heating_curve_high_temp = Celsius(28.0)
@@ -157,6 +174,7 @@ def test_control_no_change(
     state = replace(
         state,
         dhw_target_temperature=current_dhw_temperature,
+        dhw_delta_temperature=current_dhw_delta_temperature,
         heating_target_temperature=current_heating_temperature,
         cooling_target_temperature=current_cooling_temperature,
         heating_curve_target_high_temp=current_heating_curve_high_temp,
@@ -165,6 +183,7 @@ def test_control_no_change(
     mock_state_factory.create.return_value = state
 
     mock_dhw_estimator.estimate_temperature.return_value = None
+    mock_dhw_estimator.estimate_delta_temperature.return_value = None
     mock_heating_estimator.estimate_temperature.return_value = None
     mock_heating_estimator.estimate_curve_high_temperature.return_value = None
     mock_heating_estimator.estimate_curve_low_temperature.return_value = None
@@ -174,6 +193,7 @@ def test_control_no_change(
     hvac.control(now)
 
     mock_dhw_estimator.estimate_temperature.assert_called_once_with(state, now)
+    mock_dhw_estimator.estimate_delta_temperature.assert_called_once_with(state)
     mock_heating_estimator.estimate_temperature.assert_called_once_with(state, now)
     mock_heating_estimator.estimate_curve_high_temperature.assert_called_once_with(state)
     mock_heating_estimator.estimate_curve_low_temperature.assert_called_once_with(state)

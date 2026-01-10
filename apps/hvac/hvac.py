@@ -5,6 +5,7 @@ from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from appdaemon_protocols.appdaemon_service import AppdaemonService
 from entities.entities import (
     COOLING_ENTITY,
+    DHW_DELTA_TEMP_ENTITY,
     DHW_ENTITY,
     HEATING_CURVE_TARGET_HIGH_TEMP_ENTITY,
     HEATING_CURVE_TARGET_LOW_TEMP_ENTITY,
@@ -77,6 +78,12 @@ class Hvac:
             )
             self._set_heating_curve_target_low_temp(heating_curve_low_temp)
 
+        if (dhw_delta_temperature := self.dhw_estimator.estimate_delta_temperature(state)) is not None:
+            self.appdaemon_logger.log(
+                "Change DHW delta temperature from %s to %s", state.dhw_delta_temperature, dhw_delta_temperature
+            )
+            self._set_dhw_delta_temperature(dhw_delta_temperature)
+
     def _set_dhw_temperature(self, temperature: Celsius) -> None:
         self.appdaemon_service.call_service(
             "water_heater/set_temperature",
@@ -114,5 +121,13 @@ class Hvac:
             "number/set_value",
             callback=LoggingAppdaemonCallback(self.appdaemon_logger),
             entity_id=HEATING_CURVE_TARGET_LOW_TEMP_ENTITY,
+            value=temperature.value,
+        )
+
+    def _set_dhw_delta_temperature(self, temperature: Celsius) -> None:
+        self.appdaemon_service.call_service(
+            "number/set_value",
+            callback=LoggingAppdaemonCallback(self.appdaemon_logger),
+            entity_id=DHW_DELTA_TEMP_ENTITY,
             value=temperature.value,
         )
