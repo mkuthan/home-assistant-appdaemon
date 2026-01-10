@@ -33,8 +33,7 @@ def test_estimate_temperature_normal_mode(
 ) -> None:
     configuration = replace(
         configuration,
-        cooling_temp=Celsius(24.0),
-        cooling_boost_delta_temp=Celsius(2.0),
+        cooling_temp_eco_off=Celsius(24.0),
         cooling_boost_time_start_eco_off=time.fromisoformat("10:00:00"),
         cooling_boost_time_end_eco_off=time.fromisoformat("18:00:00"),
     )
@@ -71,8 +70,7 @@ def test_estimate_temperature_eco_mode(
 ) -> None:
     configuration = replace(
         configuration,
-        cooling_temp_eco=Celsius(26.0),
-        cooling_boost_delta_temp_eco=Celsius(2.0),
+        cooling_temp_eco_on=Celsius(26.0),
         cooling_boost_time_start_eco_on=time.fromisoformat("12:00:00"),
         cooling_boost_time_end_eco_on=time.fromisoformat("16:00:00"),
     )
@@ -92,7 +90,7 @@ def test_estimate_temperature_adjustment(
 ) -> None:
     configuration = replace(
         configuration,
-        cooling_temp=Celsius(24.0),
+        cooling_temp_eco_off=Celsius(24.0),
         cooling_boost_time_start_eco_off=time.fromisoformat("10:00:00"),
         cooling_boost_time_end_eco_off=time.fromisoformat("18:00:00"),
     )
@@ -119,7 +117,7 @@ def test_estimate_temperature_no_change(
 ) -> None:
     configuration = replace(
         configuration,
-        cooling_temp=Celsius(24.0),
+        cooling_temp_eco_off=Celsius(24.0),
         cooling_boost_time_start_eco_off=time.fromisoformat("10:00:00"),
         cooling_boost_time_end_eco_off=time.fromisoformat("18:00:00"),
     )

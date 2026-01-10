@@ -33,8 +33,7 @@ def test_estimate_temperature_normal_mode(
 ) -> None:
     configuration = replace(
         configuration,
-        heating_temp=Celsius(21.0),
-        heating_boost_delta_temp=Celsius(1.0),
+        heating_temp_eco_off=Celsius(21.0),
         heating_boost_time_start_eco_off=time.fromisoformat("05:00:00"),
         heating_boost_time_end_eco_off=time.fromisoformat("21:00:00"),
     )
@@ -53,11 +52,11 @@ def test_estimate_temperature_normal_mode(
         # Just before boost period
         ("2025-10-29T22:04:00+00:00", 18.0),
         # At boost start boundary
-        ("2025-10-29T22:05:00+00:00", 20.0),
+        ("2025-10-29T22:05:00+00:00", 19.0),
         # Inside boost period
-        ("2025-10-23T02:00:00+00:00", 20.0),
+        ("2025-10-23T02:00:00+00:00", 19.0),
         # At boost end boundary
-        ("2025-10-30T06:55:00+00:00", 20.0),
+        ("2025-10-30T06:55:00+00:00", 19.0),
         # Just after boost period
         ("2025-10-30T06:56:00+00:00", 18.0),
     ],
@@ -71,8 +70,7 @@ def test_estimate_temperature_eco_mode(
 ) -> None:
     configuration = replace(
         configuration,
-        heating_temp_eco=Celsius(18.0),
-        heating_boost_delta_temp_eco=Celsius(2.0),
+        heating_temp_eco_on=Celsius(18.0),
         heating_boost_time_start_eco_on=time.fromisoformat("22:05:00"),
         heating_boost_time_end_eco_on=time.fromisoformat("06:55:00"),
     )
@@ -92,7 +90,7 @@ def test_estimate_temperature_adjustment(
 ) -> None:
     configuration = replace(
         configuration,
-        heating_temp=Celsius(21.0),
+        heating_temp_eco_off=Celsius(21.0),
         heating_boost_time_start_eco_off=time.fromisoformat("05:00:00"),
         heating_boost_time_end_eco_off=time.fromisoformat("21:00:00"),
     )
@@ -119,7 +117,7 @@ def test_estimate_temperature_no_change(
 ) -> None:
     configuration = replace(
         configuration,
-        heating_temp=Celsius(21.0),
+        heating_temp_eco_off=Celsius(21.0),
         heating_boost_time_start_eco_off=time.fromisoformat("05:00:00"),
         heating_boost_time_end_eco_off=time.fromisoformat("21:00:00"),
     )
