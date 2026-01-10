@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
@@ -51,6 +52,9 @@ class HeatingEstimator:
             )
             return temperature_target
         else:
+            self.appdaemon_logger.log(
+                "Heating temperature target unchanged: %s", temperature_target, level=logging.DEBUG
+            )
             return None
 
     def estimate_curve_high_temperature(self, state: HvacState) -> Celsius | None:
@@ -68,6 +72,9 @@ class HeatingEstimator:
             self.appdaemon_logger.log("Heating curve target high temperature: %s", temperature_high)
             return temperature_high
         else:
+            self.appdaemon_logger.log(
+                "Heating curve target high temperature unchanged: %s", temperature_high, level=logging.DEBUG
+            )
             return None
 
     def estimate_curve_low_temperature(self, state: HvacState) -> Celsius | None:
@@ -85,4 +92,7 @@ class HeatingEstimator:
             self.appdaemon_logger.log("Heating curve target low temperature: %s", temperature_low)
             return temperature_low
         else:
+            self.appdaemon_logger.log(
+                "Heating curve target low temperature unchanged: %s", temperature_low, level=logging.DEBUG
+            )
             return None
