@@ -25,9 +25,9 @@ class HvacApp(hass.Hass):
             # domestic hot water temperature in eco mode
             dhw_temp_eco_on=Celsius(40.0),
             # DHW delta temperature in normal mode
-            dhw_delta_temp_eco_off=Celsius(4.0),
+            dhw_delta_temp_eco_off=Celsius(-4.0),
             # DHW delta temperature in eco mode
-            dhw_delta_temp_eco_on=Celsius(8.0),
+            dhw_delta_temp_eco_on=Celsius(-8.0),
             # 5 minutes after low tariff starts to avoid clocks drift issues
             dhw_boost_start=time.fromisoformat("13:05:00"),
             # 5 minutes before high tariff starts to avoid clocks drift issues
