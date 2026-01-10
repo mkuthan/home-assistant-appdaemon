@@ -43,7 +43,7 @@ class DhwEstimator:
         should_apply_boost = is_boost_active or (needs_temperature_boost and in_boost_start_window)
 
         if in_boost_window and should_apply_boost:
-            temperature_target += delta_target
+            temperature_target -= delta_target
 
         temperature_target = round(temperature_target)
 

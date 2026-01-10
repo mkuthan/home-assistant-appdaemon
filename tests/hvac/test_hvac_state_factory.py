@@ -24,7 +24,7 @@ def state_values() -> dict:
         f"{ECO_MODE_ENTITY}:": "off",
         f"{DHW_TEMPERATURE_ENTITY}:": "35.0",
         f"{DHW_ENTITY}:temperature": "40.0",
-        f"{DHW_DELTA_TEMP_ENTITY}:": "4.0",
+        f"{DHW_DELTA_TEMP_ENTITY}:": "-4.0",
         f"{INDOOR_TEMPERATURE_ENTITY}:": "20.0",
         f"{HEATING_ENTITY}:temperature": "21",
         f"{HEATING_ENTITY}:": "heat",
@@ -51,7 +51,7 @@ def test_create(
     assert result.is_eco_mode is False
     assert result.dhw_actual_temperature == Celsius(35.0)
     assert result.dhw_target_temperature == Celsius(40.0)
-    assert result.dhw_delta_temperature == Celsius(4.0)
+    assert result.dhw_delta_temperature == Celsius(-4.0)
     assert result.indoor_actual_temperature == Celsius(20.0)
     assert result.heating_target_temperature == Celsius(21.0)
     assert result.heating_mode == "heat"
