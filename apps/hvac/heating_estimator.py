@@ -10,9 +10,9 @@ from utils.time_utils import is_time_in_range
 
 
 class HeatingEstimator:
+    _HEATING_TARGET_OFFSET = Celsius(1.0)
     _HEATING_CURVE_OFFSET_HIGH = Celsius(10.0)
     _HEATING_CURVE_OFFSET_LOW = Celsius(5.0)
-    _HEATING_TARGET_OFFSET = Celsius(1.0)
 
     def __init__(
         self,
@@ -68,8 +68,16 @@ class HeatingEstimator:
 
         temperature_high = temperature_target + self._HEATING_CURVE_OFFSET_HIGH
 
+        temperature_high += state.temperature_adjustment
+
+        temperature_high = round(temperature_high)
+
         if temperature_high != state.heating_curve_target_high_temp:
-            self.appdaemon_logger.log("Heating curve target high temperature: %s", temperature_high)
+            self.appdaemon_logger.log(
+                "Heating curve target high temperature: %s, adjustment: %s",
+                temperature_high,
+                state.temperature_adjustment,
+            )
             return temperature_high
         else:
             self.appdaemon_logger.log(
@@ -88,8 +96,16 @@ class HeatingEstimator:
 
         temperature_low = temperature_target + self._HEATING_CURVE_OFFSET_LOW
 
+        temperature_low += state.temperature_adjustment
+
+        temperature_low = round(temperature_low)
+
         if temperature_low != state.heating_curve_target_low_temp:
-            self.appdaemon_logger.log("Heating curve target low temperature: %s", temperature_low)
+            self.appdaemon_logger.log(
+                "Heating curve target low temperature: %s, adjustment: %s",
+                temperature_low,
+                state.temperature_adjustment,
+            )
             return temperature_low
         else:
             self.appdaemon_logger.log(

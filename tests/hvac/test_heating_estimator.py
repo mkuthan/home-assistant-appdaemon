@@ -144,3 +144,153 @@ def test_estimate_temperature_heating_mode_off(
     result = heating_estimator.estimate_temperature(state, any_datetime)
 
     assert result is None
+
+
+def test_estimate_curve_high_temperature_normal_mode(
+    mock_appdaemon_logger: Mock,
+    configuration: HvacConfiguration,
+    state: HvacState,
+) -> None:
+    configuration = replace(
+        configuration,
+        heating_temp_eco_off=Celsius(21.0),
+    )
+    heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
+
+    state = replace(state, heating_mode="heat", is_eco_mode=False)
+
+    result = heating_estimator.estimate_curve_high_temperature(state)
+
+    # 21 + 10 offset
+    assert result == Celsius(31.0)
+
+
+def test_estimate_curve_high_temperature_eco_mode(
+    mock_appdaemon_logger: Mock,
+    configuration: HvacConfiguration,
+    state: HvacState,
+) -> None:
+    configuration = replace(
+        configuration,
+        heating_temp_eco_on=Celsius(18.0),
+    )
+    heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
+
+    state = replace(state, heating_mode="heat", is_eco_mode=True)
+
+    result = heating_estimator.estimate_curve_high_temperature(state)
+
+    # 18 + 10 offset
+    assert result == Celsius(28.0)
+
+
+def test_estimate_curve_high_temperature_no_change(
+    mock_appdaemon_logger: Mock,
+    configuration: HvacConfiguration,
+    state: HvacState,
+) -> None:
+    configuration = replace(
+        configuration,
+        heating_temp_eco_off=Celsius(21.0),
+    )
+    heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
+
+    state = replace(
+        state,
+        heating_mode="heat",
+        is_eco_mode=False,
+        heating_curve_target_high_temp=Celsius(31.0),
+    )
+
+    result = heating_estimator.estimate_curve_high_temperature(state)
+
+    assert result is None
+
+
+def test_estimate_curve_high_temperature_heating_mode_off(
+    mock_appdaemon_logger: Mock,
+    configuration: HvacConfiguration,
+    state: HvacState,
+) -> None:
+    heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
+
+    state = replace(state, heating_mode="off")
+
+    result = heating_estimator.estimate_curve_high_temperature(state)
+
+    assert result is None
+
+
+def test_estimate_curve_low_temperature_normal_mode(
+    mock_appdaemon_logger: Mock,
+    configuration: HvacConfiguration,
+    state: HvacState,
+) -> None:
+    configuration = replace(
+        configuration,
+        heating_temp_eco_off=Celsius(21.0),
+    )
+    heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
+
+    state = replace(state, heating_mode="heat", is_eco_mode=False)
+
+    result = heating_estimator.estimate_curve_low_temperature(state)
+
+    # 21 + 5 offset
+    assert result == Celsius(26.0)
+
+
+def test_estimate_curve_low_temperature_eco_mode(
+    mock_appdaemon_logger: Mock,
+    configuration: HvacConfiguration,
+    state: HvacState,
+) -> None:
+    configuration = replace(
+        configuration,
+        heating_temp_eco_on=Celsius(18.0),
+    )
+    heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
+
+    state = replace(state, heating_mode="heat", is_eco_mode=True)
+
+    result = heating_estimator.estimate_curve_low_temperature(state)
+
+    # 18 + 5 offset
+    assert result == Celsius(23.0)
+
+
+def test_estimate_curve_low_temperature_no_change(
+    mock_appdaemon_logger: Mock,
+    configuration: HvacConfiguration,
+    state: HvacState,
+) -> None:
+    configuration = replace(
+        configuration,
+        heating_temp_eco_off=Celsius(21.0),
+    )
+    heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
+
+    state = replace(
+        state,
+        heating_mode="heat",
+        is_eco_mode=False,
+        heating_curve_target_low_temp=Celsius(26.0),
+    )
+
+    result = heating_estimator.estimate_curve_low_temperature(state)
+
+    assert result is None
+
+
+def test_estimate_curve_low_temperature_heating_mode_off(
+    mock_appdaemon_logger: Mock,
+    configuration: HvacConfiguration,
+    state: HvacState,
+) -> None:
+    heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
+
+    state = replace(state, heating_mode="off")
+
+    result = heating_estimator.estimate_curve_low_temperature(state)
+
+    assert result is None
