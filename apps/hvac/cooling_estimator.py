@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
@@ -49,4 +50,7 @@ class CoolingEstimator:
             )
             return temperature_target
         else:
+            self.appdaemon_logger.log(
+                "Cooling temperature target unchanged: %s", temperature_target, level=logging.DEBUG
+            )
             return None

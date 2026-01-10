@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
@@ -49,4 +50,5 @@ class DhwEstimator:
             self.appdaemon_logger.log("DHW temperature target: %s", temperature_target)
             return temperature_target
         else:
+            self.appdaemon_logger.log("DHW temperature target unchanged: %s", temperature_target, level=logging.DEBUG)
             return None
