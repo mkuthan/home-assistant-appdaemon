@@ -11,8 +11,8 @@ from utils.time_utils import is_time_in_range
 
 class HeatingEstimator:
     _HEATING_TARGET_OFFSET = Celsius(1.0)
-    _HEATING_CURVE_OFFSET_HIGH = Celsius(10.0)
-    _HEATING_CURVE_OFFSET_LOW = Celsius(5.0)
+    _HEATING_CURVE_OFFSET_HIGH = Celsius(9.0)
+    _HEATING_CURVE_OFFSET_LOW = Celsius(4.0)
 
     def __init__(
         self,

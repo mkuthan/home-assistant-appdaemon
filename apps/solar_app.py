@@ -42,7 +42,7 @@ class SolarApp(hass.Hass):
             # indoor temperature setpoint to estimate heating needs
             temp_in=Celsius(20.0),
             # outdoor temperature threshold to apply heating energy consumption in eco mode
-            temp_out_threshold=Celsius(-1.0),
+            temp_out_threshold=Celsius(2.0),
             # coefficient of heat-pump performance at 7 degrees Celsius
             heating_cop_at_7c=4.0,
             # coefficient representing building heat loss rate in kW/°C
