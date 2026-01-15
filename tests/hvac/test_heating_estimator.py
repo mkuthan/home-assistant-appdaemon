@@ -161,8 +161,8 @@ def test_estimate_curve_high_temperature_normal_mode(
 
     result = heating_estimator.estimate_curve_high_temperature(state)
 
-    # 21 + 10 offset
-    assert result == Celsius(31.0)
+    # 21 + 9 offset
+    assert result == Celsius(30.0)
 
 
 def test_estimate_curve_high_temperature_eco_mode(
@@ -180,8 +180,8 @@ def test_estimate_curve_high_temperature_eco_mode(
 
     result = heating_estimator.estimate_curve_high_temperature(state)
 
-    # 18 + 10 offset
-    assert result == Celsius(28.0)
+    # 18 + 9 offset
+    assert result == Celsius(27.0)
 
 
 def test_estimate_curve_high_temperature_no_change(
@@ -199,7 +199,7 @@ def test_estimate_curve_high_temperature_no_change(
         state,
         heating_mode="heat",
         is_eco_mode=False,
-        heating_curve_target_high_temp=Celsius(31.0),
+        heating_curve_target_high_temp=Celsius(30.0),
     )
 
     result = heating_estimator.estimate_curve_high_temperature(state)
@@ -236,8 +236,8 @@ def test_estimate_curve_low_temperature_normal_mode(
 
     result = heating_estimator.estimate_curve_low_temperature(state)
 
-    # 21 + 5 offset
-    assert result == Celsius(26.0)
+    # 21 + 4 offset
+    assert result == Celsius(25.0)
 
 
 def test_estimate_curve_low_temperature_eco_mode(
@@ -255,8 +255,8 @@ def test_estimate_curve_low_temperature_eco_mode(
 
     result = heating_estimator.estimate_curve_low_temperature(state)
 
-    # 18 + 5 offset
-    assert result == Celsius(23.0)
+    # 18 + 4 offset
+    assert result == Celsius(22.0)
 
 
 def test_estimate_curve_low_temperature_no_change(
@@ -274,7 +274,7 @@ def test_estimate_curve_low_temperature_no_change(
         state,
         heating_mode="heat",
         is_eco_mode=False,
-        heating_curve_target_low_temp=Celsius(26.0),
+        heating_curve_target_low_temp=Celsius(25.0),
     )
 
     result = heating_estimator.estimate_curve_low_temperature(state)
