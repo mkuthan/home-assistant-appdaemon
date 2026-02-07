@@ -7,10 +7,11 @@ Home Assistant AppDaemon applications for solar and HVAC energy optimization.
 ## Setup Commands
 
 - Install dependencies: `uv sync`
-- Run tests: `uv run pytest`
-- Run linter: `uv run ruff check`
-- Run type checker: `uv run pyright`
-- Format code: `uv run ruff format`
+- Run all checks (lint, format, type, test): `mise run check`
+- Run tests: `mise run test`
+- Run linter: `mise run lint`
+- Run type checker: `mise run typecheck`
+- Format code: `mise run format`
 
 ## General rules
 
