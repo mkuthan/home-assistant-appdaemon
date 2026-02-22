@@ -4,6 +4,8 @@ from unittest.mock import ANY, Mock
 
 import pytest
 from entities.entities import (
+    BATTERY_MAX_CHARGE_CURRENT_ENTITY,
+    BATTERY_MAX_DISCHARGE_CURRENT_ENTITY,
     BATTERY_RESERVE_SOC_ENTITY,
     INVERTER_STORAGE_MODE_ENTITY,
     SLOT1_DISCHARGE_CURRENT_ENTITY,
@@ -21,6 +23,11 @@ from units.battery_soc import BatterySoc
 
 @pytest.fixture
 def mock_state_factory() -> Mock:
+    return Mock()
+
+
+@pytest.fixture
+def mock_battery_max_current_estimator() -> Mock:
     return Mock()
 
 
@@ -45,6 +52,7 @@ def solar(
     mock_appdaemon_service: Mock,
     configuration: SolarConfiguration,
     mock_state_factory: Mock,
+    mock_battery_max_current_estimator: Mock,
     mock_battery_discharge_slot_estimator: Mock,
     mock_battery_reserve_soc_estimator: Mock,
     mock_storage_mode_estimator: Mock,
@@ -54,6 +62,7 @@ def solar(
         mock_appdaemon_service,
         configuration,
         mock_state_factory,
+        mock_battery_max_current_estimator,
         mock_battery_discharge_slot_estimator,
         mock_battery_reserve_soc_estimator,
         mock_storage_mode_estimator,
@@ -108,6 +117,112 @@ def test_control_battery_reserve_soc_no_change(
     solar.control_battery_reserve_soc(now)
 
     mock_battery_reserve_soc_estimator.estimate_battery_reserve_soc.assert_called_once_with(state, now)
+
+    mock_appdaemon_service.call_service.assert_not_called()
+
+
+def test_control_battery_max_charge_current(
+    solar: Solar,
+    state: SolarState,
+    mock_appdaemon_service: Mock,
+    mock_state_factory: Mock,
+    mock_battery_max_current_estimator: Mock,
+) -> None:
+    current_battery_max_charge_current = BatteryCurrent(30.0)
+    new_battery_max_charge_current = BatteryCurrent(40.0)
+
+    state = replace(state, battery_max_charge_current=current_battery_max_charge_current)
+
+    mock_state_factory.create.return_value = state
+
+    mock_battery_max_current_estimator.estimate_battery_max_charge_current.return_value = new_battery_max_charge_current
+
+    now = datetime.now()
+    solar.control_battery_max_charge_current(now)
+
+    mock_battery_max_current_estimator.estimate_battery_max_charge_current.assert_called_once_with(state, now)
+
+    mock_appdaemon_service.call_service.assert_called_once_with(
+        "number/set_value",
+        callback=ANY,
+        entity_id=BATTERY_MAX_CHARGE_CURRENT_ENTITY,
+        value=new_battery_max_charge_current.value,
+    )
+
+
+def test_control_battery_max_charge_current_no_change(
+    solar: Solar,
+    state: SolarState,
+    mock_appdaemon_service: Mock,
+    mock_state_factory: Mock,
+    mock_battery_max_current_estimator: Mock,
+) -> None:
+    current_battery_max_charge_current = BatteryCurrent(30.0)
+
+    state = replace(state, battery_max_charge_current=current_battery_max_charge_current)
+
+    mock_state_factory.create.return_value = state
+
+    mock_battery_max_current_estimator.estimate_battery_max_charge_current.return_value = None
+
+    now = datetime.now()
+    solar.control_battery_max_charge_current(now)
+
+    mock_battery_max_current_estimator.estimate_battery_max_charge_current.assert_called_once_with(state, now)
+
+    mock_appdaemon_service.call_service.assert_not_called()
+
+
+def test_control_battery_max_discharge_current(
+    solar: Solar,
+    state: SolarState,
+    mock_appdaemon_service: Mock,
+    mock_state_factory: Mock,
+    mock_battery_max_current_estimator: Mock,
+) -> None:
+    current_battery_max_discharge_current = BatteryCurrent(30.0)
+    new_battery_max_discharge_current = BatteryCurrent(40.0)
+
+    state = replace(state, battery_max_discharge_current=current_battery_max_discharge_current)
+
+    mock_state_factory.create.return_value = state
+
+    mock_battery_max_current_estimator.estimate_battery_max_discharge_current.return_value = (
+        new_battery_max_discharge_current
+    )
+
+    now = datetime.now()
+    solar.control_battery_max_discharge_current(now)
+
+    mock_battery_max_current_estimator.estimate_battery_max_discharge_current.assert_called_once_with(state, now)
+
+    mock_appdaemon_service.call_service.assert_called_once_with(
+        "number/set_value",
+        callback=ANY,
+        entity_id=BATTERY_MAX_DISCHARGE_CURRENT_ENTITY,
+        value=new_battery_max_discharge_current.value,
+    )
+
+
+def test_control_battery_max_discharge_current_no_change(
+    solar: Solar,
+    state: SolarState,
+    mock_appdaemon_service: Mock,
+    mock_state_factory: Mock,
+    mock_battery_max_current_estimator: Mock,
+) -> None:
+    current_battery_max_discharge_current = BatteryCurrent(30.0)
+
+    state = replace(state, battery_max_discharge_current=current_battery_max_discharge_current)
+
+    mock_state_factory.create.return_value = state
+
+    mock_battery_max_current_estimator.estimate_battery_max_discharge_current.return_value = None
+
+    now = datetime.now()
+    solar.control_battery_max_discharge_current(now)
+
+    mock_battery_max_current_estimator.estimate_battery_max_discharge_current.assert_called_once_with(state, now)
 
     mock_appdaemon_service.call_service.assert_not_called()
 

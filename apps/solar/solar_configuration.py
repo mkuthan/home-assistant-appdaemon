@@ -16,6 +16,8 @@ class SolarConfiguration:
     battery_capacity: EnergyKwh
     battery_voltage: BatteryVoltage
     battery_maximum_current: BatteryCurrent
+    battery_nominal_current: BatteryCurrent
+    battery_night_charge_current: BatteryCurrent
     battery_reserve_soc_min: BatterySoc
     battery_reserve_soc_margin: BatterySoc
     battery_reserve_soc_max: BatterySoc

@@ -6,6 +6,8 @@ from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from appdaemon_protocols.appdaemon_state import AppdaemonState
 from entities.entities import (
     AWAY_MODE_ENTITY,
+    BATTERY_MAX_CHARGE_CURRENT_ENTITY,
+    BATTERY_MAX_DISCHARGE_CURRENT_ENTITY,
     BATTERY_RESERVE_SOC_ENTITY,
     BATTERY_SOC_ENTITY,
     ECO_MODE_ENTITY,
@@ -46,6 +48,8 @@ class DefaultSolarStateFactory:
     def create(self) -> SolarState | None:
         battery_soc = safe_float(self.appdaemon_state.get_state(BATTERY_SOC_ENTITY))
         battery_reserve_soc = safe_float(self.appdaemon_state.get_state(BATTERY_RESERVE_SOC_ENTITY))
+        battery_max_charge_current = safe_float(self.appdaemon_state.get_state(BATTERY_MAX_CHARGE_CURRENT_ENTITY))
+        battery_max_discharge_current = safe_float(self.appdaemon_state.get_state(BATTERY_MAX_DISCHARGE_CURRENT_ENTITY))
         indoor_temperature = safe_float(self.appdaemon_state.get_state(INDOOR_TEMPERATURE_ENTITY))
         outdoor_temperature = safe_float(self.appdaemon_state.get_state(OUTDOOR_TEMPERATURE_ENTITY))
         is_away_mode = safe_bool(self.appdaemon_state.get_state(AWAY_MODE_ENTITY))
@@ -70,6 +74,8 @@ class DefaultSolarStateFactory:
             for name, value in [
                 ("battery_soc", battery_soc),
                 ("battery_reserve_soc", battery_reserve_soc),
+                ("battery_max_charge_current", battery_max_charge_current),
+                ("battery_max_discharge_current", battery_max_discharge_current),
                 ("indoor_temperature", indoor_temperature),
                 ("outdoor_temperature", outdoor_temperature),
                 ("is_away_mode", is_away_mode),
@@ -95,6 +101,8 @@ class DefaultSolarStateFactory:
 
         assert battery_soc is not None
         assert battery_reserve_soc is not None
+        assert battery_max_charge_current is not None
+        assert battery_max_discharge_current is not None
         assert indoor_temperature is not None
         assert outdoor_temperature is not None
         assert is_away_mode is not None
@@ -124,6 +132,8 @@ class DefaultSolarStateFactory:
         solar_state = SolarState(
             battery_soc=BatterySoc(battery_soc),
             battery_reserve_soc=BatterySoc(battery_reserve_soc),
+            battery_max_charge_current=BatteryCurrent(battery_max_charge_current),
+            battery_max_discharge_current=BatteryCurrent(battery_max_discharge_current),
             indoor_temperature=Celsius(indoor_temperature),
             outdoor_temperature=Celsius(outdoor_temperature),
             is_away_mode=is_away_mode,

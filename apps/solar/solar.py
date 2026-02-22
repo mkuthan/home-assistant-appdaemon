@@ -4,6 +4,8 @@ from datetime import datetime
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from appdaemon_protocols.appdaemon_service import AppdaemonService
 from entities.entities import (
+    BATTERY_MAX_CHARGE_CURRENT_ENTITY,
+    BATTERY_MAX_DISCHARGE_CURRENT_ENTITY,
     BATTERY_RESERVE_SOC_ENTITY,
     INVERTER_STORAGE_MODE_ENTITY,
     SLOT1_DISCHARGE_CURRENT_ENTITY,
@@ -11,6 +13,7 @@ from entities.entities import (
     SLOT1_DISCHARGE_TIME_ENTITY,
 )
 from solar.battery_discharge_slot_estimator import BatteryDischargeSlotEstimator
+from solar.battery_max_current_estimator import BatteryMaxCurrentEstimator
 from solar.battery_reserve_soc_estimator import BatteryReserveSocEstimator
 from solar.solar_configuration import SolarConfiguration
 from solar.solar_state import SolarState
@@ -29,6 +32,7 @@ class Solar:
         appdaemon_service: AppdaemonService,
         configuration: SolarConfiguration,
         state_factory: SolarStateFactory,
+        battery_max_current_estimator: BatteryMaxCurrentEstimator,
         battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
         battery_reserve_soc_estimator: BatteryReserveSocEstimator,
         storage_mode_estimator: StorageModeEstimator,
@@ -37,6 +41,7 @@ class Solar:
         self.appdaemon_service = appdaemon_service
         self.configuration = configuration
         self.state_factory = state_factory
+        self.battery_max_current_estimator = battery_max_current_estimator
         self.battery_discharge_slot_estimator = battery_discharge_slot_estimator
         self.battery_reserve_soc_estimator = battery_reserve_soc_estimator
         self.storage_mode_estimator = storage_mode_estimator
@@ -59,6 +64,36 @@ class Solar:
                 "Change battery reserve SoC from %s to %s", state.battery_reserve_soc, battery_reserve_soc
             )
             self._set_battery_reserve_soc(battery_reserve_soc)
+
+    def control_battery_max_charge_current(self, now: datetime) -> None:
+        if (state := self.state_factory.create()) is None:
+            self.appdaemon_logger.log("Unknown state, cannot control battery max charge current", level=logging.WARNING)
+            return
+        battery_max_charge_current = self.battery_max_current_estimator.estimate_battery_max_charge_current(state, now)
+        if battery_max_charge_current is not None:
+            self.appdaemon_logger.log(
+                "Change battery max charge current from %s to %s",
+                state.battery_max_charge_current,
+                battery_max_charge_current,
+            )
+            self._set_battery_max_charge_current(battery_max_charge_current)
+
+    def control_battery_max_discharge_current(self, now: datetime) -> None:
+        if (state := self.state_factory.create()) is None:
+            self.appdaemon_logger.log(
+                "Unknown state, cannot control battery max discharge current", level=logging.WARNING
+            )
+            return
+        battery_max_discharge_current = self.battery_max_current_estimator.estimate_battery_max_discharge_current(
+            state, now
+        )
+        if battery_max_discharge_current is not None:
+            self.appdaemon_logger.log(
+                "Change battery max discharge current from %s to %s",
+                state.battery_max_discharge_current,
+                battery_max_discharge_current,
+            )
+            self._set_battery_max_discharge_current(battery_max_discharge_current)
 
     def control_storage_mode(self, now: datetime) -> None:
         if (state := self.state_factory.create()) is None:
@@ -107,6 +142,22 @@ class Solar:
             callback=LoggingAppdaemonCallback(self.appdaemon_logger),
             entity_id=BATTERY_RESERVE_SOC_ENTITY,
             value=battery_reserve_soc.value,
+        )
+
+    def _set_battery_max_charge_current(self, battery_max_charge_current: BatteryCurrent) -> None:
+        self.appdaemon_service.call_service(
+            "number/set_value",
+            callback=LoggingAppdaemonCallback(self.appdaemon_logger),
+            entity_id=BATTERY_MAX_CHARGE_CURRENT_ENTITY,
+            value=battery_max_charge_current.value,
+        )
+
+    def _set_battery_max_discharge_current(self, battery_max_discharge_current: BatteryCurrent) -> None:
+        self.appdaemon_service.call_service(
+            "number/set_value",
+            callback=LoggingAppdaemonCallback(self.appdaemon_logger),
+            entity_id=BATTERY_MAX_DISCHARGE_CURRENT_ENTITY,
+            value=battery_max_discharge_current.value,
         )
 
     def _set_storage_mode(self, storage_mode: StorageMode) -> None:

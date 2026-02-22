@@ -48,6 +48,8 @@ def configuration() -> SolarConfiguration:
         battery_capacity=ENERGY_KWH_ZERO,
         battery_voltage=BATTERY_VOLTAGE_ZERO,
         battery_maximum_current=BATTERY_CURRENT_ZERO,
+        battery_nominal_current=BATTERY_CURRENT_ZERO,
+        battery_night_charge_current=BATTERY_CURRENT_ZERO,
         battery_reserve_soc_min=BATTERY_SOC_MIN,
         battery_reserve_soc_margin=BATTERY_SOC_MIN,
         battery_reserve_soc_max=BATTERY_SOC_MIN,
@@ -75,6 +77,8 @@ def state() -> SolarState:
     return SolarState(
         battery_soc=BATTERY_SOC_MIN,
         battery_reserve_soc=BATTERY_SOC_MIN,
+        battery_max_charge_current=BATTERY_CURRENT_ZERO,
+        battery_max_discharge_current=BATTERY_CURRENT_ZERO,
         indoor_temperature=CELSIUS_ZERO,
         outdoor_temperature=CELSIUS_ZERO,
         is_away_mode=False,
