@@ -5,6 +5,8 @@ from unittest.mock import Mock
 import pytest
 from entities.entities import (
     AWAY_MODE_ENTITY,
+    BATTERY_MAX_CHARGE_CURRENT_ENTITY,
+    BATTERY_MAX_DISCHARGE_CURRENT_ENTITY,
     BATTERY_RESERVE_SOC_ENTITY,
     BATTERY_SOC_ENTITY,
     ECO_MODE_ENTITY,
@@ -66,6 +68,8 @@ def state_values(
     return {
         f"{BATTERY_SOC_ENTITY}:": "75.5",
         f"{BATTERY_RESERVE_SOC_ENTITY}:": "20.0",
+        f"{BATTERY_MAX_CHARGE_CURRENT_ENTITY}:": "50.0",
+        f"{BATTERY_MAX_DISCHARGE_CURRENT_ENTITY}:": "50.0",
         f"{INDOOR_TEMPERATURE_ENTITY}:": "21.5",
         f"{OUTDOOR_TEMPERATURE_ENTITY}:": "10.0",
         f"{AWAY_MODE_ENTITY}:": "off",
@@ -102,6 +106,8 @@ def test_create(
     assert result is not None
     assert result.battery_soc == BatterySoc(75.5)
     assert result.battery_reserve_soc == BatterySoc(20.0)
+    assert result.battery_max_charge_current == BatteryCurrent(50.0)
+    assert result.battery_max_discharge_current == BatteryCurrent(50.0)
     assert result.indoor_temperature == Celsius(21.5)
     assert result.outdoor_temperature == Celsius(10.0)
     assert result.is_away_mode is False
@@ -124,6 +130,8 @@ def test_create(
     [
         (f"{BATTERY_SOC_ENTITY}:", "Can't create state, missing: battery_soc"),
         (f"{BATTERY_RESERVE_SOC_ENTITY}:", "Can't create state, missing: battery_reserve_soc"),
+        (f"{BATTERY_MAX_CHARGE_CURRENT_ENTITY}:", "Can't create state, missing: battery_max_charge_current"),
+        (f"{BATTERY_MAX_DISCHARGE_CURRENT_ENTITY}:", "Can't create state, missing: battery_max_discharge_current"),
         (f"{OUTDOOR_TEMPERATURE_ENTITY}:", "Can't create state, missing: outdoor_temperature"),
         (f"{AWAY_MODE_ENTITY}:", "Can't create state, missing: is_away_mode"),
         (f"{ECO_MODE_ENTITY}:", "Can't create state, missing: is_eco_mode"),
@@ -145,10 +153,8 @@ def test_create_missing_mandatory_field(
     missing_entity: str,
     expected_message: str,
 ) -> None:
-    mock_appdaemon_state.get_state.side_effect = (
-        lambda entity_id, attribute="", *_args, **_kwargs: state_values.get(f"{entity_id}:{attribute}")
-        if f"{entity_id}:{attribute}" != missing_entity
-        else None
+    mock_appdaemon_state.get_state.side_effect = lambda entity_id, attribute="", *_args, **_kwargs: (
+        state_values.get(f"{entity_id}:{attribute}") if f"{entity_id}:{attribute}" != missing_entity else None
     )
 
     result = DefaultSolarStateFactory(mock_appdaemon_logger, mock_appdaemon_state).create()
@@ -171,10 +177,8 @@ def test_create_missing_optional_field(
     missing_entity: str,
     expected_message: str,
 ) -> None:
-    mock_appdaemon_state.get_state.side_effect = (
-        lambda entity_id, attribute="", *_args, **_kwargs: state_values.get(f"{entity_id}:{attribute}")
-        if f"{entity_id}:{attribute}" != missing_entity
-        else None
+    mock_appdaemon_state.get_state.side_effect = lambda entity_id, attribute="", *_args, **_kwargs: (
+        state_values.get(f"{entity_id}:{attribute}") if f"{entity_id}:{attribute}" != missing_entity else None
     )
 
     result = DefaultSolarStateFactory(mock_appdaemon_logger, mock_appdaemon_state).create()

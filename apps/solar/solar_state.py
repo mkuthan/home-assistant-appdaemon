@@ -11,6 +11,8 @@ from units.energy_price import EnergyPrice
 class SolarState:
     battery_soc: BatterySoc  # current battery state of charge
     battery_reserve_soc: BatterySoc  # configured battery reserve state of charge
+    battery_max_charge_current: BatteryCurrent  # configured maximum battery charge current
+    battery_max_discharge_current: BatteryCurrent  # configured maximum battery discharge current
     indoor_temperature: Celsius  # unused
     outdoor_temperature: Celsius  # unused
     is_away_mode: bool  # away mode status

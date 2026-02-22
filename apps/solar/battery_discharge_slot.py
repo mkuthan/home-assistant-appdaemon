@@ -17,3 +17,12 @@ class BatteryDischargeSlot:
 
     def __str__(self) -> str:
         return f"{self.time_str()}@{self.current}"
+
+    @classmethod
+    def from_time_str(cls, time_str: str, current: BatteryCurrent) -> "BatteryDischargeSlot":
+        start_str, end_str = time_str.split("-")
+        return cls(
+            start_time=time.fromisoformat(start_str),
+            end_time=time.fromisoformat(end_str),
+            current=current,
+        )

@@ -23,6 +23,8 @@ TEMPERATURE_ADJUSTMENT_ENTITY = "input_number.heat_pump_temperature_adjustment"
 # Solar/Battery entities
 BATTERY_SOC_ENTITY = "sensor.solis_remaining_battery_capacity"
 BATTERY_RESERVE_SOC_ENTITY = "number.solis_control_battery_reserve_soc"
+BATTERY_MAX_CHARGE_CURRENT_ENTITY = "number.solis_control_battery_max_charge_current"
+BATTERY_MAX_DISCHARGE_CURRENT_ENTITY = "number.solis_control_battery_max_discharge_current"
 INVERTER_STORAGE_MODE_ENTITY = "select.solis_control_storage_mode"
 SLOT1_DISCHARGE_ENABLED_ENTITY = "switch.solis_control_slot1_discharge"
 SLOT1_DISCHARGE_TIME_ENTITY = "text.solis_control_slot1_discharge_time"
