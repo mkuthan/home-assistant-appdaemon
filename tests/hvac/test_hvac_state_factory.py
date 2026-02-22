@@ -86,10 +86,8 @@ def test_create_missing_field(
     missing_entity: str,
     expected_message: str,
 ) -> None:
-    mock_appdaemon_state.get_state.side_effect = (
-        lambda entity_id, attribute="", *_args, **_kwargs: state_values.get(f"{entity_id}:{attribute}")
-        if f"{entity_id}:{attribute}" != missing_entity
-        else None
+    mock_appdaemon_state.get_state.side_effect = lambda entity_id, attribute="", *_args, **_kwargs: (
+        state_values.get(f"{entity_id}:{attribute}") if f"{entity_id}:{attribute}" != missing_entity else None
     )
 
     result = DefaultHvacStateFactory(mock_appdaemon_logger, mock_appdaemon_state).create()
