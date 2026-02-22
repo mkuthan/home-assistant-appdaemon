@@ -17,6 +17,7 @@ Additionally, it provides smart HVAC control for heating, cooling, and domestic 
 ### Solar Energy Optimization
 
 - *Battery Reserve Management* - Dynamically adjusts battery reserve SOC to prevent grid import during high-tariff periods
+- *Battery Maximum Current Optimization* - Dynamically adjusts maximum charge and discharge currents for optimal battery usage and longevity
 - *Storage Mode Optimization* - Automatically determines the optimal hybrid inverter storage mode to maximize PV energy sales to the grid
 - *Discharge Slot Optimization* - Calculates optimal battery discharge windows to maximize earnings from grid energy sales
 
