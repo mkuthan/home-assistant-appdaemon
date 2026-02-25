@@ -21,7 +21,8 @@ HEATING_CURVE_TARGET_LOW_TEMP_ENTITY = "number.panasonic_heat_pump_main_z1_heat_
 TEMPERATURE_ADJUSTMENT_ENTITY = "input_number.heat_pump_temperature_adjustment"
 
 # Solar/Battery entities
-BATTERY_SOC_ENTITY = "sensor.solis_remaining_battery_capacity"
+BATTERY_SOC_ENTITY = "sensor.solis_modbus_battery_soc"
+
 BATTERY_RESERVE_SOC_ENTITY = "number.solis_control_battery_reserve_soc"
 BATTERY_MAX_CHARGE_CURRENT_ENTITY = "number.solis_control_battery_max_charge_current"
 BATTERY_MAX_DISCHARGE_CURRENT_ENTITY = "number.solis_control_battery_max_discharge_current"
