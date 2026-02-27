@@ -133,6 +133,9 @@ class SolarApp(hass.Hass):
         self.log("Initial battery max discharge current control run")
         self.solar.control_battery_max_discharge_current(self.get_now())
 
+        self.log("Initial storage mode control run")
+        self.solar.control_storage_mode(self.get_now())
+
     def solar_debug(self, event_type, data, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
         self.solar.log_state()
 
