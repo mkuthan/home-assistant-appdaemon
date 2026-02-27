@@ -19,7 +19,7 @@ class HvacApp(hass.Hass):
         appdaemon_service = LoggingAppdaemonService(self) if is_dry_run(self) else self
 
         configuration = HvacConfiguration(
-            time_zone=self.get_timezone(),
+            time_zone=str(self.get_timezone()),
             # domestic hot water temperature in normal mode
             dhw_temp_eco_off=Celsius(48.0),
             # domestic hot water temperature in eco mode

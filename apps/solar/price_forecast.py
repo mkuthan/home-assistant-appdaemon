@@ -25,7 +25,7 @@ class PriceForecast:
                 try:
                     periods.append(
                         FifteenMinutePrice(
-                            period=FifteenMinutePeriod.parse_custom(
+                            period=FifteenMinutePeriod.parse_custom_from_end_date(
                                 item["dtime"], format="%Y-%m-%d %H:%M:%S", time_zone=time_zone
                             ),
                             price=EnergyPrice.pln_per_mwh(Decimal(str(item["rce_pln"]))),
