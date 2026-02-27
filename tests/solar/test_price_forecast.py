@@ -13,12 +13,8 @@ from units.hourly_price import HourlyPrice
 def test_create_from_rce_15_mins() -> None:
     raw_forecast = [
         {
-            "dtime": "2025-10-03 13:00:00",
-            "rce_pln": -10,
-        },
-        {
             "dtime": "2025-10-03 13:15:00",
-            "rce_pln": 50,
+            "rce_pln": -10,
         },
         {
             "dtime": "2025-10-03 13:30:00",
@@ -26,7 +22,7 @@ def test_create_from_rce_15_mins() -> None:
         },
         {
             "dtime": "2025-10-03 13:45:00",
-            "rce_pln": 60,
+            "rce_pln": 50,
         },
         {
             "dtime": "2025-10-03 14:00:00",
@@ -34,7 +30,7 @@ def test_create_from_rce_15_mins() -> None:
         },
         {
             "dtime": "2025-10-03 14:15:00",
-            "rce_pln": 70,
+            "rce_pln": 60,
         },
         {
             "dtime": "2025-10-03 14:30:00",
@@ -42,6 +38,10 @@ def test_create_from_rce_15_mins() -> None:
         },
         {
             "dtime": "2025-10-03 14:45:00",
+            "rce_pln": 70,
+        },
+        {
+            "dtime": "2025-10-03 15:00:00",
             "rce_pln": 80,
         },
     ]

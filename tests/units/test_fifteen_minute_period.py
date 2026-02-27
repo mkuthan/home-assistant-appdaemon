@@ -64,11 +64,11 @@ def test_parse() -> None:
     assert period.start == datetime.fromisoformat(start)
 
 
-def test_parse_custom() -> None:
+def test_parse_custom_from_end_date() -> None:
     from zoneinfo import ZoneInfo
 
-    period = FifteenMinutePeriod.parse_custom(
+    period = FifteenMinutePeriod.parse_custom_from_end_date(
         "2025-10-21 14:30:00", format="%Y-%m-%d %H:%M:%S", time_zone="Europe/Warsaw"
     )
-    expected = datetime(2025, 10, 21, 14, 30, 0, tzinfo=ZoneInfo("Europe/Warsaw"))
+    expected = datetime(2025, 10, 21, 14, 15, 0, tzinfo=ZoneInfo("Europe/Warsaw"))
     assert period.start == expected
