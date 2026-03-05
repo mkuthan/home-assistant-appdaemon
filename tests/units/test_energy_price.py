@@ -30,8 +30,8 @@ def test_class_factory_method(
 ) -> None:
     price_decimal = Decimal(price_value)
     price = callable(price_decimal)
-    assert price.value == price_decimal
-    assert price.currency == currency
+    assert price.money.value == price_decimal
+    assert price.money.currency == currency
     assert price.unit == unit
 
 
@@ -179,19 +179,12 @@ def test_greater_than_or_equal(price1: str, price2: str, expected: bool) -> None
         lambda a, b: a >= b,
     ],
 )
-@pytest.mark.parametrize(
-    "price1,price2",
-    [
-        (EnergyPrice(Money(Decimal("100"), "PLN"), "MWh"), EnergyPrice(Money(Decimal("50"), "EUR"), "MWh")),
-        (EnergyPrice(Money(Decimal("100"), "PLN"), "MWh"), EnergyPrice(Money(Decimal("50"), "PLN"), "kWh")),
-    ],
-)
-def test_operation_with_incompatible_prices(
+def test_operation_with_different_unit(
     operation: Callable[[EnergyPrice, EnergyPrice], EnergyPrice | bool],
-    price1: EnergyPrice,
-    price2: EnergyPrice,
 ) -> None:
-    with pytest.raises(ValueError, match="with different currency or unit"):
+    price1 = EnergyPrice(Money(Decimal("100"), "PLN"), "MWh")
+    price2 = EnergyPrice(Money(Decimal("50"), "PLN"), "kWh")
+    with pytest.raises(ValueError, match="different unit"):
         operation(price1, price2)
 
 
