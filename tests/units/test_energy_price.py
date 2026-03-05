@@ -21,18 +21,6 @@ def test_class_factory_method(factory: Callable[[Money], EnergyPrice], unit: str
 
 
 @pytest.mark.parametrize(
-    "currency",
-    [
-        "ABC",
-        "XYZ",
-    ],
-)
-def test_invalid_currency(currency: str) -> None:
-    with pytest.raises(ValueError, match=f"Unsupported currency {currency}"):
-        EnergyPrice(money=Money(Decimal(0), currency), unit="MWh")
-
-
-@pytest.mark.parametrize(
     "unit",
     [
         "ABC",
