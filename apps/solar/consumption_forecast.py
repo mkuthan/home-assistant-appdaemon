@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 from typing import Protocol
 
 from entities.entities import is_heating_enabled
@@ -8,6 +8,7 @@ from units.energy_kwh import ENERGY_KWH_ZERO, EnergyKwh
 from units.hourly_energy import HourlyConsumptionEnergy
 from units.hourly_period import HourlyPeriod
 from utils.hvac_estimators import estimate_heating_energy_consumption
+from utils.time_utils import is_time_in_range
 
 
 class ConsumptionForecast(Protocol):
@@ -33,14 +34,15 @@ class HeatingEnergyEstimator(Protocol):
     ) -> EnergyKwh: ...
 
 
-# Heating energy consumption forecast excluding energy consumption in eco mode.
+# Heating energy consumption forecast excluding energy outside boost window in eco mode.
 class ConsumptionForecastHvacHeating:
     def __init__(
         self,
         is_eco_mode: bool,
         hvac_heating_mode: str,
         t_in: Celsius,
-        t_out_threshold: Celsius,
+        heating_boost_start: time,
+        heating_boost_end: time,
         cop_at_7c: float,
         h: float,
         forecast_weather: WeatherForecast,
@@ -51,7 +53,8 @@ class ConsumptionForecastHvacHeating:
         self.is_eco_mode = is_eco_mode
         self.hvac_heating_mode = hvac_heating_mode
         self.t_in = t_in
-        self.t_out_threshold = t_out_threshold
+        self.heating_boost_start = heating_boost_start
+        self.heating_boost_end = heating_boost_end
         self.cop_at_7c = cop_at_7c
         self.h = h
         self.forecast_weather = forecast_weather
@@ -72,7 +75,9 @@ class ConsumptionForecastHvacHeating:
 
             if not is_heating_enabled(self.hvac_heating_mode):
                 energy = ENERGY_KWH_ZERO
-            elif self.is_eco_mode and temp_out > self.t_out_threshold:
+            elif self.is_eco_mode and not is_time_in_range(
+                current.time(), self.heating_boost_start, self.heating_boost_end
+            ):
                 energy = ENERGY_KWH_ZERO
             else:
                 energy = self.energy_estimator(
