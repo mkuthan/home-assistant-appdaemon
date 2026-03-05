@@ -17,24 +17,14 @@ class EnergyPrice:
         if self.unit not in [self._UNIT_KWH, self._UNIT_MWH]:
             raise ValueError(f"Unsupported unit {self.unit}")
 
-    @property
-    def value(self) -> Decimal:
-        return self.money.value
-
-    @property
-    def currency(self) -> str:
-        return self.money.currency
-
-    def _check_compatible(self, other: "EnergyPrice", operation: str) -> None:
-        if self.currency != other.currency or self.unit != other.unit:
-            raise ValueError(f"Cannot {operation} energy prices with different currency or unit")
-
     def __add__(self, other: "EnergyPrice") -> "EnergyPrice":
-        self._check_compatible(other, "add")
+        if self.unit != other.unit:
+            raise ValueError("Cannot add energy prices with different unit")
         return EnergyPrice(money=self.money + other.money, unit=self.unit)
 
     def __sub__(self, other: "EnergyPrice") -> "EnergyPrice":
-        self._check_compatible(other, "subtract")
+        if self.unit != other.unit:
+            raise ValueError("Cannot subtract energy prices with different unit")
         return EnergyPrice(money=self.money - other.money, unit=self.unit)
 
     def __mul__(self, other: Decimal) -> "EnergyPrice":
@@ -46,19 +36,23 @@ class EnergyPrice:
         return EnergyPrice(money=self.money / other, unit=self.unit)
 
     def __lt__(self, other: "EnergyPrice") -> bool:
-        self._check_compatible(other, "compare")
+        if self.unit != other.unit:
+            raise ValueError("Cannot compare energy prices with different unit")
         return self.money < other.money
 
     def __le__(self, other: "EnergyPrice") -> bool:
-        self._check_compatible(other, "compare")
+        if self.unit != other.unit:
+            raise ValueError("Cannot compare energy prices with different unit")
         return self.money <= other.money
 
     def __gt__(self, other: "EnergyPrice") -> bool:
-        self._check_compatible(other, "compare")
+        if self.unit != other.unit:
+            raise ValueError("Cannot compare energy prices with different unit")
         return self.money > other.money
 
     def __ge__(self, other: "EnergyPrice") -> bool:
-        self._check_compatible(other, "compare")
+        if self.unit != other.unit:
+            raise ValueError("Cannot compare energy prices with different unit")
         return self.money >= other.money
 
     def __str__(self) -> str:
