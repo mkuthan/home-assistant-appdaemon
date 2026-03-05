@@ -23,8 +23,9 @@ class SolarConfiguration:
     battery_reserve_soc_max: BatterySoc
 
     temp_in: Celsius
-    temp_out_threshold: Celsius
 
+    heating_boost_start_eco_on: time
+    heating_boost_end_eco_on: time
     heating_cop_at_7c: float
     heating_h: float
 
