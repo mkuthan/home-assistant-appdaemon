@@ -28,6 +28,7 @@ from units.battery_current import BatteryCurrent
 from units.battery_soc import BatterySoc
 from units.celsius import Celsius
 from units.energy_price import EnergyPrice
+from units.money import Money
 
 
 @pytest.fixture
@@ -118,7 +119,7 @@ def test_create(
     assert result.slot1_discharge_current == BatteryCurrent(45.0)
     assert result.hvac_heating_mode == "heat"
     assert result.hvac_heating_temperature == Celsius(22.0)
-    assert result.hourly_price == EnergyPrice.pln_per_mwh(Decimal(500))
+    assert result.hourly_price == EnergyPrice.per_mwh(Money.pln(Decimal(500)))
     assert result.pv_forecast_today == pv_forecast_today
     assert result.pv_forecast_tomorrow == pv_forecast_tomorrow
     assert result.weather_forecast == weather_forecast

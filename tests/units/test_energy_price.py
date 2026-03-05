@@ -7,31 +7,16 @@ from units.money import Money
 
 
 @pytest.mark.parametrize(
-    "price_value",
+    ("factory", "unit"),
     [
-        "-100.0",
-        "-0.5",
-        "0.0",
-        "0.5",
-        "100",
+        (EnergyPrice.per_mwh, "MWh"),
+        (EnergyPrice.per_kwh, "kWh"),
     ],
 )
-@pytest.mark.parametrize(
-    ("callable", "currency", "unit"),
-    [
-        (EnergyPrice.pln_per_mwh, "PLN", "MWh"),
-        (EnergyPrice.pln_per_kwh, "PLN", "kWh"),
-        (EnergyPrice.eur_per_mwh, "EUR", "MWh"),
-        (EnergyPrice.eur_per_kwh, "EUR", "kWh"),
-    ],
-)
-def test_class_factory_method(
-    price_value: str, callable: Callable[[Decimal], EnergyPrice], currency: str, unit: str
-) -> None:
-    price_decimal = Decimal(price_value)
-    price = callable(price_decimal)
-    assert price.money.value == price_decimal
-    assert price.money.currency == currency
+def test_class_factory_method(factory: Callable[[Money], EnergyPrice], unit: str) -> None:
+    money = Money.pln(Decimal("50.0"))
+    price = factory(money)
+    assert price.money == money
     assert price.unit == unit
 
 
@@ -68,8 +53,8 @@ def test_invalid_unit(unit: str) -> None:
     ],
 )
 def test_add(price1: str, price2: str, expected: str) -> None:
-    result = EnergyPrice.pln_per_mwh(Decimal(price1)) + EnergyPrice.pln_per_mwh(Decimal(price2))
-    assert result == EnergyPrice.pln_per_mwh(Decimal(expected))
+    result = EnergyPrice.per_mwh(Money.pln(Decimal(price1))) + EnergyPrice.per_mwh(Money.pln(Decimal(price2)))
+    assert result == EnergyPrice.per_mwh(Money.pln(Decimal(expected)))
 
 
 @pytest.mark.parametrize(
@@ -81,8 +66,8 @@ def test_add(price1: str, price2: str, expected: str) -> None:
     ],
 )
 def test_sub(price1: str, price2: str, expected: str) -> None:
-    result = EnergyPrice.pln_per_mwh(Decimal(price1)) - EnergyPrice.pln_per_mwh(Decimal(price2))
-    assert result == EnergyPrice.pln_per_mwh(Decimal(expected))
+    result = EnergyPrice.per_mwh(Money.pln(Decimal(price1))) - EnergyPrice.per_mwh(Money.pln(Decimal(price2)))
+    assert result == EnergyPrice.per_mwh(Money.pln(Decimal(expected)))
 
 
 @pytest.mark.parametrize(
@@ -94,8 +79,8 @@ def test_sub(price1: str, price2: str, expected: str) -> None:
     ],
 )
 def test_mul(price: str, multiplier: str, expected: str) -> None:
-    result = EnergyPrice.pln_per_mwh(Decimal(price)) * Decimal(multiplier)
-    assert result == EnergyPrice.pln_per_mwh(Decimal(expected))
+    result = EnergyPrice.per_mwh(Money.pln(Decimal(price))) * Decimal(multiplier)
+    assert result == EnergyPrice.per_mwh(Money.pln(Decimal(expected)))
 
 
 @pytest.mark.parametrize(
@@ -107,13 +92,13 @@ def test_mul(price: str, multiplier: str, expected: str) -> None:
     ],
 )
 def test_div(price: str, divisor: str, expected: str) -> None:
-    result = EnergyPrice.pln_per_mwh(Decimal(price)) / Decimal(divisor)
-    assert result == EnergyPrice.pln_per_mwh(Decimal(expected))
+    result = EnergyPrice.per_mwh(Money.pln(Decimal(price))) / Decimal(divisor)
+    assert result == EnergyPrice.per_mwh(Money.pln(Decimal(expected)))
 
 
 def test_div_by_zero() -> None:
     with pytest.raises(ValueError, match="Cannot divide by zero"):
-        EnergyPrice.pln_per_mwh(Decimal("100.0")) / Decimal("0")  # pyright: ignore[reportUnusedExpression]
+        EnergyPrice.per_mwh(Money.pln(Decimal("100.0"))) / Decimal("0")  # pyright: ignore[reportUnusedExpression]
 
 
 @pytest.mark.parametrize(
@@ -125,7 +110,7 @@ def test_div_by_zero() -> None:
     ],
 )
 def test_less_than(price1: str, price2: str, expected: bool) -> None:
-    result = EnergyPrice.pln_per_mwh(Decimal(price1)) < EnergyPrice.pln_per_mwh(Decimal(price2))
+    result = EnergyPrice.per_mwh(Money.pln(Decimal(price1))) < EnergyPrice.per_mwh(Money.pln(Decimal(price2)))
     assert result == expected
 
 
@@ -138,7 +123,7 @@ def test_less_than(price1: str, price2: str, expected: bool) -> None:
     ],
 )
 def test_less_than_or_equal(price1: str, price2: str, expected: bool) -> None:
-    result = EnergyPrice.pln_per_mwh(Decimal(price1)) <= EnergyPrice.pln_per_mwh(Decimal(price2))
+    result = EnergyPrice.per_mwh(Money.pln(Decimal(price1))) <= EnergyPrice.per_mwh(Money.pln(Decimal(price2)))
     assert result == expected
 
 
@@ -151,7 +136,7 @@ def test_less_than_or_equal(price1: str, price2: str, expected: bool) -> None:
     ],
 )
 def test_greater_than(price1: str, price2: str, expected: bool) -> None:
-    result = EnergyPrice.pln_per_mwh(Decimal(price1)) > EnergyPrice.pln_per_mwh(Decimal(price2))
+    result = EnergyPrice.per_mwh(Money.pln(Decimal(price1))) > EnergyPrice.per_mwh(Money.pln(Decimal(price2)))
     assert result == expected
 
 
@@ -164,7 +149,7 @@ def test_greater_than(price1: str, price2: str, expected: bool) -> None:
     ],
 )
 def test_greater_than_or_equal(price1: str, price2: str, expected: bool) -> None:
-    result = EnergyPrice.pln_per_mwh(Decimal(price1)) >= EnergyPrice.pln_per_mwh(Decimal(price2))
+    result = EnergyPrice.per_mwh(Money.pln(Decimal(price1))) >= EnergyPrice.per_mwh(Money.pln(Decimal(price2)))
     assert result == expected
 
 
@@ -189,7 +174,7 @@ def test_operation_with_different_unit(
 
 
 def test_str() -> None:
-    price = EnergyPrice.pln_per_mwh(Decimal("123.4567"))
+    price = EnergyPrice.per_mwh(Money.pln(Decimal("123.4567")))
     assert format(price) == "123.46PLN/MWh"
 
 
@@ -202,6 +187,6 @@ def test_str() -> None:
     ],
 )
 def test_non_negative(input_value: str, expected_value: str) -> None:
-    price = EnergyPrice.pln_per_mwh(Decimal(input_value))
-    expected = EnergyPrice.pln_per_mwh(Decimal(expected_value))
+    price = EnergyPrice.per_mwh(Money.pln(Decimal(input_value)))
+    expected = EnergyPrice.per_mwh(Money.pln(Decimal(expected_value)))
     assert price.non_negative() == expected

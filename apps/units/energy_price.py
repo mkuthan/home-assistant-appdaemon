@@ -62,17 +62,9 @@ class EnergyPrice:
         return EnergyPrice(money=self.money.non_negative(), unit=self.unit)
 
     @classmethod
-    def eur_per_kwh(cls, value: Decimal) -> "EnergyPrice":
-        return cls(money=Money.eur(value), unit=cls._UNIT_KWH)
+    def per_kwh(cls, money: Money) -> "EnergyPrice":
+        return cls(money=money, unit=cls._UNIT_KWH)
 
     @classmethod
-    def eur_per_mwh(cls, value: Decimal) -> "EnergyPrice":
-        return cls(money=Money.eur(value), unit=cls._UNIT_MWH)
-
-    @classmethod
-    def pln_per_kwh(cls, value: Decimal) -> "EnergyPrice":
-        return cls(money=Money.pln(value), unit=cls._UNIT_KWH)
-
-    @classmethod
-    def pln_per_mwh(cls, value: Decimal) -> "EnergyPrice":
-        return cls(money=Money.pln(value), unit=cls._UNIT_MWH)
+    def per_mwh(cls, money: Money) -> "EnergyPrice":
+        return cls(money=money, unit=cls._UNIT_MWH)

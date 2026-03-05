@@ -12,6 +12,7 @@ from units.battery_voltage import BATTERY_VOLTAGE_ZERO
 from units.celsius import CELSIUS_ZERO, Celsius
 from units.energy_kwh import ENERGY_KWH_ZERO
 from units.energy_price import EnergyPrice
+from units.money import Money
 
 
 @pytest.fixture
@@ -63,8 +64,8 @@ def configuration() -> SolarConfiguration:
         regular_consumption_away=ENERGY_KWH_ZERO,
         regular_consumption_day=ENERGY_KWH_ZERO,
         regular_consumption_evening=ENERGY_KWH_ZERO,
-        pv_export_min_price_margin=EnergyPrice.eur_per_mwh(Decimal(0)),
-        battery_export_threshold_price=EnergyPrice.eur_per_mwh(Decimal(0)),
+        pv_export_min_price_margin=EnergyPrice.per_mwh(Money.eur(Decimal(0))),
+        battery_export_threshold_price=EnergyPrice.per_mwh(Money.eur(Decimal(0))),
         battery_export_threshold_energy=ENERGY_KWH_ZERO,
         night_low_tariff_time_start=time.fromisoformat("00:00:00"),
         night_low_tariff_time_end=time.fromisoformat("00:00:00"),
@@ -90,7 +91,7 @@ def state() -> SolarState:
         slot1_discharge_current=BATTERY_CURRENT_ZERO,
         hvac_heating_mode="",
         hvac_heating_temperature=CELSIUS_ZERO,
-        hourly_price=EnergyPrice.pln_per_mwh(Decimal(0)),
+        hourly_price=EnergyPrice.per_mwh(Money.pln(Decimal(0))),
         pv_forecast_today=[],
         pv_forecast_tomorrow=[],
         weather_forecast=[],

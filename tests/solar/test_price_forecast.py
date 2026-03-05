@@ -8,6 +8,7 @@ from units.fifteen_minute_period import FifteenMinutePeriod
 from units.fifteen_minute_price import FifteenMinutePrice
 from units.hourly_period import HourlyPeriod
 from units.hourly_price import HourlyPrice
+from units.money import Money
 
 
 def test_create_from_rce_15_mins() -> None:
@@ -51,46 +52,46 @@ def test_create_from_rce_15_mins() -> None:
     assert forecast_price.periods == [
         FifteenMinutePrice(
             period=FifteenMinutePeriod.parse("2025-10-03T13:00:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(Decimal("-10")),
+            price=EnergyPrice.per_mwh(Money.pln(Decimal("-10"))),
         ),
         FifteenMinutePrice(
             period=FifteenMinutePeriod.parse("2025-10-03T13:15:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(Decimal("50")),
+            price=EnergyPrice.per_mwh(Money.pln(Decimal("50"))),
         ),
         FifteenMinutePrice(
             period=FifteenMinutePeriod.parse("2025-10-03T13:30:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(Decimal("50")),
+            price=EnergyPrice.per_mwh(Money.pln(Decimal("50"))),
         ),
         FifteenMinutePrice(
             period=FifteenMinutePeriod.parse("2025-10-03T13:45:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(Decimal("60")),
+            price=EnergyPrice.per_mwh(Money.pln(Decimal("60"))),
         ),
         FifteenMinutePrice(
             period=FifteenMinutePeriod.parse("2025-10-03T14:00:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(Decimal("60")),
+            price=EnergyPrice.per_mwh(Money.pln(Decimal("60"))),
         ),
         FifteenMinutePrice(
             period=FifteenMinutePeriod.parse("2025-10-03T14:15:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(Decimal("70")),
+            price=EnergyPrice.per_mwh(Money.pln(Decimal("70"))),
         ),
         FifteenMinutePrice(
             period=FifteenMinutePeriod.parse("2025-10-03T14:30:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(Decimal("70")),
+            price=EnergyPrice.per_mwh(Money.pln(Decimal("70"))),
         ),
         FifteenMinutePrice(
             period=FifteenMinutePeriod.parse("2025-10-03T14:45:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(Decimal("80")),
+            price=EnergyPrice.per_mwh(Money.pln(Decimal("80"))),
         ),
     ]
 
     assert forecast_price.hourly_periods == [
         HourlyPrice(
             period=HourlyPeriod.parse("2025-10-03T13:00:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(Decimal("40.0")),  # -10 capped to 0
+            price=EnergyPrice.per_mwh(Money.pln(Decimal("40.0"))),  # -10 capped to 0
         ),
         HourlyPrice(
             period=HourlyPeriod.parse("2025-10-03T14:00:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(Decimal("70.0")),
+            price=EnergyPrice.per_mwh(Money.pln(Decimal("70.0"))),
         ),
     ]
 
@@ -102,36 +103,36 @@ def forecast_price() -> PriceForecast:
             # Hour 16:00 - prices 300, 400, 450, 480; avg 407.5
             FifteenMinutePrice(
                 period=FifteenMinutePeriod.parse("2025-10-03T16:00:00+00:00"),
-                price=EnergyPrice.pln_per_mwh(Decimal(300)),
+                price=EnergyPrice.per_mwh(Money.pln(Decimal(300))),
             ),
             FifteenMinutePrice(
                 period=FifteenMinutePeriod.parse("2025-10-03T16:15:00+00:00"),
-                price=EnergyPrice.pln_per_mwh(Decimal(400)),
+                price=EnergyPrice.per_mwh(Money.pln(Decimal(400))),
             ),
             FifteenMinutePrice(
                 period=FifteenMinutePeriod.parse("2025-10-03T16:30:00+00:00"),
-                price=EnergyPrice.pln_per_mwh(Decimal(450)),
+                price=EnergyPrice.per_mwh(Money.pln(Decimal(450))),
             ),
             FifteenMinutePrice(
                 period=FifteenMinutePeriod.parse("2025-10-03T16:45:00+00:00"),
-                price=EnergyPrice.pln_per_mwh(Decimal(480)),
+                price=EnergyPrice.per_mwh(Money.pln(Decimal(480))),
             ),
             # Hour 17:00 - prices 520, 600, 750, 800; avg 667.5
             FifteenMinutePrice(
                 period=FifteenMinutePeriod.parse("2025-10-03T17:00:00+00:00"),
-                price=EnergyPrice.pln_per_mwh(Decimal(520)),
+                price=EnergyPrice.per_mwh(Money.pln(Decimal(520))),
             ),
             FifteenMinutePrice(
                 period=FifteenMinutePeriod.parse("2025-10-03T17:15:00+00:00"),
-                price=EnergyPrice.pln_per_mwh(Decimal(600)),
+                price=EnergyPrice.per_mwh(Money.pln(Decimal(600))),
             ),
             FifteenMinutePrice(
                 period=FifteenMinutePeriod.parse("2025-10-03T17:30:00+00:00"),
-                price=EnergyPrice.pln_per_mwh(Decimal(750)),
+                price=EnergyPrice.per_mwh(Money.pln(Decimal(750))),
             ),
             FifteenMinutePrice(
                 period=FifteenMinutePeriod.parse("2025-10-03T17:45:00+00:00"),
-                price=EnergyPrice.pln_per_mwh(Decimal(800)),
+                price=EnergyPrice.per_mwh(Money.pln(Decimal(800))),
             ),
         ]
     )
@@ -145,7 +146,7 @@ def test_find_min_hour(forecast_price: PriceForecast) -> None:
 
     assert min_hour == HourlyPrice(
         period=HourlyPeriod.parse("2025-10-03T16:00:00+00:00"),
-        price=EnergyPrice.pln_per_mwh(Decimal(407.5)),
+        price=EnergyPrice.per_mwh(Money.pln(Decimal(407.5))),
     )
 
 
@@ -158,10 +159,10 @@ def test_select_hourly_prices(forecast_price: PriceForecast) -> None:
     assert selected_hours == [
         HourlyPrice(
             period=HourlyPeriod.parse("2025-10-03T16:00:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(Decimal(407.5)),
+            price=EnergyPrice.per_mwh(Money.pln(Decimal(407.5))),
         ),
         HourlyPrice(
             period=HourlyPeriod.parse("2025-10-03T17:00:00+00:00"),
-            price=EnergyPrice.pln_per_mwh(Decimal(667.5)),
+            price=EnergyPrice.per_mwh(Money.pln(Decimal(667.5))),
         ),
     ]
