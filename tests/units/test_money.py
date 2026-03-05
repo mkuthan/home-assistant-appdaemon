@@ -22,9 +22,7 @@ from units.money import Money
         (Money.pln, "PLN"),
     ],
 )
-def test_class_factory_method(
-    amount_value: str, callable: Callable[[Decimal], Money], currency: str
-) -> None:
+def test_class_factory_method(amount_value: str, callable: Callable[[Decimal], Money], currency: str) -> None:
     amount_decimal = Decimal(amount_value)
     money = callable(amount_decimal)
     assert money.value == amount_decimal
