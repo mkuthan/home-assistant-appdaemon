@@ -3,11 +3,12 @@ from decimal import Decimal
 
 from units.energy_price import EnergyPrice
 from units.hourly_price import HourlyPrice
+from units.money import Money
 
 
 def find_max_revenue_period(
     hourly_prices: list[HourlyPrice], min_price_threshold: EnergyPrice, max_duration_minutes: int
-) -> tuple[EnergyPrice, datetime, datetime] | None:
+) -> tuple[Money, datetime, datetime] | None:
     """
     Find the continuous time period with the largest revenue.
 
@@ -51,7 +52,7 @@ def find_max_revenue_period(
             start_time = start_hour.period.start + timedelta(minutes=start_offset_minutes)
 
             # Calculate revenue for a window of max_duration_minutes from this start
-            revenue = start_hour.price.zeroed()
+            revenue = start_hour.price.money.zeroed()
             minutes_covered = 0
 
             # Iterate through periods that this window spans
@@ -71,7 +72,7 @@ def find_max_revenue_period(
                 minutes_to_take = min(minutes_available_in_period, minutes_needed)
 
                 # Add revenue
-                price_per_minute = current_hourly_price.price / Decimal(period_duration_minutes)
+                price_per_minute = current_hourly_price.price.money / Decimal(period_duration_minutes)
                 revenue += price_per_minute * Decimal(minutes_to_take)
                 minutes_covered += minutes_to_take
 

@@ -2,86 +2,83 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import ClassVar
 
+from units.money import Money
+
 
 @dataclass(frozen=True)
 class EnergyPrice:
-    _CURRENCY_EUR: ClassVar[str] = "EUR"
-    _CURRENCY_PLN: ClassVar[str] = "PLN"
     _UNIT_KWH: ClassVar[str] = "kWh"
     _UNIT_MWH: ClassVar[str] = "MWh"
 
-    value: Decimal
-    currency: str
+    money: Money
     unit: str
 
     def __post_init__(self) -> None:
-        if self.currency not in [self._CURRENCY_EUR, self._CURRENCY_PLN]:
-            raise ValueError(f"Unsupported currency {self.currency}")
         if self.unit not in [self._UNIT_KWH, self._UNIT_MWH]:
             raise ValueError(f"Unsupported unit {self.unit}")
 
-    def __add__(self, other: "EnergyPrice") -> "EnergyPrice":
-        if self.currency != other.currency or self.unit != other.unit:
-            raise ValueError("Cannot add energy prices with different currency or unit")
+    @property
+    def value(self) -> Decimal:
+        return self.money.value
 
-        return EnergyPrice(value=self.value + other.value, currency=self.currency, unit=self.unit)
+    @property
+    def currency(self) -> str:
+        return self.money.currency
+
+    def _check_compatible(self, other: "EnergyPrice", operation: str) -> None:
+        if self.currency != other.currency or self.unit != other.unit:
+            raise ValueError(f"Cannot {operation} energy prices with different currency or unit")
+
+    def __add__(self, other: "EnergyPrice") -> "EnergyPrice":
+        self._check_compatible(other, "add")
+        return EnergyPrice(money=self.money + other.money, unit=self.unit)
 
     def __sub__(self, other: "EnergyPrice") -> "EnergyPrice":
-        if self.currency != other.currency or self.unit != other.unit:
-            raise ValueError("Cannot subtract energy prices with different currency or unit")
-
-        return EnergyPrice(value=self.value - other.value, currency=self.currency, unit=self.unit)
+        self._check_compatible(other, "subtract")
+        return EnergyPrice(money=self.money - other.money, unit=self.unit)
 
     def __mul__(self, other: Decimal) -> "EnergyPrice":
-        return EnergyPrice(value=self.value * other, currency=self.currency, unit=self.unit)
+        return EnergyPrice(money=self.money * other, unit=self.unit)
 
     def __truediv__(self, other: Decimal) -> "EnergyPrice":
         if other == Decimal(0):
             raise ValueError("Cannot divide by zero")
-
-        return EnergyPrice(value=self.value / other, currency=self.currency, unit=self.unit)
+        return EnergyPrice(money=self.money / other, unit=self.unit)
 
     def __lt__(self, other: "EnergyPrice") -> bool:
-        if self.currency != other.currency or self.unit != other.unit:
-            raise ValueError("Cannot compare energy prices with different currency or unit")
-        return self.value < other.value
+        self._check_compatible(other, "compare")
+        return self.money < other.money
 
     def __le__(self, other: "EnergyPrice") -> bool:
-        if self.currency != other.currency or self.unit != other.unit:
-            raise ValueError("Cannot compare energy prices with different currency or unit")
-        return self.value <= other.value
+        self._check_compatible(other, "compare")
+        return self.money <= other.money
 
     def __gt__(self, other: "EnergyPrice") -> bool:
-        if self.currency != other.currency or self.unit != other.unit:
-            raise ValueError("Cannot compare energy prices with different currency or unit")
-        return self.value > other.value
+        self._check_compatible(other, "compare")
+        return self.money > other.money
 
     def __ge__(self, other: "EnergyPrice") -> bool:
-        if self.currency != other.currency or self.unit != other.unit:
-            raise ValueError("Cannot compare energy prices with different currency or unit")
-        return self.value >= other.value
+        self._check_compatible(other, "compare")
+        return self.money >= other.money
 
     def __str__(self) -> str:
-        return f"{self.value:.2f}{self.currency}/{self.unit}"
+        return f"{self.money}/{self.unit}"
 
     def non_negative(self) -> "EnergyPrice":
-        return self if self.value >= Decimal(0) else EnergyPrice(Decimal(0), self.currency, self.unit)
-
-    def zeroed(self) -> "EnergyPrice":
-        return EnergyPrice(Decimal(0), self.currency, self.unit)
+        return EnergyPrice(money=self.money.non_negative(), unit=self.unit)
 
     @classmethod
     def eur_per_kwh(cls, value: Decimal) -> "EnergyPrice":
-        return cls(value=value, currency=EnergyPrice._CURRENCY_EUR, unit=EnergyPrice._UNIT_KWH)
+        return cls(money=Money.eur(value), unit=cls._UNIT_KWH)
 
     @classmethod
     def eur_per_mwh(cls, value: Decimal) -> "EnergyPrice":
-        return cls(value=value, currency=EnergyPrice._CURRENCY_EUR, unit=EnergyPrice._UNIT_MWH)
+        return cls(money=Money.eur(value), unit=cls._UNIT_MWH)
 
     @classmethod
     def pln_per_kwh(cls, value: Decimal) -> "EnergyPrice":
-        return cls(value=value, currency=EnergyPrice._CURRENCY_PLN, unit=EnergyPrice._UNIT_KWH)
+        return cls(money=Money.pln(value), unit=cls._UNIT_KWH)
 
     @classmethod
     def pln_per_mwh(cls, value: Decimal) -> "EnergyPrice":
-        return cls(value=value, currency=EnergyPrice._CURRENCY_PLN, unit=EnergyPrice._UNIT_MWH)
+        return cls(money=Money.pln(value), unit=cls._UNIT_MWH)
