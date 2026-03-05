@@ -29,6 +29,7 @@ from units.battery_current import BatteryCurrent
 from units.battery_soc import BatterySoc
 from units.celsius import Celsius
 from units.energy_price import EnergyPrice
+from units.money import Money
 from utils.safe_converters import safe_bool, safe_float, safe_list, safe_str
 
 
@@ -144,7 +145,7 @@ class DefaultSolarStateFactory:
             slot1_discharge_current=BatteryCurrent(slot1_discharge_current),
             hvac_heating_mode=hvac_heating_mode,
             hvac_heating_temperature=Celsius(hvac_heating_temperature),
-            hourly_price=EnergyPrice.pln_per_mwh(Decimal.from_float(hourly_price)),
+            hourly_price=EnergyPrice.per_mwh(Money.pln(Decimal.from_float(hourly_price))),
             pv_forecast_today=pv_forecast_today,
             pv_forecast_tomorrow=pv_forecast_tomorrow,
             weather_forecast=weather_forecast,

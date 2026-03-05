@@ -16,6 +16,7 @@ from units.energy_kwh import EnergyKwh
 from units.energy_price import EnergyPrice
 from units.hourly_energy import HourlyProductionEnergy
 from units.hourly_period import HourlyPeriod
+from units.money import Money
 
 
 @pytest.fixture
@@ -31,7 +32,7 @@ def battery_discharge_slot_estimator(
         battery_maximum_current=BatteryCurrent(80.0),
         battery_reserve_soc_min=BatterySoc(20.0),
         battery_reserve_soc_margin=BatterySoc(5.0),
-        battery_export_threshold_price=EnergyPrice.pln_per_mwh(Decimal(1200)),
+        battery_export_threshold_price=EnergyPrice.per_mwh(Money.pln(Decimal(1200))),
         battery_export_threshold_energy=EnergyKwh(1.0),
     )
 
@@ -78,11 +79,11 @@ def test_estimate_battery_discharge_at_4_pm(
 
     hourly_price_1 = HourlyPrice(
         period=HourlyPeriod.parse("2025-10-10T19:00:00+00:00"),
-        price=EnergyPrice.pln_per_mwh(Decimal(1250)),
+        price=EnergyPrice.per_mwh(Money.pln(Decimal(1250))),
     )
     hourly_price_2 = HourlyPrice(
         period=HourlyPeriod.parse("2025-10-10T20:00:00+00:00"),
-        price=EnergyPrice.pln_per_mwh(Decimal(1600)),
+        price=EnergyPrice.per_mwh(Money.pln(Decimal(1600))),
     )
     mock_price_forecast.select_hourly_prices.return_value = [hourly_price_1, hourly_price_2]
 

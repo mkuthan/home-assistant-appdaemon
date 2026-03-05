@@ -7,6 +7,7 @@ from units.fifteen_minute_period import FifteenMinutePeriod
 from units.fifteen_minute_price import FifteenMinutePrice
 from units.hourly_period import HourlyPeriod
 from units.hourly_price import HourlyPrice
+from units.money import Money
 from utils.time_utils import truncate_to_hour
 
 
@@ -28,7 +29,7 @@ class PriceForecast:
                             period=FifteenMinutePeriod.parse_custom_from_end_date(
                                 item["dtime"], format="%Y-%m-%d %H:%M:%S", time_zone=time_zone
                             ),
-                            price=EnergyPrice.pln_per_mwh(Decimal(str(item["rce_pln"]))),
+                            price=EnergyPrice.per_mwh(Money.pln(Decimal(str(item["rce_pln"])))),
                         )
                     )
                 except (ValueError, TypeError, KeyError):

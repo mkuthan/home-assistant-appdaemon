@@ -17,6 +17,7 @@ from units.battery_voltage import BatteryVoltage
 from units.celsius import Celsius
 from units.energy_kwh import EnergyKwh
 from units.energy_price import EnergyPrice
+from units.money import Money
 from utils.appdaemon_utils import LoggingAppdaemonService, is_dry_run
 
 
@@ -65,9 +66,9 @@ class SolarApp(hass.Hass):
             # consumption during evening
             regular_consumption_evening=EnergyKwh(0.8),
             # threshold for exporting PV energy, net price
-            pv_export_min_price_margin=EnergyPrice.pln_per_mwh(Decimal(200)),
+            pv_export_min_price_margin=EnergyPrice.per_mwh(Money.pln(Decimal(200))),
             # threshold for exporting battery energy, net price
-            battery_export_threshold_price=EnergyPrice.pln_per_mwh(Decimal(1000)),
+            battery_export_threshold_price=EnergyPrice.per_mwh(Money.pln(Decimal(1000))),
             # skip battery export below this threshold
             battery_export_threshold_energy=EnergyKwh(1.0),
             # start time of night low tariff period (with margin)
