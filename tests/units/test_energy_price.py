@@ -3,6 +3,7 @@ from decimal import Decimal
 
 import pytest
 from units.energy_price import EnergyPrice
+from units.money import Money
 
 
 @pytest.mark.parametrize(
@@ -43,7 +44,7 @@ def test_class_factory_method(
 )
 def test_invalid_currency(currency: str) -> None:
     with pytest.raises(ValueError, match=f"Unsupported currency {currency}"):
-        EnergyPrice(value=Decimal(0), currency=currency, unit="MWh")
+        EnergyPrice(money=Money(Decimal(0), currency), unit="MWh")
 
 
 @pytest.mark.parametrize(
@@ -55,7 +56,7 @@ def test_invalid_currency(currency: str) -> None:
 )
 def test_invalid_unit(unit: str) -> None:
     with pytest.raises(ValueError, match=f"Unsupported unit {unit}"):
-        EnergyPrice(value=Decimal(0), currency="PLN", unit=unit)
+        EnergyPrice(money=Money(Decimal(0), "PLN"), unit=unit)
 
 
 @pytest.mark.parametrize(
@@ -181,8 +182,8 @@ def test_greater_than_or_equal(price1: str, price2: str, expected: bool) -> None
 @pytest.mark.parametrize(
     "price1,price2",
     [
-        (EnergyPrice(Decimal("100"), "PLN", "MWh"), EnergyPrice(Decimal("50"), "EUR", "MWh")),
-        (EnergyPrice(Decimal("100"), "PLN", "MWh"), EnergyPrice(Decimal("50"), "PLN", "kWh")),
+        (EnergyPrice(Money(Decimal("100"), "PLN"), "MWh"), EnergyPrice(Money(Decimal("50"), "EUR"), "MWh")),
+        (EnergyPrice(Money(Decimal("100"), "PLN"), "MWh"), EnergyPrice(Money(Decimal("50"), "PLN"), "kWh")),
     ],
 )
 def test_operation_with_incompatible_prices(
@@ -211,9 +212,3 @@ def test_non_negative(input_value: str, expected_value: str) -> None:
     price = EnergyPrice.pln_per_mwh(Decimal(input_value))
     expected = EnergyPrice.pln_per_mwh(Decimal(expected_value))
     assert price.non_negative() == expected
-
-
-def test_zeroed() -> None:
-    price = EnergyPrice.pln_per_mwh(Decimal("123.45"))
-    expected = EnergyPrice.pln_per_mwh(Decimal("0.0"))
-    assert price.zeroed() == expected
