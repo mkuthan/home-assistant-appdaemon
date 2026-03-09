@@ -61,6 +61,11 @@ class EnergyPrice:
     def non_negative(self) -> "EnergyPrice":
         return EnergyPrice(money=self.money.non_negative(), unit=self.unit)
 
+    def normalize_to_price_per_kwh(self) -> "EnergyPrice":
+        if self.unit == EnergyPrice._UNIT_MWH:
+            return EnergyPrice(money=self.money / Decimal(1000), unit=EnergyPrice._UNIT_KWH)
+        return self
+
     @classmethod
     def per_kwh(cls, money: Money) -> "EnergyPrice":
         return cls(money=money, unit=cls._UNIT_KWH)

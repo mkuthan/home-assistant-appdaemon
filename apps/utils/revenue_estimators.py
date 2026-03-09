@@ -1,24 +1,32 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+from units.energy_kwh import EnergyKwh
 from units.energy_price import EnergyPrice
 from units.hourly_price import HourlyPrice
 from units.money import Money
 
 
 def find_max_revenue_period(
-    hourly_prices: list[HourlyPrice], min_price_threshold: EnergyPrice, max_duration_minutes: int
+    hourly_prices: list[HourlyPrice],
+    min_price_threshold: EnergyPrice,
+    max_duration_minutes: int,
+    discharge_energy_1h: EnergyKwh,
 ) -> tuple[Money, datetime, datetime] | None:
     """
-    Find the continuous time period with the largest revenue.
+    Find the continuous time period with the largest revenue from battery discharge.
 
     This algorithm evaluates all possible starting minutes to find the optimal window with maximum revenue.
     This ensures we don't miss optimal solutions that start mid-hour.
+
+    Revenue is calculated as: price_per_kwh * discharge_energy_per_minute * minutes, where
+    discharge_energy_per_minute is derived from the battery's maximum discharge energy in one hour.
 
     Args:
         hourly_prices: Sorted list of hourly prices with no gaps.
         min_price_threshold: Minimum hourly price threshold that must apply to each individual period in the window.
         max_duration_minutes: Maximum allowed duration for the period in minutes. Can be any value (e.g. 28, 105, 180).
+        discharge_energy_1h: Maximum energy the battery can discharge in one hour (kWh).
 
     Returns:
         Tuple of (revenue, start_time, end_time) if a valid period exists,
@@ -52,7 +60,7 @@ def find_max_revenue_period(
             start_time = start_hour.period.start + timedelta(minutes=start_offset_minutes)
 
             # Calculate revenue for a window of max_duration_minutes from this start
-            revenue = start_hour.price.money.zeroed()
+            revenue = start_hour.price.normalize_to_price_per_kwh().money.zeroed()
             minutes_covered = 0
 
             # Iterate through periods that this window spans
@@ -71,9 +79,10 @@ def find_max_revenue_period(
                 minutes_needed = max_duration_minutes - minutes_covered
                 minutes_to_take = min(minutes_available_in_period, minutes_needed)
 
-                # Add revenue
-                price_per_minute = current_hourly_price.price.money / Decimal(period_duration_minutes)
-                revenue += price_per_minute * Decimal(minutes_to_take)
+                # Add revenue: price_per_kwh * discharge_kwh_per_minute * minutes
+                price_per_kwh = current_hourly_price.price.normalize_to_price_per_kwh().money
+                discharge_kwh_per_minute = Decimal(discharge_energy_1h.value) / Decimal(period_duration_minutes)
+                revenue += price_per_kwh * discharge_kwh_per_minute * Decimal(minutes_to_take)
                 minutes_covered += minutes_to_take
 
                 # Move to next period
