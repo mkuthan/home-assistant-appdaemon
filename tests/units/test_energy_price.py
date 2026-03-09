@@ -178,3 +178,15 @@ def test_non_negative(input_value: str, expected_value: str) -> None:
     price = EnergyPrice.per_mwh(Money.pln(Decimal(input_value)))
     expected = EnergyPrice.per_mwh(Money.pln(Decimal(expected_value)))
     assert price.non_negative() == expected
+
+
+def test_normalize_mwh_to_price_per_kwh() -> None:
+    price_mwh = EnergyPrice.per_mwh(Money.pln(Decimal("100.0")))
+
+    assert price_mwh.normalize_to_price_per_kwh() == EnergyPrice.per_kwh(Money.pln(Decimal("0.1")))
+
+
+def test_normalize_kwh_to_price_per_kwh() -> None:
+    price_kwh = EnergyPrice.per_kwh(Money.pln(Decimal("0.1")))
+
+    assert price_kwh.normalize_to_price_per_kwh() == price_kwh

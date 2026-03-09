@@ -66,9 +66,9 @@ class SolarApp(hass.Hass):
             # consumption during evening
             regular_consumption_evening=EnergyKwh(0.8),
             # threshold for exporting PV energy, net price
-            pv_export_min_price_margin=EnergyPrice.per_mwh(Money.pln(Decimal(200))),
+            pv_export_min_price_margin=EnergyPrice.per_mwh(Money.pln(Decimal(150))),
             # threshold for exporting battery energy, net price
-            battery_export_threshold_price=EnergyPrice.per_mwh(Money.pln(Decimal(1000))),
+            battery_export_threshold_price=EnergyPrice.per_mwh(Money.pln(Decimal(800))),
             # skip battery export below this threshold
             battery_export_threshold_energy=EnergyKwh(1.0),
             # start time of night low tariff period (with margin)

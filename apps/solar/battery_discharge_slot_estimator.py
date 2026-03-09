@@ -63,7 +63,10 @@ class BatteryDischargeSlotEstimator:
         hourly_prices = price_forecast.select_hourly_prices(today_4_pm, today_10_pm)
 
         revenue_period = find_max_revenue_period(
-            hourly_prices, self.configuration.battery_export_threshold_price, int(hours * 60)
+            hourly_prices,
+            self.configuration.battery_export_threshold_price,
+            int(hours * 60),
+            battery_discharge_energy_1h,
         )
 
         match revenue_period:

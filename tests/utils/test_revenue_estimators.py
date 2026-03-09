@@ -2,6 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 
 import pytest
+from units.energy_kwh import EnergyKwh
 from units.energy_price import EnergyPrice
 from units.hourly_period import HourlyPeriod
 from units.hourly_price import HourlyPrice
@@ -25,6 +26,11 @@ def any_max_duration_minutes() -> int:
 
 
 @pytest.fixture
+def any_discharge_energy_1h() -> EnergyKwh:
+    return EnergyKwh(4.0)
+
+
+@pytest.fixture
 def standard_periods() -> list[HourlyPrice]:
     return _create_hourly_price_list(
         [
@@ -36,13 +42,21 @@ def standard_periods() -> list[HourlyPrice]:
     )
 
 
+# discharge_energy_1h = 4.0 kWh/h, prices are EUR/MWh
+# revenue = (price_per_mwh / 1000) * (discharge_energy_1h / 60) * minutes
+DISCHARGE_ENERGY_1H = EnergyKwh(4.0)
+
+
 def test_find_max_revenue_period_28_minutes(standard_periods: list[HourlyPrice]) -> None:
-    result = find_max_revenue_period(standard_periods, EnergyPrice.per_mwh(Money.eur(Decimal(100))), 28)
+    result = find_max_revenue_period(
+        standard_periods, EnergyPrice.per_mwh(Money.eur(Decimal(100))), 28, DISCHARGE_ENERGY_1H
+    )
 
     assert result is not None
     revenue, start_time, end_time = result
 
-    expected_revenue = 200 * 28 / 60
+    # 28 min at 200 EUR/MWh = 0.37 EUR
+    expected_revenue = (200 / 1000) * (4.0 / 60) * 28
 
     assert revenue.value == pytest.approx(Decimal.from_float(expected_revenue))
     assert start_time == datetime.fromisoformat("2025-01-01T02:00:00+00:00")
@@ -50,24 +64,30 @@ def test_find_max_revenue_period_28_minutes(standard_periods: list[HourlyPrice])
 
 
 def test_find_max_revenue_period_105_minutes(standard_periods: list[HourlyPrice]) -> None:
-    result = find_max_revenue_period(standard_periods, EnergyPrice.per_mwh(Money.eur(Decimal(100))), 105)
+    result = find_max_revenue_period(
+        standard_periods, EnergyPrice.per_mwh(Money.eur(Decimal(100))), 105, DISCHARGE_ENERGY_1H
+    )
 
     assert result is not None
     revenue, start_time, end_time = result
 
-    expected_revenue = 150 * 45 / 60 + 200
+    # 45 min at 150 EUR/MWh + 60 min at 200 EUR/MWh = 1.25 EUR
+    expected_revenue = (150 / 1000) * (4.0 / 60) * 45 + (200 / 1000) * (4.0 / 60) * 60
     assert revenue.value == pytest.approx(Decimal.from_float(expected_revenue))
     assert start_time == datetime.fromisoformat("2025-01-01T01:15:00+00:00")
     assert end_time == datetime.fromisoformat("2025-01-01T03:00:00+00:00")
 
 
 def test_find_max_revenue_period_105_minutes_high_threshold(standard_periods: list[HourlyPrice]) -> None:
-    result = find_max_revenue_period(standard_periods, EnergyPrice.per_mwh(Money.eur(Decimal(160))), 105)
+    result = find_max_revenue_period(
+        standard_periods, EnergyPrice.per_mwh(Money.eur(Decimal(160))), 105, DISCHARGE_ENERGY_1H
+    )
 
     assert result is not None
     revenue, start_time, end_time = result
 
-    expected_revenue = 200.0
+    # Full 60 min at 200 EUR/MWh = 0.8 EUR
+    expected_revenue = (200 / 1000) * (4.0 / 60) * 60
     assert revenue.value == pytest.approx(Decimal.from_float(expected_revenue))
     assert start_time == datetime.fromisoformat("2025-01-01T02:00:00+00:00")
     assert end_time == datetime.fromisoformat("2025-01-01T03:00:00+00:00")
@@ -83,18 +103,21 @@ def test_find_max_revenue_period_threshold_filtering_in_middle() -> None:
         ]
     )
 
-    result = find_max_revenue_period(periods, EnergyPrice.per_mwh(Money.eur(Decimal(150))), 120)
+    result = find_max_revenue_period(periods, EnergyPrice.per_mwh(Money.eur(Decimal(150))), 120, DISCHARGE_ENERGY_1H)
 
     assert result is not None
     revenue, start_time, end_time = result
 
-    expected_revenue = 200.0 + 170.0
+    # 60 min at 200 EUR/MWh + 60 min at 170 EUR/MWh = 1.48 EUR
+    expected_revenue = (200 / 1000) * (4.0 / 60) * 60 + (170 / 1000) * (4.0 / 60) * 60
     assert revenue.value == pytest.approx(Decimal.from_float(expected_revenue))
     assert start_time == datetime.fromisoformat("2025-01-01T02:00:00+00:00")
     assert end_time == datetime.fromisoformat("2025-01-01T04:00:00+00:00")
 
 
-def test_find_max_revenue_period_no_periods_meet_threshold(any_max_duration_minutes: int) -> None:
+def test_find_max_revenue_period_no_periods_meet_threshold(
+    any_max_duration_minutes: int, any_discharge_energy_1h: EnergyKwh
+) -> None:
     periods = _create_hourly_price_list(
         [
             ("2025-01-01T00:00:00+00:00", 80),
@@ -103,22 +126,26 @@ def test_find_max_revenue_period_no_periods_meet_threshold(any_max_duration_minu
         ]
     )
 
-    result = find_max_revenue_period(periods, EnergyPrice.per_mwh(Money.eur(Decimal(100))), any_max_duration_minutes)
+    result = find_max_revenue_period(
+        periods, EnergyPrice.per_mwh(Money.eur(Decimal(100))), any_max_duration_minutes, any_discharge_energy_1h
+    )
 
     assert result is None
 
 
-def test_find_max_revenue_period_empty_periods(any_energy_price: EnergyPrice, any_max_duration_minutes: int) -> None:
-    result = find_max_revenue_period([], any_energy_price, any_max_duration_minutes)
+def test_find_max_revenue_period_empty_periods(
+    any_energy_price: EnergyPrice, any_max_duration_minutes: int, any_discharge_energy_1h: EnergyKwh
+) -> None:
+    result = find_max_revenue_period([], any_energy_price, any_max_duration_minutes, any_discharge_energy_1h)
 
     assert result is None
 
 
 def test_find_max_revenue_period_zero_duration(
-    any_hourly_periods: list[HourlyPrice], any_energy_price: EnergyPrice
+    any_hourly_periods: list[HourlyPrice], any_energy_price: EnergyPrice, any_discharge_energy_1h: EnergyKwh
 ) -> None:
     with pytest.raises(ValueError, match="max_duration_minutes must be at least 1"):
-        find_max_revenue_period(any_hourly_periods, any_energy_price, 0)
+        find_max_revenue_period(any_hourly_periods, any_energy_price, 0, any_discharge_energy_1h)
 
 
 def _create_hourly_price_list(data: list[tuple[str, int]]) -> list[HourlyPrice]:
