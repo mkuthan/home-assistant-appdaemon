@@ -92,6 +92,7 @@ def state() -> SolarState:
         hvac_heating_mode="",
         hvac_heating_temperature=CELSIUS_ZERO,
         hourly_price=EnergyPrice.per_mwh(Money.pln(Decimal(0))),
+        is_excess_energy_mode_enabled=False,
         pv_forecast_today=[],
         pv_forecast_tomorrow=[],
         weather_forecast=[],

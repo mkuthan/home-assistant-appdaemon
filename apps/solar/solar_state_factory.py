@@ -11,6 +11,7 @@ from entities.entities import (
     BATTERY_RESERVE_SOC_ENTITY,
     BATTERY_SOC_ENTITY,
     ECO_MODE_ENTITY,
+    EXCESS_ENERGY_ENTITY,
     HEATING_ENTITY,
     INDOOR_TEMPERATURE_ENTITY,
     INVERTER_STORAGE_MODE_ENTITY,
@@ -62,6 +63,7 @@ class DefaultSolarStateFactory:
         hvac_heating_mode = safe_str(self.appdaemon_state.get_state(HEATING_ENTITY))
         hvac_heating_temperature = safe_float(self.appdaemon_state.get_state(HEATING_ENTITY, "temperature"))
         hourly_price = safe_float(self.appdaemon_state.get_state(PRICE_FORECAST_ENTITY))
+        is_excess_energy_mode_enabled = safe_bool(self.appdaemon_state.get_state(EXCESS_ENERGY_ENTITY))
 
         pv_forecast_today = safe_list(self.appdaemon_state.get_state(PV_FORECAST_TODAY_ENTITY, "detailedHourly"))
         pv_forecast_tomorrow = safe_list(self.appdaemon_state.get_state(PV_FORECAST_TOMORROW_ENTITY, "detailedHourly"))
@@ -88,6 +90,7 @@ class DefaultSolarStateFactory:
                 ("hvac_heating_mode", hvac_heating_mode),
                 ("hvac_heating_temperature", hvac_heating_temperature),
                 ("hourly_price", hourly_price),
+                ("is_excess_energy_mode_enabled", is_excess_energy_mode_enabled),
                 ("pv_forecast_today", pv_forecast_today),
                 ("pv_forecast_tomorrow", pv_forecast_tomorrow),
             ]
@@ -115,6 +118,7 @@ class DefaultSolarStateFactory:
         assert hvac_heating_mode is not None
         assert hvac_heating_temperature is not None
         assert hourly_price is not None
+        assert is_excess_energy_mode_enabled is not None
         assert pv_forecast_today is not None
         assert pv_forecast_tomorrow is not None
 
@@ -146,6 +150,7 @@ class DefaultSolarStateFactory:
             hvac_heating_mode=hvac_heating_mode,
             hvac_heating_temperature=Celsius(hvac_heating_temperature),
             hourly_price=EnergyPrice.per_mwh(Money.pln(Decimal.from_float(hourly_price))),
+            is_excess_energy_mode_enabled=is_excess_energy_mode_enabled,
             pv_forecast_today=pv_forecast_today,
             pv_forecast_tomorrow=pv_forecast_tomorrow,
             weather_forecast=weather_forecast,

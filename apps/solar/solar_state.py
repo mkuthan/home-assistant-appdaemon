@@ -24,6 +24,7 @@ class SolarState:
     hvac_heating_mode: str  # heating mode
     hvac_heating_temperature: Celsius  # unused
     hourly_price: EnergyPrice  # current hourly energy price
+    is_excess_energy_mode_enabled: bool  # excess energy mode status
     pv_forecast_today: list  # today's PV forecast
     pv_forecast_tomorrow: list  # tomorrow's PV forecast
     weather_forecast: list | None  # weather forecast data

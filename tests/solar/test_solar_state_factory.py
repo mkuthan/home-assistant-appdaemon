@@ -10,6 +10,7 @@ from entities.entities import (
     BATTERY_RESERVE_SOC_ENTITY,
     BATTERY_SOC_ENTITY,
     ECO_MODE_ENTITY,
+    EXCESS_ENERGY_ENTITY,
     HEATING_ENTITY,
     INDOOR_TEMPERATURE_ENTITY,
     INVERTER_STORAGE_MODE_ENTITY,
@@ -82,6 +83,7 @@ def state_values(
         f"{HEATING_ENTITY}:": "heat",
         f"{HEATING_ENTITY}:temperature": "22.0",
         f"{PRICE_FORECAST_ENTITY}:": "500.0",
+        f"{EXCESS_ENERGY_ENTITY}:": "off",
         f"{PV_FORECAST_TODAY_ENTITY}:detailedHourly": pv_forecast_today,
         f"{PV_FORECAST_TOMORROW_ENTITY}:detailedHourly": pv_forecast_tomorrow,
         f"{WEATHER_FORECAST_ENTITY}:forecast": weather_forecast,
@@ -120,6 +122,7 @@ def test_create(
     assert result.hvac_heating_mode == "heat"
     assert result.hvac_heating_temperature == Celsius(22.0)
     assert result.hourly_price == EnergyPrice.per_mwh(Money.pln(Decimal(500)))
+    assert result.is_excess_energy_mode_enabled is False
     assert result.pv_forecast_today == pv_forecast_today
     assert result.pv_forecast_tomorrow == pv_forecast_tomorrow
     assert result.weather_forecast == weather_forecast
@@ -143,6 +146,7 @@ def test_create(
         (f"{HEATING_ENTITY}:", "Can't create state, missing: hvac_heating_mode"),
         (f"{HEATING_ENTITY}:temperature", "Can't create state, missing: hvac_heating_temperature"),
         (f"{PRICE_FORECAST_ENTITY}:", "Can't create state, missing: hourly_price"),
+        (f"{EXCESS_ENERGY_ENTITY}:", "Can't create state, missing: is_excess_energy_mode_enabled"),
         (f"{PV_FORECAST_TODAY_ENTITY}:detailedHourly", "Can't create state, missing: pv_forecast_today"),
         (f"{PV_FORECAST_TOMORROW_ENTITY}:detailedHourly", "Can't create state, missing: pv_forecast_tomorrow"),
     ],

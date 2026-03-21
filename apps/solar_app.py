@@ -6,6 +6,7 @@ from entities.entities import BATTERY_SOC_ENTITY, PRICE_FORECAST_ENTITY
 from solar.battery_discharge_slot_estimator import BatteryDischargeSlotEstimator
 from solar.battery_max_current_estimator import BatteryMaxCurrentEstimator
 from solar.battery_reserve_soc_estimator import BatteryReserveSocEstimator
+from solar.excess_energy_estimator import ExcessEnergyEstimator
 from solar.forecast_factory import DefaultForecastFactory
 from solar.solar import Solar
 from solar.solar_configuration import SolarConfiguration
@@ -95,6 +96,7 @@ class SolarApp(hass.Hass):
             ),
             battery_reserve_soc_estimator=BatteryReserveSocEstimator(appdaemon_logger, configuration, forecast_factory),
             storage_mode_estimator=StorageModeEstimator(appdaemon_logger, configuration, forecast_factory),
+            excess_energy_estimator=ExcessEnergyEstimator(appdaemon_logger, configuration),
         )
 
         self.listen_event(self.solar_debug, "SOLAR_DEBUG")
@@ -107,6 +109,9 @@ class SolarApp(hass.Hass):
 
         self.log("Setting up battery max discharge current control")
         self.run_every(self.control_battery_max_discharge_current, "00:00:00", 5 * 60)
+
+        self.log("Setting up excess energy mode control")
+        self.run_every(self.control_excess_energy, "00:00:00", 5 * 60)
 
         self.log("Setting up storage mode control triggers")
         self.listen_state(
@@ -136,6 +141,9 @@ class SolarApp(hass.Hass):
         self.log("Initial battery max discharge current control run")
         self.solar.control_battery_max_discharge_current(self.get_now())
 
+        self.log("Initial excess energy mode control run")
+        self.solar.control_excess_energy(self.get_now())
+
         self.log("Initial storage mode control run")
         self.solar.control_storage_mode(self.get_now())
 
@@ -150,6 +158,9 @@ class SolarApp(hass.Hass):
 
     def control_battery_max_discharge_current(self, **kwargs: object) -> None:  # noqa: ARG002
         self.solar.control_battery_max_discharge_current(self.get_now())
+
+    def control_excess_energy(self, **kwargs: object) -> None:  # noqa: ARG002
+        self.solar.control_excess_energy(self.get_now())
 
     def control_storage_mode(self, entity, attribute, old, new, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
         self.solar.control_storage_mode(self.get_now())

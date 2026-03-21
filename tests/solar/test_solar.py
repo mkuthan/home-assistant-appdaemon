@@ -7,6 +7,7 @@ from entities.entities import (
     BATTERY_MAX_CHARGE_CURRENT_ENTITY,
     BATTERY_MAX_DISCHARGE_CURRENT_ENTITY,
     BATTERY_RESERVE_SOC_ENTITY,
+    EXCESS_ENERGY_ENTITY,
     INVERTER_STORAGE_MODE_ENTITY,
     SLOT1_DISCHARGE_CURRENT_ENTITY,
     SLOT1_DISCHARGE_ENABLED_ENTITY,
@@ -47,6 +48,11 @@ def mock_storage_mode_estimator() -> Mock:
 
 
 @pytest.fixture
+def mock_excess_energy_estimator() -> Mock:
+    return Mock()
+
+
+@pytest.fixture
 def solar(
     mock_appdaemon_logger: Mock,
     mock_appdaemon_service: Mock,
@@ -56,6 +62,7 @@ def solar(
     mock_battery_discharge_slot_estimator: Mock,
     mock_battery_reserve_soc_estimator: Mock,
     mock_storage_mode_estimator: Mock,
+    mock_excess_energy_estimator: Mock,
 ) -> Solar:
     return Solar(
         mock_appdaemon_logger,
@@ -66,6 +73,7 @@ def solar(
         mock_battery_discharge_slot_estimator,
         mock_battery_reserve_soc_estimator,
         mock_storage_mode_estimator,
+        mock_excess_energy_estimator,
     )
 
 
@@ -273,6 +281,50 @@ def test_control_storage_mode_no_change(
     solar.control_storage_mode(now)
 
     mock_storage_mode_estimator.estimate_storage_mode.assert_called_once_with(state, now)
+
+    mock_appdaemon_service.call_service.assert_not_called()
+
+
+def test_control_excess_energy_enable(
+    solar: Solar,
+    state: SolarState,
+    mock_appdaemon_service: Mock,
+    mock_state_factory: Mock,
+    mock_excess_energy_estimator: Mock,
+) -> None:
+    state = replace(state, is_excess_energy_mode_enabled=False)
+    mock_state_factory.create.return_value = state
+
+    mock_excess_energy_estimator.estimate_excess_energy_mode.return_value = True
+
+    now = datetime.now()
+    solar.control_excess_energy(now)
+
+    mock_excess_energy_estimator.estimate_excess_energy_mode.assert_called_once_with(state, now)
+
+    mock_appdaemon_service.call_service.assert_called_once_with(
+        "input_boolean/turn_on",
+        callback=ANY,
+        entity_id=EXCESS_ENERGY_ENTITY,
+    )
+
+
+def test_control_excess_energy_no_change(
+    solar: Solar,
+    state: SolarState,
+    mock_appdaemon_service: Mock,
+    mock_state_factory: Mock,
+    mock_excess_energy_estimator: Mock,
+) -> None:
+    state = replace(state, is_excess_energy_mode_enabled=True)
+    mock_state_factory.create.return_value = state
+
+    mock_excess_energy_estimator.estimate_excess_energy_mode.return_value = None
+
+    now = datetime.now()
+    solar.control_excess_energy(now)
+
+    mock_excess_energy_estimator.estimate_excess_energy_mode.assert_called_once_with(state, now)
 
     mock_appdaemon_service.call_service.assert_not_called()
 

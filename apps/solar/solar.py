@@ -7,6 +7,7 @@ from entities.entities import (
     BATTERY_MAX_CHARGE_CURRENT_ENTITY,
     BATTERY_MAX_DISCHARGE_CURRENT_ENTITY,
     BATTERY_RESERVE_SOC_ENTITY,
+    EXCESS_ENERGY_ENTITY,
     INVERTER_STORAGE_MODE_ENTITY,
     SLOT1_DISCHARGE_CURRENT_ENTITY,
     SLOT1_DISCHARGE_ENABLED_ENTITY,
@@ -15,6 +16,7 @@ from entities.entities import (
 from solar.battery_discharge_slot_estimator import BatteryDischargeSlotEstimator
 from solar.battery_max_current_estimator import BatteryMaxCurrentEstimator
 from solar.battery_reserve_soc_estimator import BatteryReserveSocEstimator
+from solar.excess_energy_estimator import ExcessEnergyEstimator
 from solar.solar_configuration import SolarConfiguration
 from solar.solar_state import SolarState
 from solar.solar_state_factory import SolarStateFactory
@@ -36,6 +38,7 @@ class Solar:
         battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
         battery_reserve_soc_estimator: BatteryReserveSocEstimator,
         storage_mode_estimator: StorageModeEstimator,
+        excess_energy_estimator: ExcessEnergyEstimator,
     ) -> None:
         self.appdaemon_logger = appdaemon_logger
         self.appdaemon_service = appdaemon_service
@@ -45,6 +48,7 @@ class Solar:
         self.battery_discharge_slot_estimator = battery_discharge_slot_estimator
         self.battery_reserve_soc_estimator = battery_reserve_soc_estimator
         self.storage_mode_estimator = storage_mode_estimator
+        self.excess_energy_estimator = excess_energy_estimator
 
     def log_state(self) -> None:
         if (state := self.state_factory.create()) is None:
@@ -106,6 +110,21 @@ class Solar:
             self.appdaemon_logger.log("Change storage mode from %s to %s", state.inverter_storage_mode, storage_mode)
             self._set_storage_mode(storage_mode)
 
+    def control_excess_energy(self, now: datetime) -> None:
+        if (state := self.state_factory.create()) is None:
+            self.appdaemon_logger.log("Unknown state, cannot control excess energy mode", level=logging.WARNING)
+            return
+
+        is_excess_energy_mode_enabled = self.excess_energy_estimator.estimate_excess_energy_mode(state, now)
+
+        if is_excess_energy_mode_enabled is not None:
+            self.appdaemon_logger.log(
+                "Change excess energy mode from %s to %s",
+                state.is_excess_energy_mode_enabled,
+                is_excess_energy_mode_enabled,
+            )
+            self._set_excess_energy_mode(is_excess_energy_mode_enabled)
+
     def schedule_battery_discharge(self, now: datetime) -> None:
         self.appdaemon_logger.log("Schedule battery discharge at 4 PM")
 
@@ -166,6 +185,14 @@ class Solar:
             callback=LoggingAppdaemonCallback(self.appdaemon_logger),
             entity_id=INVERTER_STORAGE_MODE_ENTITY,
             option=storage_mode.value,
+        )
+
+    def _set_excess_energy_mode(self, is_enabled: bool) -> None:
+        service = "input_boolean/turn_on" if is_enabled else "input_boolean/turn_off"
+        self.appdaemon_service.call_service(
+            service,
+            callback=LoggingAppdaemonCallback(self.appdaemon_logger),
+            entity_id=EXCESS_ENERGY_ENTITY,
         )
 
     def _set_slot1_discharge(self, state: SolarState, discharge_time: str, discharge_current: BatteryCurrent) -> None:

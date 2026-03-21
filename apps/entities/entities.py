@@ -31,6 +31,9 @@ SLOT1_DISCHARGE_ENABLED_ENTITY = "switch.solis_control_slot1_discharge"
 SLOT1_DISCHARGE_TIME_ENTITY = "text.solis_control_slot1_discharge_time"
 SLOT1_DISCHARGE_CURRENT_ENTITY = "number.solis_control_slot1_discharge_current"
 
+EXCESS_ENERGY_ENTITY = "input_boolean.solar_excess_energy_mode"
+BATTERY_FULL_CHARGE_ENTITY = "timer.solar_battery_full_charge"
+
 # Weather entities
 WEATHER_FORECAST_ENTITY = "sensor.weather_forecast"
 
