@@ -124,6 +124,9 @@ class SolarApp(hass.Hass):
             constrain_end_time="sunset -01:00:00",
         )
 
+        self.log("Setting up battery full-charge timer reset trigger")
+        self.listen_state(self.reset_battery_full_charge_timer, BATTERY_SOC_ENTITY)
+
         self.log("Setting up battery discharge schedule")
         self.run_daily(self.schedule_battery_discharge, "15:30:00")
         self.run_daily(self.schedule_battery_discharge, "16:00:00")  # backup call
@@ -170,3 +173,6 @@ class SolarApp(hass.Hass):
 
     def disable_battery_discharge(self, **kwargs: object) -> None:  # noqa: ARG002
         self.solar.disable_battery_discharge()
+
+    def reset_battery_full_charge_timer(self, entity, attribute, old, new, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
+        self.solar.reset_battery_full_charge_timer_if_full(old, new)

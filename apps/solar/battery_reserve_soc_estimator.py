@@ -5,7 +5,7 @@ from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from solar.forecast_factory import ForecastFactory
 from solar.solar_configuration import SolarConfiguration
 from solar.solar_state import SolarState
-from units.battery_soc import BatterySoc
+from units.battery_soc import BATTERY_SOC_MAX, BatterySoc
 from units.energy_kwh import ENERGY_KWH_ZERO
 from utils.battery_estimators import estimate_battery_max_soc, estimate_battery_reserve_soc
 from utils.energy_aggregators import maximum_cumulative_deficit, total_surplus
@@ -31,7 +31,14 @@ class BatteryReserveSocEstimator:
             now.time(), self.configuration.day_low_tariff_time_start, self.configuration.day_low_tariff_time_end
         )
 
-        if is_night_low_tariff:
+        if (is_night_low_tariff or is_day_low_tariff) and state.battery_full_charge_timer_state == "idle":
+            battery_reserve_soc_target = BATTERY_SOC_MAX
+            self.appdaemon_logger.log(
+                "Battery full-charge timer expired, forcing reserve SoC target: %s",
+                battery_reserve_soc_target,
+                level=logging.DEBUG,
+            )
+        elif is_night_low_tariff:
             next_high_tariff_hours = hours_difference(
                 self.configuration.night_low_tariff_time_end, self.configuration.day_low_tariff_time_start
             )

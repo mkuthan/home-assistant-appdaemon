@@ -10,6 +10,7 @@ from units.energy_price import EnergyPrice
 @dataclass(frozen=True)
 class SolarState:
     battery_soc: BatterySoc  # current battery state of charge
+    battery_full_charge_timer_state: str  # current battery full-charge timer state
     battery_reserve_soc: BatterySoc  # configured battery reserve state of charge
     battery_max_charge_current: BatteryCurrent  # configured maximum battery charge current
     battery_max_discharge_current: BatteryCurrent  # configured maximum battery discharge current

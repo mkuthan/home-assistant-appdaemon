@@ -4,6 +4,7 @@ from datetime import datetime
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from appdaemon_protocols.appdaemon_service import AppdaemonService
 from entities.entities import (
+    BATTERY_FULL_CHARGE_ENTITY,
     BATTERY_MAX_CHARGE_CURRENT_ENTITY,
     BATTERY_MAX_DISCHARGE_CURRENT_ENTITY,
     BATTERY_RESERVE_SOC_ENTITY,
@@ -23,8 +24,9 @@ from solar.solar_state_factory import SolarStateFactory
 from solar.storage_mode import StorageMode
 from solar.storage_mode_estimator import StorageModeEstimator
 from units.battery_current import BatteryCurrent
-from units.battery_soc import BatterySoc
+from units.battery_soc import BATTERY_SOC_MAX, BatterySoc
 from utils.appdaemon_utils import LoggingAppdaemonCallback
+from utils.safe_converters import safe_float
 
 
 class Solar:
@@ -155,6 +157,18 @@ class Solar:
 
         self._disable_slot1_discharge(state)
 
+    def reset_battery_full_charge_timer_if_full(
+        self, old_battery_soc_state: object, new_battery_soc_state: object
+    ) -> None:
+        old_battery_soc = safe_float(old_battery_soc_state)
+        new_battery_soc = safe_float(new_battery_soc_state)
+
+        if old_battery_soc is None or new_battery_soc is None:
+            return
+
+        if old_battery_soc < BATTERY_SOC_MAX.value <= new_battery_soc:
+            self._restart_battery_full_charge_timer()
+
     def _set_battery_reserve_soc(self, battery_reserve_soc: BatterySoc) -> None:
         self.appdaemon_service.call_service(
             "number/set_value",
@@ -252,3 +266,11 @@ class Solar:
             )
         else:
             self.appdaemon_logger.log("Slot 1 battery discharge is already disabled")
+
+    def _restart_battery_full_charge_timer(self) -> None:
+        self.appdaemon_logger.log("Restart battery full-charge timer")
+        self.appdaemon_service.call_service(
+            "timer/start",
+            callback=LoggingAppdaemonCallback(self.appdaemon_logger),
+            entity_id=BATTERY_FULL_CHARGE_ENTITY,
+        )
