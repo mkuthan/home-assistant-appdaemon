@@ -69,8 +69,8 @@ class StorageModeEstimator:
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
         reason = (
-            f"current price: {current_price}, "
-            + f"current battery SoC: {state.battery_soc}, "
+            f"price: {current_price}, "
+            + f"battery SoC: {state.battery_soc}, "
             + f"energy surplus: {energy_surplus}"
         )
         return self._return_if_changed(state, StorageMode.FEED_IN_PRIORITY, reason)
