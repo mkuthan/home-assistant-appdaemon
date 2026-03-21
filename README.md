@@ -20,6 +20,7 @@ Additionally, it provides smart HVAC control for heating, cooling, and domestic 
 - *Battery Maximum Current Optimization* - Dynamically adjusts maximum charge and discharge currents for optimal battery usage and longevity
 - *Storage Mode Optimization* - Automatically determines the optimal hybrid inverter storage mode to maximize PV energy sales to the grid
 - *Discharge Slot Optimization* - Calculates optimal battery discharge windows to maximize earnings from grid energy sales
+- *Excess Energy Mode* - Automatically enables excess energy mode to power appliances when surplus solar energy is available and exporting to the grid is unprofitable
 
 ### HVAC Control
 
