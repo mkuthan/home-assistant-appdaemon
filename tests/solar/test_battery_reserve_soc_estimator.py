@@ -6,7 +6,7 @@ import pytest
 from solar.battery_reserve_soc_estimator import BatteryReserveSocEstimator
 from solar.solar_configuration import SolarConfiguration
 from solar.solar_state import SolarState
-from units.battery_soc import BatterySoc
+from units.battery_soc import BATTERY_SOC_MAX, BatterySoc
 from units.energy_kwh import EnergyKwh
 from units.hourly_energy import HourlyProductionEnergy
 from units.hourly_period import HourlyPeriod
@@ -193,3 +193,43 @@ def test_estimate_soc_today_at_4_pm_when_solar_only_charging_sufficient(
     # SoC solar only: 20% + (4.0 kWh / 10.0 kWh) = 20% + 40% = 60%
     # Since soc_solar_only (60%) >= soc_target (40%), no grid charging needed
     assert battery_reserve_soc is None
+
+
+def test_estimate_soc_timer_idle_in_low_tariff_forces_battery_soc_max(
+    battery_reserve_soc_estimator: BatteryReserveSocEstimator,
+    state: SolarState,
+    mock_forecast_factory: Mock,
+) -> None:
+    state = replace(
+        state,
+        battery_full_charge_timer_state="idle",
+        battery_reserve_soc=BatterySoc(90.0),
+    )
+
+    now = datetime.fromisoformat("2025-10-10T22:05:00+00:00")
+
+    battery_reserve_soc = battery_reserve_soc_estimator.estimate_battery_reserve_soc(state, now)
+
+    assert battery_reserve_soc == BATTERY_SOC_MAX
+    mock_forecast_factory.create_consumption_forecast.assert_not_called()
+    mock_forecast_factory.create_production_forecast.assert_not_called()
+
+
+def test_estimate_soc_timer_idle_outside_low_tariff_uses_default_minimum(
+    battery_reserve_soc_estimator: BatteryReserveSocEstimator,
+    state: SolarState,
+    mock_forecast_factory: Mock,
+) -> None:
+    state = replace(
+        state,
+        battery_full_charge_timer_state="idle",
+        battery_reserve_soc=BatterySoc(30.0),
+    )
+
+    now = datetime.fromisoformat("2025-10-10T10:00:00+00:00")
+
+    battery_reserve_soc = battery_reserve_soc_estimator.estimate_battery_reserve_soc(state, now)
+
+    assert battery_reserve_soc == BatterySoc(20.0)
+    mock_forecast_factory.create_consumption_forecast.assert_not_called()
+    mock_forecast_factory.create_production_forecast.assert_not_called()

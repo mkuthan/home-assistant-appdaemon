@@ -4,6 +4,7 @@ from unittest.mock import ANY, Mock
 
 import pytest
 from entities.entities import (
+    BATTERY_FULL_CHARGE_ENTITY,
     BATTERY_MAX_CHARGE_CURRENT_ENTITY,
     BATTERY_MAX_DISCHARGE_CURRENT_ENTITY,
     BATTERY_RESERVE_SOC_ENTITY,
@@ -397,4 +398,48 @@ def test_disable_battery_discharge(
         "switch/turn_off",
         callback=ANY,
         entity_id=SLOT1_DISCHARGE_ENABLED_ENTITY,
+    )
+
+
+def test_reset_battery_full_charge_timer_if_full_when_crossing_100_percent(
+    solar: Solar,
+    mock_appdaemon_service: Mock,
+) -> None:
+    solar.reset_battery_full_charge_timer_if_full("99.0", "100.0")
+
+    mock_appdaemon_service.call_service.assert_called_once_with(
+        "timer/start",
+        callback=ANY,
+        entity_id=BATTERY_FULL_CHARGE_ENTITY,
+    )
+
+
+def test_reset_battery_full_charge_timer_if_full_when_not_crossing_100_percent(
+    solar: Solar,
+    mock_appdaemon_service: Mock,
+) -> None:
+    solar.reset_battery_full_charge_timer_if_full("100.0", "100.0")
+
+    mock_appdaemon_service.call_service.assert_not_called()
+
+
+def test_reset_battery_full_charge_timer_if_full_ignores_non_numeric_states(
+    solar: Solar,
+    mock_appdaemon_service: Mock,
+) -> None:
+    solar.reset_battery_full_charge_timer_if_full("unknown", "100.0")
+
+    mock_appdaemon_service.call_service.assert_not_called()
+
+
+def test_restart_battery_full_charge_timer(
+    solar: Solar,
+    mock_appdaemon_service: Mock,
+) -> None:
+    solar._restart_battery_full_charge_timer()
+
+    mock_appdaemon_service.call_service.assert_called_once_with(
+        "timer/start",
+        callback=ANY,
+        entity_id=BATTERY_FULL_CHARGE_ENTITY,
     )

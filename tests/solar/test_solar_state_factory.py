@@ -5,6 +5,7 @@ from unittest.mock import Mock
 import pytest
 from entities.entities import (
     AWAY_MODE_ENTITY,
+    BATTERY_FULL_CHARGE_ENTITY,
     BATTERY_MAX_CHARGE_CURRENT_ENTITY,
     BATTERY_MAX_DISCHARGE_CURRENT_ENTITY,
     BATTERY_RESERVE_SOC_ENTITY,
@@ -69,6 +70,7 @@ def state_values(
 ) -> dict:
     return {
         f"{BATTERY_SOC_ENTITY}:": "75.5",
+        f"{BATTERY_FULL_CHARGE_ENTITY}:": "active",
         f"{BATTERY_RESERVE_SOC_ENTITY}:": "20.0",
         f"{BATTERY_MAX_CHARGE_CURRENT_ENTITY}:": "50.0",
         f"{BATTERY_MAX_DISCHARGE_CURRENT_ENTITY}:": "50.0",
@@ -108,6 +110,7 @@ def test_create(
 
     assert result is not None
     assert result.battery_soc == BatterySoc(75.5)
+    assert result.battery_full_charge_timer_state == "active"
     assert result.battery_reserve_soc == BatterySoc(20.0)
     assert result.battery_max_charge_current == BatteryCurrent(50.0)
     assert result.battery_max_discharge_current == BatteryCurrent(50.0)
@@ -133,6 +136,7 @@ def test_create(
     ("missing_entity", "expected_message"),
     [
         (f"{BATTERY_SOC_ENTITY}:", "Can't create state, missing: battery_soc"),
+        (f"{BATTERY_FULL_CHARGE_ENTITY}:", "Can't create state, missing: battery_full_charge_timer_state"),
         (f"{BATTERY_RESERVE_SOC_ENTITY}:", "Can't create state, missing: battery_reserve_soc"),
         (f"{BATTERY_MAX_CHARGE_CURRENT_ENTITY}:", "Can't create state, missing: battery_max_charge_current"),
         (f"{BATTERY_MAX_DISCHARGE_CURRENT_ENTITY}:", "Can't create state, missing: battery_max_discharge_current"),

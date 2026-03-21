@@ -78,6 +78,7 @@ def configuration() -> SolarConfiguration:
 def state() -> SolarState:
     return SolarState(
         battery_soc=BATTERY_SOC_MIN,
+        battery_full_charge_timer_state="active",
         battery_reserve_soc=BATTERY_SOC_MIN,
         battery_max_charge_current=BATTERY_CURRENT_ZERO,
         battery_max_discharge_current=BATTERY_CURRENT_ZERO,
