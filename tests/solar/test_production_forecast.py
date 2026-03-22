@@ -34,6 +34,19 @@ class TestForecastProductionComposite:
 
         assert result == [hourly1, hourly2]
 
+    def test_total(self, any_datetime: datetime) -> None:
+        component_1 = Mock()
+        component_1.total.return_value = EnergyKwh(1.5)
+
+        component_2 = Mock()
+        component_2.total.return_value = EnergyKwh(2.5)
+
+        forecast = ProductionForecastComposite(component_1, component_2)
+
+        result = forecast.total(period_start=any_datetime, period_hours=3)
+
+        assert result == EnergyKwh(4.0)
+
 
 class TestForecastProductionDefault:
     def test_create(self) -> None:
@@ -134,3 +147,29 @@ class TestForecastProductionDefault:
         )
 
         assert result == []
+
+    def test_total_2_periods(
+        self,
+        forecast_periods: list[HourlyProductionEnergy],
+    ) -> None:
+        forecast_production = ProductionForecastDefault(forecast_periods)
+
+        result = forecast_production.total(
+            period_start=datetime.fromisoformat("2025-10-02T07:00:00+00:00"),
+            period_hours=2,
+        )
+
+        assert result == EnergyKwh(5.0)
+
+    def test_total_no_matching_periods(
+        self,
+        forecast_periods: list[HourlyProductionEnergy],
+    ) -> None:
+        forecast_production = ProductionForecastDefault(forecast_periods)
+
+        result = forecast_production.total(
+            period_start=datetime.fromisoformat("2025-10-02T10:00:00+00:00"),
+            period_hours=2,
+        )
+
+        assert result == EnergyKwh(0.0)
