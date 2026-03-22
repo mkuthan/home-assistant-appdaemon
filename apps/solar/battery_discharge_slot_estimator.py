@@ -60,7 +60,7 @@ class BatteryDischargeSlotEstimator:
         hours = energy_surplus / battery_discharge_energy_1h
 
         price_forecast = self.forecast_factory.create_price_forecast(state)
-        hourly_prices = price_forecast.select_hourly_prices(today_4_pm, today_10_pm)
+        hourly_prices = price_forecast.hourly(today_4_pm, today_10_pm)
 
         revenue_period = find_max_revenue_period(
             hourly_prices,

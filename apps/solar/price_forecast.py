@@ -60,7 +60,7 @@ class PriceForecast:
 
         return min(hourly_prices, key=lambda p: p.price)
 
-    def select_hourly_prices(self, period_start: datetime, period_end: datetime) -> list[HourlyPrice]:
+    def hourly(self, period_start: datetime, period_end: datetime) -> list[HourlyPrice]:
         return [
             hourly_period
             for hourly_period in self.hourly_periods

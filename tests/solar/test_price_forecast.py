@@ -150,8 +150,8 @@ def test_find_min_hour(forecast_price: PriceForecast) -> None:
     )
 
 
-def test_select_hourly_prices(forecast_price: PriceForecast) -> None:
-    selected_hours = forecast_price.select_hourly_prices(
+def test_hourly(forecast_price: PriceForecast) -> None:
+    selected_hours = forecast_price.hourly(
         period_start=datetime.fromisoformat("2025-10-03T16:00:00+00:00"),
         period_end=datetime.fromisoformat("2025-10-03T18:00:00+00:00"),
     )
