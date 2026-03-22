@@ -17,7 +17,8 @@ from entities.entities import (
     INDOOR_TEMPERATURE_ENTITY,
     INVERTER_STORAGE_MODE_ENTITY,
     OUTDOOR_TEMPERATURE_ENTITY,
-    PRICE_FORECAST_ENTITY,
+    PRICE_FORECAST_TODAY_ENTITY,
+    PRICE_FORECAST_TOMORROW_ENTITY,
     PV_FORECAST_TODAY_ENTITY,
     PV_FORECAST_TOMORROW_ENTITY,
     SLOT1_DISCHARGE_CURRENT_ENTITY,
@@ -64,7 +65,7 @@ class DefaultSolarStateFactory:
         slot1_discharge_current = safe_float(self.appdaemon_state.get_state(SLOT1_DISCHARGE_CURRENT_ENTITY))
         hvac_heating_mode = safe_str(self.appdaemon_state.get_state(HEATING_ENTITY))
         hvac_heating_temperature = safe_float(self.appdaemon_state.get_state(HEATING_ENTITY, "temperature"))
-        hourly_price = safe_float(self.appdaemon_state.get_state(PRICE_FORECAST_ENTITY))
+        hourly_price = safe_float(self.appdaemon_state.get_state(PRICE_FORECAST_TODAY_ENTITY))
         is_excess_energy_mode_enabled = safe_bool(self.appdaemon_state.get_state(EXCESS_ENERGY_ENTITY))
 
         pv_forecast_today = safe_list(self.appdaemon_state.get_state(PV_FORECAST_TODAY_ENTITY, "detailedHourly"))
@@ -72,7 +73,8 @@ class DefaultSolarStateFactory:
 
         weather_forecast = safe_list(self.appdaemon_state.get_state(WEATHER_FORECAST_ENTITY, "forecast"))
 
-        price_forecast = safe_list(self.appdaemon_state.get_state(PRICE_FORECAST_ENTITY, "prices"))
+        price_forecast_today = safe_list(self.appdaemon_state.get_state(PRICE_FORECAST_TODAY_ENTITY, "prices"))
+        price_forecast_tomorrow = safe_list(self.appdaemon_state.get_state(PRICE_FORECAST_TOMORROW_ENTITY, "prices"))
 
         missing_mandatory = [
             name
@@ -130,7 +132,8 @@ class DefaultSolarStateFactory:
             name
             for name, value in [
                 ("weather_forecast", weather_forecast),
-                ("price_forecast", price_forecast),
+                ("price_forecast_today", price_forecast_today),
+                ("price_forecast_tomorrow", price_forecast_tomorrow),
             ]
             if value is None
         ]
@@ -159,7 +162,8 @@ class DefaultSolarStateFactory:
             pv_forecast_today=pv_forecast_today,
             pv_forecast_tomorrow=pv_forecast_tomorrow,
             weather_forecast=weather_forecast,
-            price_forecast=price_forecast,
+            price_forecast_today=price_forecast_today,
+            price_forecast_tomorrow=price_forecast_tomorrow,
         )
 
         return solar_state

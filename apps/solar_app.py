@@ -2,7 +2,7 @@ from datetime import time
 from decimal import Decimal
 
 import appdaemon.plugins.hass.hassapi as hass
-from entities.entities import BATTERY_SOC_ENTITY, PRICE_FORECAST_ENTITY
+from entities.entities import BATTERY_SOC_ENTITY, PRICE_FORECAST_TODAY_ENTITY
 from solar.battery_discharge_slot_estimator import BatteryDischargeSlotEstimator
 from solar.battery_max_current_estimator import BatteryMaxCurrentEstimator
 from solar.battery_reserve_soc_estimator import BatteryReserveSocEstimator
@@ -118,7 +118,7 @@ class SolarApp(hass.Hass):
             self.control_storage_mode,
             [
                 BATTERY_SOC_ENTITY,
-                PRICE_FORECAST_ENTITY,
+                PRICE_FORECAST_TODAY_ENTITY,
             ],
             constrain_start_time="sunrise +01:00:00",
             constrain_end_time="sunset -01:00:00",
