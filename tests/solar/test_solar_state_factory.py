@@ -16,7 +16,8 @@ from entities.entities import (
     INDOOR_TEMPERATURE_ENTITY,
     INVERTER_STORAGE_MODE_ENTITY,
     OUTDOOR_TEMPERATURE_ENTITY,
-    PRICE_FORECAST_ENTITY,
+    PRICE_FORECAST_TODAY_ENTITY,
+    PRICE_FORECAST_TOMORROW_ENTITY,
     PV_FORECAST_TODAY_ENTITY,
     PV_FORECAST_TOMORROW_ENTITY,
     SLOT1_DISCHARGE_CURRENT_ENTITY,
@@ -55,9 +56,16 @@ def weather_forecast() -> list[dict]:
 
 
 @pytest.fixture
-def price_forecast() -> list[dict]:
+def price_forecast_today() -> list[dict]:
     return [
         {"dtime": "2025-10-03T16:00:00+00:00", "rce_pln": 426.1},
+    ]
+
+
+@pytest.fixture
+def price_forecast_tomorrow() -> list[dict]:
+    return [
+        {"dtime": "2025-10-04T16:00:00+00:00", "rce_pln": 391.8},
     ]
 
 
@@ -66,7 +74,8 @@ def state_values(
     pv_forecast_today: list[dict],
     pv_forecast_tomorrow: list[dict],
     weather_forecast: list[dict],
-    price_forecast: list[dict],
+    price_forecast_today: list[dict],
+    price_forecast_tomorrow: list[dict],
 ) -> dict:
     return {
         f"{BATTERY_SOC_ENTITY}:": "75.5",
@@ -84,12 +93,13 @@ def state_values(
         f"{SLOT1_DISCHARGE_CURRENT_ENTITY}:": "45.0",
         f"{HEATING_ENTITY}:": "heat",
         f"{HEATING_ENTITY}:temperature": "22.0",
-        f"{PRICE_FORECAST_ENTITY}:": "500.0",
+        f"{PRICE_FORECAST_TODAY_ENTITY}:": "500.0",
         f"{EXCESS_ENERGY_ENTITY}:": "off",
         f"{PV_FORECAST_TODAY_ENTITY}:detailedHourly": pv_forecast_today,
         f"{PV_FORECAST_TOMORROW_ENTITY}:detailedHourly": pv_forecast_tomorrow,
         f"{WEATHER_FORECAST_ENTITY}:forecast": weather_forecast,
-        f"{PRICE_FORECAST_ENTITY}:prices": price_forecast,
+        f"{PRICE_FORECAST_TODAY_ENTITY}:prices": price_forecast_today,
+        f"{PRICE_FORECAST_TOMORROW_ENTITY}:prices": price_forecast_tomorrow,
     }
 
 
@@ -100,7 +110,8 @@ def test_create(
     pv_forecast_today: list[dict],
     pv_forecast_tomorrow: list[dict],
     weather_forecast: list[dict],
-    price_forecast: list[dict],
+    price_forecast_today: list[dict],
+    price_forecast_tomorrow: list[dict],
 ) -> None:
     mock_appdaemon_state.get_state.side_effect = lambda entity_id, attribute="", *_args, **_kwargs: state_values.get(
         f"{entity_id}:{attribute}"
@@ -129,7 +140,8 @@ def test_create(
     assert result.pv_forecast_today == pv_forecast_today
     assert result.pv_forecast_tomorrow == pv_forecast_tomorrow
     assert result.weather_forecast == weather_forecast
-    assert result.price_forecast == price_forecast
+    assert result.price_forecast_today == price_forecast_today
+    assert result.price_forecast_tomorrow == price_forecast_tomorrow
 
 
 @pytest.mark.parametrize(
@@ -149,7 +161,7 @@ def test_create(
         (f"{SLOT1_DISCHARGE_CURRENT_ENTITY}:", "Can't create state, missing: slot1_discharge_current"),
         (f"{HEATING_ENTITY}:", "Can't create state, missing: hvac_heating_mode"),
         (f"{HEATING_ENTITY}:temperature", "Can't create state, missing: hvac_heating_temperature"),
-        (f"{PRICE_FORECAST_ENTITY}:", "Can't create state, missing: hourly_price"),
+        (f"{PRICE_FORECAST_TODAY_ENTITY}:", "Can't create state, missing: hourly_price"),
         (f"{EXCESS_ENERGY_ENTITY}:", "Can't create state, missing: is_excess_energy_mode_enabled"),
         (f"{PV_FORECAST_TODAY_ENTITY}:detailedHourly", "Can't create state, missing: pv_forecast_today"),
         (f"{PV_FORECAST_TOMORROW_ENTITY}:detailedHourly", "Can't create state, missing: pv_forecast_tomorrow"),
@@ -176,7 +188,8 @@ def test_create_missing_mandatory_field(
     ("missing_entity", "expected_message"),
     [
         (f"{WEATHER_FORECAST_ENTITY}:forecast", "Fallback mode, missing: weather_forecast"),
-        (f"{PRICE_FORECAST_ENTITY}:prices", "Fallback mode, missing: price_forecast"),
+        (f"{PRICE_FORECAST_TODAY_ENTITY}:prices", "Fallback mode, missing: price_forecast_today"),
+        (f"{PRICE_FORECAST_TOMORROW_ENTITY}:prices", "Fallback mode, missing: price_forecast_tomorrow"),
     ],
 )
 def test_create_missing_optional_field(

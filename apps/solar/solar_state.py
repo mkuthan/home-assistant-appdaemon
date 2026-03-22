@@ -29,4 +29,5 @@ class SolarState:
     pv_forecast_today: list  # today's PV forecast
     pv_forecast_tomorrow: list  # tomorrow's PV forecast
     weather_forecast: list | None  # weather forecast data
-    price_forecast: list | None  # energy price forecast
+    price_forecast_today: list | None  # today's energy price forecast
+    price_forecast_tomorrow: list | None  # tomorrow's energy price forecast

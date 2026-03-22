@@ -38,7 +38,8 @@ BATTERY_FULL_CHARGE_ENTITY = "timer.solar_battery_full_charge"
 WEATHER_FORECAST_ENTITY = "sensor.weather_forecast"
 
 # Energy price entities
-PRICE_FORECAST_ENTITY = "sensor.rce_pse_price"
+PRICE_FORECAST_TODAY_ENTITY = "sensor.rce_pse_price"
+PRICE_FORECAST_TOMORROW_ENTITY = "sensor.rce_pse_tomorrow_price"
 
 # Solar forecast entities
 PV_FORECAST_TODAY_ENTITY = "sensor.solcast_pv_forecast_forecast_today"
