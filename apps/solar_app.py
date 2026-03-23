@@ -30,6 +30,8 @@ class SolarApp(hass.Hass):
 
         configuration = SolarConfiguration(
             time_zone=str(self.get_timezone()),
+            # installation capacity (kWp)
+            installation_capacity=EnergyKwh(6.3),
             # nominal battery capacity
             battery_capacity=EnergyKwh(10.0),
             # nominal battery voltage

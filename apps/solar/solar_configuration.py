@@ -13,6 +13,8 @@ from units.energy_price import EnergyPrice
 class SolarConfiguration:
     time_zone: str
 
+    installation_capacity: EnergyKwh
+
     battery_capacity: EnergyKwh
     battery_voltage: BatteryVoltage
     battery_maximum_current: BatteryCurrent

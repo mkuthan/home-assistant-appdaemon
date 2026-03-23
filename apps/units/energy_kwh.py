@@ -14,6 +14,9 @@ class EnergyKwh:
     def __sub__(self, other: "EnergyKwh") -> "EnergyKwh":
         return EnergyKwh(value=self.value - other.value)
 
+    def __mul__(self, other: float) -> "EnergyKwh":
+        return EnergyKwh(value=self.value * other)
+
     def __truediv__(self, other: "EnergyKwh") -> float:
         if other == ENERGY_KWH_ZERO:
             raise ValueError("Cannot divide by zero energy")

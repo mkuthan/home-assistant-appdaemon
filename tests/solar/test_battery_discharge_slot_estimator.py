@@ -27,6 +27,7 @@ def battery_discharge_slot_estimator(
 ) -> BatteryDischargeSlotEstimator:
     configuration = replace(
         configuration,
+        installation_capacity=EnergyKwh(5.0),
         battery_capacity=EnergyKwh(10.0),
         battery_voltage=BatteryVoltage(50.0),
         battery_maximum_current=BatteryCurrent(80.0),
@@ -80,7 +81,7 @@ def test_estimate_battery_discharge_at_4_pm(
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(2.0)),
     ]
 
-    mock_production_forecast.total.return_value = EnergyKwh(25.0)
+    mock_production_forecast.total.return_value = EnergyKwh(18.0)
 
     mock_consumption_forecast.hourly.return_value = [
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(4.0)),
@@ -137,7 +138,7 @@ def test_estimate_battery_discharge_at_4_pm_when_tomorrow_midday_price_is_low(
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(2.0)),
     ]
 
-    mock_production_forecast.total.return_value = EnergyKwh(25.0)
+    mock_production_forecast.total.return_value = EnergyKwh(18.0)
 
     mock_consumption_forecast.hourly.return_value = [
         HourlyProductionEnergy(hourly_period, energy=EnergyKwh(4.0)),

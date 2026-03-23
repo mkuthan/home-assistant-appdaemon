@@ -46,6 +46,7 @@ def mock_forecast_factory(
 def configuration() -> SolarConfiguration:
     return SolarConfiguration(
         time_zone="UTC",
+        installation_capacity=ENERGY_KWH_ZERO,
         battery_capacity=ENERGY_KWH_ZERO,
         battery_voltage=BATTERY_VOLTAGE_ZERO,
         battery_maximum_current=BATTERY_CURRENT_ZERO,
