@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from solar.battery_discharge_slot import BatteryDischargeSlot
@@ -13,6 +13,9 @@ from utils.revenue_estimators import find_max_revenue_period
 
 
 class BatteryDischargeSlotEstimator:
+    # TODO: extract to configuration
+    _GOOD_DAY_PRODUCTION_THRESHOLD = EnergyKwh(20.0)
+
     def __init__(
         self,
         appdaemon_logger: AppdaemonLogger,
@@ -27,6 +30,12 @@ class BatteryDischargeSlotEstimator:
         today_4_pm = now.replace(hour=16, minute=0, second=0, microsecond=0)
         today_10_pm = now.replace(hour=22, minute=0, second=0, microsecond=0)
         low_tariff_hours = 6
+
+        tomorrow_midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        tomorrow_hours = 24
+
+        tomorrow_10_30_am = (now + timedelta(days=1)).replace(hour=10, minute=30, second=0, microsecond=0)
+        midday_hours = 4
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
         production_forecast = self.forecast_factory.create_production_forecast(state)
@@ -60,11 +69,29 @@ class BatteryDischargeSlotEstimator:
         hours = energy_surplus / battery_discharge_energy_1h
 
         price_forecast = self.forecast_factory.create_price_forecast(state)
-        hourly_prices = price_forecast.hourly(today_4_pm, today_10_pm)
 
+        tomorrow_production_forecast = production_forecast.total(tomorrow_midnight, tomorrow_hours)
+        tomorrow_midday_average_price = price_forecast.average_price(tomorrow_10_30_am, midday_hours)
+
+        if (
+            tomorrow_production_forecast > self._GOOD_DAY_PRODUCTION_THRESHOLD
+            and tomorrow_midday_average_price is not None
+        ):
+            price_adjustment = (
+                self.configuration.pv_export_threshold_price - tomorrow_midday_average_price.non_negative()
+            )
+            battery_export_threshold_price = (
+                self.configuration.battery_export_threshold_price - price_adjustment.non_negative()
+            )
+            self.appdaemon_logger.log("Adjusted battery export threshold price: %s", battery_export_threshold_price)
+        else:
+            battery_export_threshold_price = self.configuration.battery_export_threshold_price
+            self.appdaemon_logger.log("Battery export threshold price unchanged: %s", battery_export_threshold_price)
+
+        hourly_prices = price_forecast.hourly(today_4_pm, today_10_pm)
         revenue_period = find_max_revenue_period(
             hourly_prices,
-            self.configuration.battery_export_threshold_price,
+            battery_export_threshold_price,
             int(hours * 60),
             battery_discharge_energy_1h,
         )

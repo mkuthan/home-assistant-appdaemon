@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from decimal import Decimal
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from solar.forecast_factory import ForecastFactory
@@ -13,7 +14,8 @@ from utils.time_utils import truncate_to_hour
 
 
 class StorageModeEstimator:
-    END_HOUR: int = 16
+    _END_HOUR: int = 16
+    _PRICE_THRESHOLD_MULTIPLIER: Decimal = Decimal("1.1")
 
     def __init__(
         self,
@@ -26,7 +28,7 @@ class StorageModeEstimator:
         self.forecast_factory = forecast_factory
 
     def estimate_storage_mode(self, state: SolarState, now: datetime) -> StorageMode | None:
-        remaining_hours = self.END_HOUR - now.hour
+        remaining_hours = self._END_HOUR - now.hour
         if remaining_hours <= 0:
             reason = "no remaining hours in the day"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
@@ -40,7 +42,10 @@ class StorageModeEstimator:
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
         current_price = state.hourly_price.non_negative()
-        price_threshold = min_hour.price.non_negative() + self.configuration.pv_export_min_price_margin
+        price_threshold = max(
+            min_hour.price.non_negative() * self._PRICE_THRESHOLD_MULTIPLIER,
+            self.configuration.pv_export_threshold_price,
+        )
         if current_price <= price_threshold:
             reason = f"current price {current_price} <= {price_threshold}"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)

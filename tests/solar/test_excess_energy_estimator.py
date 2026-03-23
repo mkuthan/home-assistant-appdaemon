@@ -19,7 +19,7 @@ def excess_energy_estimator(
 ) -> ExcessEnergyEstimator:
     configuration = replace(
         configuration,
-        pv_export_min_price_margin=EnergyPrice.per_mwh(Money.pln(Decimal(200))),
+        pv_export_threshold_price=EnergyPrice.per_mwh(Money.pln(Decimal(200))),
     )
     return ExcessEnergyEstimator(
         appdaemon_logger=mock_appdaemon_logger,

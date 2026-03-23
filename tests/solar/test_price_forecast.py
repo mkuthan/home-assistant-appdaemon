@@ -150,6 +150,15 @@ def test_find_min_hour(forecast_price: PriceForecast) -> None:
     )
 
 
+def test_average_price(forecast_price: PriceForecast) -> None:
+    average = forecast_price.average_price(
+        period_start=datetime.fromisoformat("2025-10-03T16:00:00+00:00"),
+        period_hours=2,
+    )
+
+    assert average == EnergyPrice.per_mwh(Money.pln(Decimal("537.5")))
+
+
 def test_hourly(forecast_price: PriceForecast) -> None:
     selected_hours = forecast_price.hourly(
         period_start=datetime.fromisoformat("2025-10-03T16:00:00+00:00"),
