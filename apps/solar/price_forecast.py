@@ -60,6 +60,18 @@ class PriceForecast:
 
         return min(hourly_prices, key=lambda p: p.price)
 
+    def average_price(self, period_start: datetime, period_hours: int) -> EnergyPrice | None:
+        period_end = period_start + timedelta(hours=period_hours)
+        hourly_prices = [
+            hourly_period.price
+            for hourly_period in self.hourly_periods
+            if period_start <= hourly_period.period.start < period_end
+        ]
+        if not hourly_prices:
+            return None
+
+        return sum(hourly_prices[1:], start=hourly_prices[0]) / Decimal(len(hourly_prices))
+
     def hourly(self, period_start: datetime, period_end: datetime) -> list[HourlyPrice]:
         return [
             hourly_period

@@ -19,8 +19,9 @@ class ExcessEnergyEstimator:
         self.configuration = configuration
 
     def estimate_excess_energy_mode(self, state: SolarState, now: datetime) -> bool | None:  # noqa: ARG002
-        is_price_below_threshold = state.hourly_price < self.configuration.pv_export_min_price_margin
+        is_price_below_threshold = state.hourly_price < self.configuration.pv_export_threshold_price
         is_battery_soc_high = state.battery_soc > self._BATTERY_SOC_THRESHOLD
+
         is_excess_energy_mode_enabled = is_price_below_threshold and is_battery_soc_high
 
         if is_excess_energy_mode_enabled != state.is_excess_energy_mode_enabled:

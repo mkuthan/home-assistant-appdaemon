@@ -36,7 +36,7 @@ class SolarConfiguration:
     regular_consumption_day: EnergyKwh
     regular_consumption_evening: EnergyKwh
 
-    pv_export_min_price_margin: EnergyPrice
+    pv_export_threshold_price: EnergyPrice
 
     battery_export_threshold_price: EnergyPrice
     battery_export_threshold_energy: EnergyKwh

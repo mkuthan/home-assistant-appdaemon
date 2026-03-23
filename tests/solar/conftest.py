@@ -64,7 +64,7 @@ def configuration() -> SolarConfiguration:
         regular_consumption_away=ENERGY_KWH_ZERO,
         regular_consumption_day=ENERGY_KWH_ZERO,
         regular_consumption_evening=ENERGY_KWH_ZERO,
-        pv_export_min_price_margin=EnergyPrice.per_mwh(Money.eur(Decimal(0))),
+        pv_export_threshold_price=EnergyPrice.per_mwh(Money.eur(Decimal(0))),
         battery_export_threshold_price=EnergyPrice.per_mwh(Money.eur(Decimal(0))),
         battery_export_threshold_energy=ENERGY_KWH_ZERO,
         night_low_tariff_time_start=time.fromisoformat("00:00:00"),
