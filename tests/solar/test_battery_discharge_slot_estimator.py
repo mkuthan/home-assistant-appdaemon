@@ -145,14 +145,14 @@ def test_estimate_battery_discharge_at_4_pm_when_tomorrow_midday_price_is_low(
 
     hourly_price_1 = HourlyPrice(
         period=HourlyPeriod.parse("2025-10-10T19:00:00+00:00"),
-        price=EnergyPrice.per_mwh(Money.pln(Decimal(1250))),
+        price=EnergyPrice.per_mwh(Money.pln(Decimal(1150))),
     )
     hourly_price_2 = HourlyPrice(
         period=HourlyPeriod.parse("2025-10-10T20:00:00+00:00"),
-        price=EnergyPrice.per_mwh(Money.pln(Decimal(1600))),
+        price=EnergyPrice.per_mwh(Money.pln(Decimal(1200))),
     )
     mock_price_forecast.hourly.return_value = [hourly_price_1, hourly_price_2]
-    mock_price_forecast.average_price.return_value = EnergyPrice.per_mwh(Money.pln(Decimal(90)))
+    mock_price_forecast.average_price.return_value = EnergyPrice.per_mwh(Money.pln(Decimal(50)))
 
     battery_discharge_slot = battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm(state, this_day)
 
