@@ -75,7 +75,7 @@ class BatteryDischargeSlotEstimator:
 
         if self._is_good_day(tomorrow_production_forecast) and tomorrow_midday_average_price is not None:
             price_adjustment = adjust_export_threshold_price(
-                self.configuration.battery_export_threshold_price,
+                self.configuration.pv_export_threshold_price,
                 tomorrow_midday_average_price,
             )
             battery_export_threshold_price = self.configuration.battery_export_threshold_price - price_adjustment
