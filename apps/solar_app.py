@@ -33,13 +33,13 @@ class SolarApp(hass.Hass):
             # installation capacity (kWp)
             installation_capacity=EnergyKwh(6.3),
             # nominal battery capacity
-            battery_capacity=EnergyKwh(10.0),
+            battery_capacity=EnergyKwh(20.0),
             # nominal battery voltage
             battery_voltage=BatteryVoltage(52.0),
             # maximum battery discharge/charge current
-            battery_maximum_current=BatteryCurrent(80.0),
+            battery_maximum_current=BatteryCurrent(140.0),
             # nominal battery discharge/charge current
-            battery_nominal_current=BatteryCurrent(60.0),
+            battery_nominal_current=BatteryCurrent(120.0),
             # night charge current to replenish battery reserve during low tariff periods
             battery_night_charge_current=BatteryCurrent(40.0),
             # minimum reserve SOC
