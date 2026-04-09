@@ -59,6 +59,8 @@ class Solar:
             self.appdaemon_logger.log("Current state: %s", state)
 
     def control_battery_reserve_soc(self, now: datetime) -> None:
+        self.appdaemon_logger.log("Control battery reserve SoC")
+
         if (state := self.state_factory.create()) is None:
             self.appdaemon_logger.log("Unknown state, cannot control battery reserve SoC", level=logging.WARNING)
             return
@@ -72,10 +74,14 @@ class Solar:
             self._set_battery_reserve_soc(battery_reserve_soc)
 
     def control_battery_max_charge_current(self, now: datetime) -> None:
+        self.appdaemon_logger.log("Control battery max charge current")
+
         if (state := self.state_factory.create()) is None:
             self.appdaemon_logger.log("Unknown state, cannot control battery max charge current", level=logging.WARNING)
             return
+
         battery_max_charge_current = self.battery_max_current_estimator.estimate_battery_max_charge_current(state, now)
+
         if battery_max_charge_current is not None:
             self.appdaemon_logger.log(
                 "Change battery max charge current from %s to %s",
@@ -85,14 +91,18 @@ class Solar:
             self._set_battery_max_charge_current(battery_max_charge_current)
 
     def control_battery_max_discharge_current(self, now: datetime) -> None:
+        self.appdaemon_logger.log("Control battery max discharge current")
+
         if (state := self.state_factory.create()) is None:
             self.appdaemon_logger.log(
                 "Unknown state, cannot control battery max discharge current", level=logging.WARNING
             )
             return
+
         battery_max_discharge_current = self.battery_max_current_estimator.estimate_battery_max_discharge_current(
             state, now
         )
+
         if battery_max_discharge_current is not None:
             self.appdaemon_logger.log(
                 "Change battery max discharge current from %s to %s",
@@ -102,6 +112,8 @@ class Solar:
             self._set_battery_max_discharge_current(battery_max_discharge_current)
 
     def control_storage_mode(self, now: datetime) -> None:
+        self.appdaemon_logger.log("Control storage mode")
+
         if (state := self.state_factory.create()) is None:
             self.appdaemon_logger.log("Unknown state, cannot control storage mode", level=logging.WARNING)
             return
@@ -113,6 +125,8 @@ class Solar:
             self._set_storage_mode(storage_mode)
 
     def control_excess_energy(self, now: datetime) -> None:
+        self.appdaemon_logger.log("Control excess energy mode")
+
         if (state := self.state_factory.create()) is None:
             self.appdaemon_logger.log("Unknown state, cannot control excess energy mode", level=logging.WARNING)
             return
@@ -128,7 +142,7 @@ class Solar:
             self._set_excess_energy_mode(is_excess_energy_mode_enabled)
 
     def schedule_battery_discharge(self, now: datetime) -> None:
-        self.appdaemon_logger.log("Schedule battery discharge at 4 PM")
+        self.appdaemon_logger.log("Schedule battery discharge")
 
         if (state := self.state_factory.create()) is None:
             self.appdaemon_logger.log("Unknown state, cannot schedule battery discharge", level=logging.WARNING)
@@ -139,6 +153,7 @@ class Solar:
         )
 
         if estimated_battery_discharge_slot is not None:
+            self.appdaemon_logger.log("Enable battery discharge slot: %s", estimated_battery_discharge_slot)
             self._set_slot1_discharge(
                 state,
                 estimated_battery_discharge_slot.time_str(),
@@ -146,6 +161,7 @@ class Solar:
             )
             self._enable_slot1_discharge(state)
         else:
+            self.appdaemon_logger.log("Disable battery discharge")
             self._disable_slot1_discharge(state)
 
     def disable_battery_discharge(self) -> None:
@@ -155,11 +171,14 @@ class Solar:
             self.appdaemon_logger.log("Unknown state, cannot disable battery discharge", level=logging.WARNING)
             return
 
+        self.appdaemon_logger.log("Disable battery discharge")
         self._disable_slot1_discharge(state)
 
     def reset_battery_full_charge_timer_if_full(
         self, old_battery_soc_state: object, new_battery_soc_state: object
     ) -> None:
+        self.appdaemon_logger.log("Reset battery full-charge timer")
+
         old_battery_soc = safe_float(old_battery_soc_state)
         new_battery_soc = safe_float(new_battery_soc_state)
 
@@ -167,6 +186,7 @@ class Solar:
             return
 
         if old_battery_soc < BATTERY_SOC_MAX.value <= new_battery_soc:
+            self.appdaemon_logger.log("Reset battery full-charge timer")
             self._restart_battery_full_charge_timer()
 
     def _set_battery_reserve_soc(self, battery_reserve_soc: BatterySoc) -> None:
