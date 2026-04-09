@@ -28,10 +28,10 @@ class BatteryMaxCurrentEstimator:
             target = self.configuration.battery_nominal_current
 
         if target != state.battery_max_charge_current:
-            self.appdaemon_logger.log("Battery max charge current target: %s", target)
+            self.appdaemon_logger.log("Battery max charge current target: %s", target, level=logging.DEBUG)
             return target
         else:
-            self.appdaemon_logger.log("Battery max charge current unchanged: %s", target, level=logging.DEBUG)
+            self.appdaemon_logger.log("Skip, battery max charge current unchanged: %s", target, level=logging.DEBUG)
             return None
 
     def estimate_battery_max_discharge_current(self, state: SolarState, now: datetime) -> BatteryCurrent | None:
@@ -46,8 +46,8 @@ class BatteryMaxCurrentEstimator:
         target = self.configuration.battery_maximum_current if in_slot else self.configuration.battery_nominal_current
 
         if target != state.battery_max_discharge_current:
-            self.appdaemon_logger.log("Battery max discharge current target: %s", target)
+            self.appdaemon_logger.log("Battery max discharge current target: %s", target, level=logging.DEBUG)
             return target
         else:
-            self.appdaemon_logger.log("Battery max discharge current unchanged: %s", target, level=logging.DEBUG)
+            self.appdaemon_logger.log("Skip, battery max discharge current unchanged: %s", target, level=logging.DEBUG)
             return None

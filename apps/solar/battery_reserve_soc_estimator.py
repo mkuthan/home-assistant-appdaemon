@@ -52,11 +52,11 @@ class BatteryReserveSocEstimator:
             battery_reserve_soc_target = self.configuration.battery_reserve_soc_min
 
         if battery_reserve_soc_target != state.battery_reserve_soc:
-            self.appdaemon_logger.log("Battery reserve SoC target: %s", battery_reserve_soc_target)
+            self.appdaemon_logger.log("Battery reserve SoC target: %s", battery_reserve_soc_target, level=logging.DEBUG)
             return battery_reserve_soc_target
         else:
             self.appdaemon_logger.log(
-                "Battery reserve SoC target unchanged: %s", battery_reserve_soc_target, level=logging.DEBUG
+                "Skip, battery reserve SoC target unchanged: %s", battery_reserve_soc_target, level=logging.DEBUG
             )
             return None
 

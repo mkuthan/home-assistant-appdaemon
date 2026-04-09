@@ -25,19 +25,14 @@ class ExcessEnergyEstimator:
         is_excess_energy_mode_enabled = is_price_below_threshold and is_battery_soc_high
 
         if is_excess_energy_mode_enabled != state.is_excess_energy_mode_enabled:
+            action = "Enable" if is_excess_energy_mode_enabled else "Disable"
             self.appdaemon_logger.log(
-                "Use excess energy mode %s, price: %s, battery SoC: %s",
-                is_excess_energy_mode_enabled,
+                "%s excess energy mode, price: %s, battery SoC: %s",
+                action,
                 state.hourly_price,
                 state.battery_soc,
             )
             return is_excess_energy_mode_enabled
-
-        self.appdaemon_logger.log(
-            "Skip, excess energy mode unchanged: %s, price: %s, battery SoC: %s",
-            is_excess_energy_mode_enabled,
-            state.hourly_price,
-            state.battery_soc,
-            level=logging.DEBUG,
-        )
-        return None
+        else:
+            self.appdaemon_logger.log("Excess energy mode: %s", is_excess_energy_mode_enabled, level=logging.DEBUG)
+            return None
