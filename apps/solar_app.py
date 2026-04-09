@@ -45,7 +45,7 @@ class SolarApp(hass.Hass):
             # minimum reserve SOC
             battery_reserve_soc_min=BatterySoc(20.0),
             # margin above minimum reserve SOC
-            battery_reserve_soc_margin=BatterySoc(8.0),
+            battery_reserve_soc_margin=BatterySoc(5.0),
             # upper limit when charging from the grid
             battery_reserve_soc_max=BatterySoc(90.0),
             # indoor temperature setpoint to estimate heating needs
