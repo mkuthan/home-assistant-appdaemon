@@ -31,8 +31,11 @@ class ExcessEnergyEstimator:
                 action,
                 state.hourly_price,
                 state.battery_soc,
+                level=logging.DEBUG,
             )
             return is_excess_energy_mode_enabled
         else:
-            self.appdaemon_logger.log("Excess energy mode: %s", is_excess_energy_mode_enabled, level=logging.DEBUG)
+            self.appdaemon_logger.log(
+                "Skip, excess energy mode unchanged: %s", is_excess_energy_mode_enabled, level=logging.DEBUG
+            )
             return None
