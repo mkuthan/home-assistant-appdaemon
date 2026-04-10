@@ -232,42 +232,24 @@ class Solar:
     def _set_slot1_discharge(self, state: SolarState, discharge_time: str, discharge_current: BatteryCurrent) -> None:
         current_discharge_time = state.slot1_discharge_time
         if current_discharge_time != discharge_time:
-            self.appdaemon_logger.log(
-                "Change slot1 battery discharge time from %s to %s",
-                current_discharge_time,
-                discharge_time,
-            )
             self.appdaemon_service.call_service(
                 "text/set_value",
                 callback=LoggingAppdaemonCallback(self.appdaemon_logger),
                 entity_id=SLOT1_DISCHARGE_TIME_ENTITY,
                 value=discharge_time,
             )
-        else:
-            self.appdaemon_logger.log("Slot1 battery discharge time already set to %s", current_discharge_time)
 
         current_discharge_current = state.slot1_discharge_current
         if current_discharge_current != discharge_current:
-            self.appdaemon_logger.log(
-                "Change slot1 battery discharge current from %s to %s",
-                current_discharge_current,
-                discharge_current,
-            )
             self.appdaemon_service.call_service(
                 "number/set_value",
                 callback=LoggingAppdaemonCallback(self.appdaemon_logger),
                 entity_id=SLOT1_DISCHARGE_CURRENT_ENTITY,
                 value=discharge_current.value,
             )
-        else:
-            self.appdaemon_logger.log(
-                "Slot1 battery discharge current already set to %s",
-                current_discharge_current,
-            )
 
     def _enable_slot1_discharge(self, state: SolarState) -> None:
         if not state.is_slot1_discharge_enabled:
-            self.appdaemon_logger.log("Enabling slot 1 discharge")
             self.appdaemon_service.call_service(
                 "switch/turn_on",
                 callback=LoggingAppdaemonCallback(self.appdaemon_logger),
@@ -278,7 +260,6 @@ class Solar:
 
     def _disable_slot1_discharge(self, state: SolarState) -> None:
         if state.is_slot1_discharge_enabled:
-            self.appdaemon_logger.log("Disabling slot 1 discharge")
             self.appdaemon_service.call_service(
                 "switch/turn_off",
                 callback=LoggingAppdaemonCallback(self.appdaemon_logger),
@@ -288,9 +269,12 @@ class Solar:
             self.appdaemon_logger.log("Slot 1 battery discharge is already disabled")
 
     def _restart_battery_full_charge_timer(self) -> None:
-        self.appdaemon_logger.log("Restart battery full-charge timer")
+        # no callbacks to keep order of operations
+        self.appdaemon_service.call_service(
+            "timer/cancel",
+            entity_id=BATTERY_FULL_CHARGE_ENTITY,
+        )
         self.appdaemon_service.call_service(
             "timer/start",
-            callback=LoggingAppdaemonCallback(self.appdaemon_logger),
             entity_id=BATTERY_FULL_CHARGE_ENTITY,
         )
