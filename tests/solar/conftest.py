@@ -50,7 +50,6 @@ def configuration() -> SolarConfiguration:
         battery_capacity=ENERGY_KWH_ZERO,
         battery_voltage=BATTERY_VOLTAGE_ZERO,
         battery_maximum_current=BATTERY_CURRENT_ZERO,
-        battery_nominal_current=BATTERY_CURRENT_ZERO,
         battery_night_charge_current=BATTERY_CURRENT_ZERO,
         battery_reserve_soc_min=BATTERY_SOC_MIN,
         battery_reserve_soc_margin=BATTERY_SOC_MIN,

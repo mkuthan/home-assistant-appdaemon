@@ -40,9 +40,7 @@ class SolarApp(hass.Hass):
             # nominal battery voltage
             battery_voltage=BatteryVoltage(52.0),
             # maximum battery discharge/charge current
-            battery_maximum_current=BatteryCurrent(140.0),
-            # nominal battery discharge/charge current
-            battery_nominal_current=BatteryCurrent(120.0),
+            battery_maximum_current=BatteryCurrent(160.0),
             # night charge current to replenish battery reserve during low tariff periods
             battery_night_charge_current=BatteryCurrent(40.0),
             # minimum reserve SOC
@@ -160,7 +158,7 @@ class SolarApp(hass.Hass):
         self.solar.control_battery_max_charge_current(self.get_now())
 
         self.log("Initial battery max discharge current control run")
-        self.solar.control_battery_max_discharge_current(self.get_now())
+        self.solar.control_battery_max_discharge_current()
 
         self.log("Initial excess energy mode control run")
         self.solar.control_excess_energy(self.get_now())
@@ -178,7 +176,7 @@ class SolarApp(hass.Hass):
         self.solar.control_battery_max_charge_current(self.get_now())
 
     def control_battery_max_discharge_current(self, **kwargs: object) -> None:  # noqa: ARG002
-        self.solar.control_battery_max_discharge_current(self.get_now())
+        self.solar.control_battery_max_discharge_current()
 
     def control_excess_energy(self, entity, attribute, old, new, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
         self.solar.control_excess_energy(self.get_now())
