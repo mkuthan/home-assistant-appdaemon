@@ -168,6 +168,7 @@ class SolarApp(hass.Hass):
 
     def solar_debug(self, event_type, data, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
         self.solar.log_state()
+        self.solar.schedule_battery_discharge(self.get_now())
 
     def control_battery_reserve_soc(self, **kwargs: object) -> None:  # noqa: ARG002
         self.solar.control_battery_reserve_soc(self.get_now())
