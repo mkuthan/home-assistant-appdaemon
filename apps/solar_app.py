@@ -23,6 +23,9 @@ from utils.appdaemon_utils import LoggingAppdaemonService, is_dry_run
 
 
 class SolarApp(hass.Hass):
+    _PRODUCTION_START_CONSTRAINT = "sunrise +01:00:00"
+    _PRODUCTION_END_CONSTRAINT = "sunset -01:00:00"
+
     def initialize(self) -> None:
         appdaemon_logger = self
         appdaemon_state = self
@@ -113,7 +116,15 @@ class SolarApp(hass.Hass):
         self.run_every(self.control_battery_max_discharge_current, "00:00:00", 5 * 60)
 
         self.log("Setting up excess energy mode control")
-        self.run_every(self.control_excess_energy, "00:00:00", 5 * 60)
+        self.listen_state(
+            self.control_excess_energy,
+            [
+                BATTERY_SOC_ENTITY,
+                PRICE_FORECAST_TODAY_ENTITY,
+            ],
+            constrain_start_time=self._PRODUCTION_START_CONSTRAINT,
+            constrain_end_time=self._PRODUCTION_END_CONSTRAINT,
+        )
 
         self.log("Setting up storage mode control triggers")
         self.listen_state(
@@ -122,12 +133,17 @@ class SolarApp(hass.Hass):
                 BATTERY_SOC_ENTITY,
                 PRICE_FORECAST_TODAY_ENTITY,
             ],
-            constrain_start_time="sunrise +01:00:00",
-            constrain_end_time="sunset -01:00:00",
+            constrain_start_time=self._PRODUCTION_START_CONSTRAINT,
+            constrain_end_time=self._PRODUCTION_END_CONSTRAINT,
         )
 
         self.log("Setting up battery full-charge timer reset trigger")
-        self.listen_state(self.reset_battery_full_charge_timer, BATTERY_SOC_ENTITY)
+        self.listen_state(
+            self.reset_battery_full_charge_timer,
+            BATTERY_SOC_ENTITY,
+            constrain_start_time=self._PRODUCTION_START_CONSTRAINT,
+            constrain_end_time=self._PRODUCTION_END_CONSTRAINT,
+        )
 
         self.log("Setting up battery discharge schedule")
         self.run_daily(self.schedule_battery_discharge, "15:30:00")
@@ -164,7 +180,7 @@ class SolarApp(hass.Hass):
     def control_battery_max_discharge_current(self, **kwargs: object) -> None:  # noqa: ARG002
         self.solar.control_battery_max_discharge_current(self.get_now())
 
-    def control_excess_energy(self, **kwargs: object) -> None:  # noqa: ARG002
+    def control_excess_energy(self, entity, attribute, old, new, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
         self.solar.control_excess_energy(self.get_now())
 
     def control_storage_mode(self, entity, attribute, old, new, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
