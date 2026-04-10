@@ -2,7 +2,6 @@ import logging
 from datetime import datetime, time
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
-from solar.battery_discharge_slot import BatteryDischargeSlot
 from solar.solar_configuration import SolarConfiguration
 from solar.solar_state import SolarState
 from units.battery_current import BatteryCurrent
@@ -25,7 +24,7 @@ class BatteryMaxCurrentEstimator:
         if is_time_in_range(now.time(), self._NIGHT_CHARGE_START, self._NIGHT_CHARGE_END):
             target = self.configuration.battery_night_charge_current
         else:
-            target = self.configuration.battery_nominal_current
+            target = self.configuration.battery_maximum_current
 
         if target != state.battery_max_charge_current:
             self.appdaemon_logger.log("Battery max charge current target: %s", target, level=logging.DEBUG)
@@ -34,16 +33,8 @@ class BatteryMaxCurrentEstimator:
             self.appdaemon_logger.log("Skip, battery max charge current unchanged: %s", target, level=logging.DEBUG)
             return None
 
-    def estimate_battery_max_discharge_current(self, state: SolarState, now: datetime) -> BatteryCurrent | None:
-        if state.is_slot1_discharge_enabled and state.slot1_discharge_time:
-            slot = BatteryDischargeSlot.from_time_str(
-                state.slot1_discharge_time, self.configuration.battery_maximum_current
-            )
-            in_slot = is_time_in_range(now.time(), slot.start_time, slot.end_time)
-        else:
-            in_slot = False
-
-        target = self.configuration.battery_maximum_current if in_slot else self.configuration.battery_nominal_current
+    def estimate_battery_max_discharge_current(self, state: SolarState) -> BatteryCurrent | None:
+        target = self.configuration.battery_maximum_current
 
         if target != state.battery_max_discharge_current:
             self.appdaemon_logger.log("Battery max discharge current target: %s", target, level=logging.DEBUG)

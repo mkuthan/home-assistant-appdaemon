@@ -90,7 +90,7 @@ class Solar:
             )
             self._set_battery_max_charge_current(battery_max_charge_current)
 
-    def control_battery_max_discharge_current(self, now: datetime) -> None:
+    def control_battery_max_discharge_current(self) -> None:
         self.appdaemon_logger.log("Control battery max discharge current")
 
         if (state := self.state_factory.create()) is None:
@@ -99,9 +99,7 @@ class Solar:
             )
             return
 
-        battery_max_discharge_current = self.battery_max_current_estimator.estimate_battery_max_discharge_current(
-            state, now
-        )
+        battery_max_discharge_current = self.battery_max_current_estimator.estimate_battery_max_discharge_current(state)
 
         if battery_max_discharge_current is not None:
             self.appdaemon_logger.log(

@@ -200,10 +200,9 @@ def test_control_battery_max_discharge_current(
         new_battery_max_discharge_current
     )
 
-    now = datetime.now()
-    solar.control_battery_max_discharge_current(now)
+    solar.control_battery_max_discharge_current()
 
-    mock_battery_max_current_estimator.estimate_battery_max_discharge_current.assert_called_once_with(state, now)
+    mock_battery_max_current_estimator.estimate_battery_max_discharge_current.assert_called_once_with(state)
 
     mock_appdaemon_service.call_service.assert_called_once_with(
         "number/set_value",
@@ -228,10 +227,9 @@ def test_control_battery_max_discharge_current_no_change(
 
     mock_battery_max_current_estimator.estimate_battery_max_discharge_current.return_value = None
 
-    now = datetime.now()
-    solar.control_battery_max_discharge_current(now)
+    solar.control_battery_max_discharge_current()
 
-    mock_battery_max_current_estimator.estimate_battery_max_discharge_current.assert_called_once_with(state, now)
+    mock_battery_max_current_estimator.estimate_battery_max_discharge_current.assert_called_once_with(state)
 
     mock_appdaemon_service.call_service.assert_not_called()
 
@@ -407,9 +405,12 @@ def test_reset_battery_full_charge_timer_if_full_when_crossing_100_percent(
 ) -> None:
     solar.reset_battery_full_charge_timer_if_full("99.0", "100.0")
 
-    mock_appdaemon_service.call_service.assert_called_once_with(
+    mock_appdaemon_service.call_service.assert_any_call(
+        "timer/cancel",
+        entity_id=BATTERY_FULL_CHARGE_ENTITY,
+    )
+    mock_appdaemon_service.call_service.assert_any_call(
         "timer/start",
-        callback=ANY,
         entity_id=BATTERY_FULL_CHARGE_ENTITY,
     )
 
@@ -438,8 +439,11 @@ def test_restart_battery_full_charge_timer(
 ) -> None:
     solar._restart_battery_full_charge_timer()
 
-    mock_appdaemon_service.call_service.assert_called_once_with(
+    mock_appdaemon_service.call_service.assert_any_call(
+        "timer/cancel",
+        entity_id=BATTERY_FULL_CHARGE_ENTITY,
+    )
+    mock_appdaemon_service.call_service.assert_any_call(
         "timer/start",
-        callback=ANY,
         entity_id=BATTERY_FULL_CHARGE_ENTITY,
     )
