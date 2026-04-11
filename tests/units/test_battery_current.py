@@ -55,6 +55,42 @@ def test_sub(current1: float, current2: float, expected: float) -> None:
 
 
 @pytest.mark.parametrize(
+    ("current", "multiplier", "expected"),
+    [
+        (0.0, 2.0, 0.0),
+        (5.0, 3.0, 15.0),
+        (10.0, 0.5, 5.0),
+    ],
+)
+def test_mul(current: float, multiplier: float, expected: float) -> None:
+    result = BatteryCurrent(value=current) * multiplier
+    assert result == BatteryCurrent(value=expected)
+
+
+def test_mul_negative_result() -> None:
+    with pytest.raises(ValueError, match="Battery current must be non-negative"):
+        BatteryCurrent(value=5.0) * -1.0  # pyright: ignore[reportUnusedExpression]
+
+
+@pytest.mark.parametrize(
+    ("current", "divisor", "expected"),
+    [
+        (0.0, 2.0, 0.0),
+        (10.0, 2.0, 5.0),
+        (15.0, 3.0, 5.0),
+    ],
+)
+def test_truediv(current: float, divisor: float, expected: float) -> None:
+    result = BatteryCurrent(value=current) / divisor
+    assert result == BatteryCurrent(value=expected)
+
+
+def test_truediv_by_zero() -> None:
+    with pytest.raises(ValueError, match="Cannot divide by zero"):
+        BatteryCurrent(value=10.0) / 0.0  # pyright: ignore[reportUnusedExpression]
+
+
+@pytest.mark.parametrize(
     ("current1", "current2", "expected"),
     [
         (5.0, 10.0, True),

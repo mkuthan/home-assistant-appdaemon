@@ -19,6 +19,14 @@ class BatteryCurrent:
     def __sub__(self, other: "BatteryCurrent") -> "BatteryCurrent":
         return BatteryCurrent(max(self._ZERO_VALUE, self.value - other.value))
 
+    def __mul__(self, other: float) -> "BatteryCurrent":
+        return BatteryCurrent(self.value * other)
+
+    def __truediv__(self, other: float) -> "BatteryCurrent":
+        if other == 0:
+            raise ValueError("Cannot divide by zero")
+        return BatteryCurrent(self.value / other)
+
     def __round__(self) -> "BatteryCurrent":
         return BatteryCurrent(value=floor(self.value + 0.5))
 
