@@ -100,10 +100,11 @@ class BatteryDischargeSlotEstimator:
         discharge_window_start: datetime,
         discharge_window_end: datetime,
     ) -> BatteryDischargeSlot | None:
-        energy_reserve = maximum_cumulative_deficit(hourly_consumptions, hourly_productions)
-        self.appdaemon_logger.log("Energy reserve: %s", energy_reserve, level=logging.DEBUG)
+        self.appdaemon_logger.log(
+            "Battery export threshold price: %s", self.configuration.battery_export_threshold_price, level=logging.DEBUG
+        )
 
-        battery_export_threshold_price = adjust_export_threshold_price(
+        adjusted_battery_export_threshold_price = adjust_export_threshold_price(
             self.configuration.battery_export_threshold_price,
             self.configuration.pv_export_threshold_price,
             midday_average_price,
@@ -111,8 +112,11 @@ class BatteryDischargeSlotEstimator:
             self.configuration.installation_capacity,
         )
         self.appdaemon_logger.log(
-            "Battery export threshold price: %s", battery_export_threshold_price, level=logging.DEBUG
+            "Adjusted battery export threshold price: %s", adjusted_battery_export_threshold_price, level=logging.DEBUG
         )
+
+        energy_reserve = maximum_cumulative_deficit(hourly_consumptions, hourly_productions)
+        self.appdaemon_logger.log("Energy reserve: %s", energy_reserve, level=logging.DEBUG)
 
         energy_surplus = estimate_battery_surplus_energy(
             energy_reserve,
@@ -126,7 +130,7 @@ class BatteryDischargeSlotEstimator:
         adjusted_energy_surplus = adjust_energy_surplus(
             energy_surplus,
             self.configuration.battery_export_threshold_price,
-            battery_export_threshold_price,
+            adjusted_battery_export_threshold_price,
         )
         self.appdaemon_logger.log("Adjusted energy surplus: %s", adjusted_energy_surplus, level=logging.DEBUG)
 
@@ -147,7 +151,7 @@ class BatteryDischargeSlotEstimator:
         hourly_prices = price_forecast.hourly(discharge_window_start, discharge_window_end)
         revenue_period = find_max_revenue_period(
             hourly_prices,
-            battery_export_threshold_price,
+            adjusted_battery_export_threshold_price,
             int(hours * 60),
             battery_discharge_energy_1h,
         )
@@ -165,8 +169,5 @@ class BatteryDischargeSlotEstimator:
 
                 return discharge_slot
             case None:
-                self.appdaemon_logger.log(
-                    "Skip, no suitable revenue period found, threshold price: %s",
-                    self.configuration.battery_export_threshold_price,
-                )
+                self.appdaemon_logger.log("Skip, no suitable revenue period found")
                 return None
