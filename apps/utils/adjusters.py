@@ -2,6 +2,7 @@ from units.energy_kwh import EnergyKwh
 from units.energy_price import EnergyPrice
 
 _GOOD_DAY_PRODUCTION_FACTOR = 3
+_ENERGY_SURPLUS_ADJUSTMENT_FACTOR = 0.5
 
 
 def adjust_export_threshold_price(
@@ -24,5 +25,5 @@ def adjust_energy_surplus(
     adjusted_battery_export_threshold_price: EnergyPrice,
 ) -> EnergyKwh:
     if adjusted_battery_export_threshold_price < nominal_battery_export_threshold_price:
-        return energy_surplus * 0.5
+        return energy_surplus * _ENERGY_SURPLUS_ADJUSTMENT_FACTOR
     return energy_surplus
