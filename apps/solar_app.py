@@ -143,11 +143,17 @@ class SolarApp(hass.Hass):
             constrain_end_time=self._PRODUCTION_END_CONSTRAINT,
         )
 
-        self.log("Setting up battery discharge schedule")
-        self.run_daily(self.schedule_battery_discharge, "15:30:00")
-        self.run_daily(self.schedule_battery_discharge, "16:00:00")  # backup call
+        self.log("Setting up battery discharge morning schedule")
+        self.run_daily(self.schedule_battery_discharge_at_6_am, "05:30:00")
+        self.run_daily(self.schedule_battery_discharge_at_6_am, "06:00:00")  # backup call
+
+        self.log("Setting up battery discharge evening schedule")
+        self.run_daily(self.schedule_battery_discharge_at_4_pm, "15:30:00")
+        self.run_daily(self.schedule_battery_discharge_at_4_pm, "16:00:00")  # backup call
 
         self.log("Setting up battery discharge disable")
+        self.run_daily(self.disable_battery_discharge, "9:00:00")
+        self.run_daily(self.disable_battery_discharge, "9:30:00")  # backup call
         self.run_daily(self.disable_battery_discharge, "22:00:00")
         self.run_daily(self.disable_battery_discharge, "22:30:00")  # backup call
 
@@ -184,8 +190,11 @@ class SolarApp(hass.Hass):
     def control_storage_mode(self, entity, attribute, old, new, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
         self.solar.control_storage_mode(self.get_now())
 
-    def schedule_battery_discharge(self, **kwargs: object) -> None:  # noqa: ARG002
-        self.solar.schedule_battery_discharge(self.get_now())
+    def schedule_battery_discharge_at_6_am(self, **kwargs: object) -> None:  # noqa: ARG002
+        self.solar.schedule_battery_discharge_at_6_am(self.get_now())
+
+    def schedule_battery_discharge_at_4_pm(self, **kwargs: object) -> None:  # noqa: ARG002
+        self.solar.schedule_battery_discharge_at_4_pm(self.get_now())
 
     def disable_battery_discharge(self, **kwargs: object) -> None:  # noqa: ARG002
         self.solar.disable_battery_discharge()
