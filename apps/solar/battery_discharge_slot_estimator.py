@@ -4,9 +4,12 @@ from datetime import datetime, timedelta
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from solar.battery_discharge_slot import BatteryDischargeSlot
 from solar.forecast_factory import ForecastFactory
+from solar.price_forecast import PriceForecast
 from solar.solar_configuration import SolarConfiguration
 from solar.solar_state import SolarState
 from units.energy_kwh import EnergyKwh
+from units.energy_price import EnergyPrice
+from units.hourly_energy import HourlyConsumptionEnergy, HourlyProductionEnergy
 from utils.adjusters import adjust_energy_surplus, adjust_export_threshold_price
 from utils.battery_estimators import estimate_battery_surplus_energy
 from utils.energy_aggregators import maximum_cumulative_deficit
@@ -37,23 +40,74 @@ class BatteryDischargeSlotEstimator:
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
         production_forecast = self.forecast_factory.create_production_forecast(state)
+        price_forecast = self.forecast_factory.create_price_forecast(state)
 
         hourly_consumptions = consumption_forecast.hourly(today_4_pm, low_tariff_hours)
         hourly_productions = production_forecast.hourly(today_4_pm, low_tariff_hours)
+        production_forecast_total = production_forecast.total(tomorrow_midnight, tomorrow_hours)
+        midday_average_price = price_forecast.average_price(tomorrow_10_30_am, midday_hours)
 
-        energy_reserve = maximum_cumulative_deficit(hourly_consumptions, hourly_productions)
-        self.appdaemon_logger.log("Energy reserve: %s", energy_reserve, level=logging.DEBUG)
+        return self._estimate_battery_discharge_slot(
+            state,
+            hourly_consumptions,
+            hourly_productions,
+            production_forecast_total,
+            midday_average_price,
+            price_forecast,
+            today_4_pm,
+            today_10_pm,
+        )
 
+    def estimate_battery_discharge_at_6_am(self, state: SolarState, now: datetime) -> BatteryDischargeSlot | None:
+        today_6_am = now.replace(hour=6, minute=0, second=0, microsecond=0)
+        today_9_am = now.replace(hour=9, minute=0, second=0, microsecond=0)
+        morning_hours = 3
+
+        today_midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_hours = 24
+
+        today_10_30_am = now.replace(hour=10, minute=30, second=0, microsecond=0)
+        midday_hours = 4
+
+        consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
+        production_forecast = self.forecast_factory.create_production_forecast(state)
         price_forecast = self.forecast_factory.create_price_forecast(state)
 
-        tomorrow_production_forecast = production_forecast.total(tomorrow_midnight, tomorrow_hours)
-        tomorrow_midday_average_price = price_forecast.average_price(tomorrow_10_30_am, midday_hours)
+        hourly_consumptions = consumption_forecast.hourly(today_6_am, morning_hours)
+        hourly_productions = production_forecast.hourly(today_6_am, morning_hours)
+        production_forecast_total = production_forecast.total(today_midnight, today_hours)
+        midday_average_price = price_forecast.average_price(today_10_30_am, midday_hours)
+
+        return self._estimate_battery_discharge_slot(
+            state,
+            hourly_consumptions,
+            hourly_productions,
+            production_forecast_total,
+            midday_average_price,
+            price_forecast,
+            today_6_am,
+            today_9_am,
+        )
+
+    def _estimate_battery_discharge_slot(
+        self,
+        state: SolarState,
+        hourly_consumptions: list[HourlyConsumptionEnergy],
+        hourly_productions: list[HourlyProductionEnergy],
+        production_forecast_total: EnergyKwh,
+        midday_average_price: EnergyPrice | None,
+        price_forecast: PriceForecast,
+        discharge_window_start: datetime,
+        discharge_window_end: datetime,
+    ) -> BatteryDischargeSlot | None:
+        energy_reserve = maximum_cumulative_deficit(hourly_consumptions, hourly_productions)
+        self.appdaemon_logger.log("Energy reserve: %s", energy_reserve, level=logging.DEBUG)
 
         battery_export_threshold_price = adjust_export_threshold_price(
             self.configuration.battery_export_threshold_price,
             self.configuration.pv_export_threshold_price,
-            tomorrow_midday_average_price,
-            tomorrow_production_forecast,
+            midday_average_price,
+            production_forecast_total,
             self.configuration.installation_capacity,
         )
         self.appdaemon_logger.log(
@@ -90,7 +144,7 @@ class BatteryDischargeSlotEstimator:
         )
         hours = adjusted_energy_surplus / battery_discharge_energy_1h
 
-        hourly_prices = price_forecast.hourly(today_4_pm, today_10_pm)
+        hourly_prices = price_forecast.hourly(discharge_window_start, discharge_window_end)
         revenue_period = find_max_revenue_period(
             hourly_prices,
             battery_export_threshold_price,

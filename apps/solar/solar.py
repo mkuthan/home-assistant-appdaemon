@@ -139,14 +139,37 @@ class Solar:
             )
             self._set_excess_energy_mode(is_excess_energy_mode_enabled)
 
-    def schedule_battery_discharge(self, now: datetime) -> None:
-        self.appdaemon_logger.log("Schedule battery discharge")
+    def schedule_battery_discharge_at_4_pm(self, now: datetime) -> None:
+        self.appdaemon_logger.log("Schedule battery discharge at 4 PM")
 
         if (state := self.state_factory.create()) is None:
             self.appdaemon_logger.log("Unknown state, cannot schedule battery discharge", level=logging.WARNING)
             return
 
         estimated_battery_discharge_slot = self.battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm(
+            state, now
+        )
+
+        if estimated_battery_discharge_slot is not None:
+            self.appdaemon_logger.log("Enable battery discharge slot: %s", estimated_battery_discharge_slot)
+            self._set_slot1_discharge(
+                state,
+                estimated_battery_discharge_slot.time_str(),
+                estimated_battery_discharge_slot.current,
+            )
+            self._enable_slot1_discharge(state)
+        else:
+            self.appdaemon_logger.log("Disable battery discharge")
+            self._disable_slot1_discharge(state)
+
+    def schedule_battery_discharge_at_6_am(self, now: datetime) -> None:
+        self.appdaemon_logger.log("Schedule battery discharge at 6 AM")
+
+        if (state := self.state_factory.create()) is None:
+            self.appdaemon_logger.log("Unknown state, cannot schedule battery discharge", level=logging.WARNING)
+            return
+
+        estimated_battery_discharge_slot = self.battery_discharge_slot_estimator.estimate_battery_discharge_at_6_am(
             state, now
         )
 

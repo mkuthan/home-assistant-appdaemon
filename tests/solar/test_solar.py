@@ -328,7 +328,7 @@ def test_control_excess_energy_no_change(
     mock_appdaemon_service.call_service.assert_not_called()
 
 
-def test_schedule_battery_discharge(
+def test_schedule_battery_discharge_at_4_pm(
     solar: Solar,
     state: SolarState,
     mock_appdaemon_service: Mock,
@@ -358,9 +358,62 @@ def test_schedule_battery_discharge(
     mock_battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm.return_value = estimated_discharge_slot
 
     now = datetime.now()
-    solar.schedule_battery_discharge(now)
+    solar.schedule_battery_discharge_at_4_pm(now)
 
     mock_battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm.assert_called_once_with(state, now)
+
+    mock_appdaemon_service.call_service.assert_any_call(
+        "text/set_value",
+        callback=ANY,
+        entity_id=SLOT1_DISCHARGE_TIME_ENTITY,
+        value=new_slot1_discharge_time,
+    )
+    mock_appdaemon_service.call_service.assert_any_call(
+        "number/set_value",
+        callback=ANY,
+        entity_id=SLOT1_DISCHARGE_CURRENT_ENTITY,
+        value=new_slot1_discharge_current.value,
+    )
+    mock_appdaemon_service.call_service.assert_any_call(
+        "switch/turn_on",
+        callback=ANY,
+        entity_id=SLOT1_DISCHARGE_ENABLED_ENTITY,
+    )
+
+
+def test_schedule_battery_discharge_at_6_am(
+    solar: Solar,
+    state: SolarState,
+    mock_appdaemon_service: Mock,
+    mock_state_factory: Mock,
+    mock_battery_discharge_slot_estimator: Mock,
+) -> None:
+    current_slot1_discharge_time = "00:00-00:00"
+    current_slot1_discharge_current = BATTERY_CURRENT_ZERO
+
+    new_slot1_discharge_time = "06:00-08:00"
+    new_slot1_discharge_current = BatteryCurrent(30.0)
+
+    state = replace(
+        state,
+        is_slot1_discharge_enabled=False,
+        slot1_discharge_time=current_slot1_discharge_time,
+        slot1_discharge_current=current_slot1_discharge_current,
+    )
+    mock_state_factory.create.return_value = state
+
+    estimated_discharge_slot = BatteryDischargeSlot(
+        start_time=time(6, 0),
+        end_time=time(8, 0),
+        current=new_slot1_discharge_current,
+    )
+
+    mock_battery_discharge_slot_estimator.estimate_battery_discharge_at_6_am.return_value = estimated_discharge_slot
+
+    now = datetime.now()
+    solar.schedule_battery_discharge_at_6_am(now)
+
+    mock_battery_discharge_slot_estimator.estimate_battery_discharge_at_6_am.assert_called_once_with(state, now)
 
     mock_appdaemon_service.call_service.assert_any_call(
         "text/set_value",
