@@ -17,15 +17,15 @@ Additionally, it provides smart HVAC control for heating, cooling, and domestic 
 ### Solar Energy Optimization
 
 - *Battery Reserve Management* - Dynamically adjusts battery reserve SOC to prevent grid import during high-tariff periods
-- *Battery Maximum Current Optimization* - Dynamically adjusts maximum charge and discharge currents for optimal battery usage and longevity
+- *Battery Charge Current Optimization* - Reduces battery charge current during night hours to control grid charging rate
 - *Storage Mode Optimization* - Automatically determines the optimal hybrid inverter storage mode to maximize PV energy sales to the grid
 - *Discharge Slot Optimization* - Calculates optimal battery discharge windows to maximize earnings from grid energy sales
 - *Excess Energy Mode* - Automatically enables excess energy mode to power appliances when surplus solar energy is available and exporting to the grid is unprofitable
 
 ### HVAC Control
 
-- *Domestic Hot Water (DHW) Management* - Intelligent temperature control with eco-mode support and solar-aligned boost periods
-- *Heating Temperature Control* - Dynamic heating setpoint adjustment based on eco-mode and configurable boost windows
+- *Domestic Hot Water (DHW) Management* - Intelligent temperature control with eco-mode support and configurable boost windows
+- *Heating Temperature Control* - Dynamic heating setpoint and heating curve adjustment based on eco-mode and configurable boost windows
 - *Cooling Temperature Control* - Automatic cooling setpoint adjustment based on eco-mode and configurable boost windows
 
 ## Architecture
