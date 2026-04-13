@@ -30,7 +30,7 @@ class BatteryDischargeSlotEstimator:
     def estimate_battery_discharge_at_4_pm(self, state: SolarState, now: datetime) -> BatteryDischargeSlot | None:
         today_4_pm = now.replace(hour=16, minute=0, second=0, microsecond=0)
         today_10_pm = now.replace(hour=22, minute=0, second=0, microsecond=0)
-        low_tariff_hours = 6
+        high_tariff_hours = 6
 
         tomorrow_midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
         tomorrow_hours = 24
@@ -42,8 +42,8 @@ class BatteryDischargeSlotEstimator:
         production_forecast = self.forecast_factory.create_production_forecast(state)
         price_forecast = self.forecast_factory.create_price_forecast(state)
 
-        hourly_consumptions = consumption_forecast.hourly(today_4_pm, low_tariff_hours)
-        hourly_productions = production_forecast.hourly(today_4_pm, low_tariff_hours)
+        hourly_consumptions = consumption_forecast.hourly(today_4_pm, high_tariff_hours)
+        hourly_productions = production_forecast.hourly(today_4_pm, high_tariff_hours)
         production_forecast_total = production_forecast.total(tomorrow_midnight, tomorrow_hours)
         midday_average_price = price_forecast.average_price(tomorrow_10_30_am, midday_hours)
 
@@ -58,10 +58,10 @@ class BatteryDischargeSlotEstimator:
             today_10_pm,
         )
 
-    def estimate_battery_discharge_at_6_am(self, state: SolarState, now: datetime) -> BatteryDischargeSlot | None:
-        today_6_am = now.replace(hour=6, minute=0, second=0, microsecond=0)
+    def estimate_battery_discharge_at_7_am(self, state: SolarState, now: datetime) -> BatteryDischargeSlot | None:
+        today_7_am = now.replace(hour=7, minute=0, second=0, microsecond=0)
         today_9_am = now.replace(hour=9, minute=0, second=0, microsecond=0)
-        morning_hours = 3
+        high_tariff_hours = 6
 
         today_midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
         today_hours = 24
@@ -73,8 +73,8 @@ class BatteryDischargeSlotEstimator:
         production_forecast = self.forecast_factory.create_production_forecast(state)
         price_forecast = self.forecast_factory.create_price_forecast(state)
 
-        hourly_consumptions = consumption_forecast.hourly(today_6_am, morning_hours)
-        hourly_productions = production_forecast.hourly(today_6_am, morning_hours)
+        hourly_consumptions = consumption_forecast.hourly(today_7_am, high_tariff_hours)
+        hourly_productions = production_forecast.hourly(today_7_am, high_tariff_hours)
         production_forecast_total = production_forecast.total(today_midnight, today_hours)
         midday_average_price = price_forecast.average_price(today_10_30_am, midday_hours)
 
@@ -85,7 +85,7 @@ class BatteryDischargeSlotEstimator:
             production_forecast_total,
             midday_average_price,
             price_forecast,
-            today_6_am,
+            today_7_am,
             today_9_am,
         )
 
