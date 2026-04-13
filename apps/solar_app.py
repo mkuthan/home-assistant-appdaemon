@@ -33,8 +33,6 @@ class SolarApp(hass.Hass):
 
         configuration = SolarConfiguration(
             time_zone=str(self.get_timezone()),
-            # installation capacity (kWp)
-            installation_capacity=EnergyKwh(6.3),
             # nominal battery capacity
             battery_capacity=EnergyKwh(20.0),
             # nominal battery voltage
@@ -71,8 +69,10 @@ class SolarApp(hass.Hass):
             regular_consumption_evening=EnergyKwh(0.8),
             # threshold for exporting PV energy, net price
             pv_export_threshold_price=EnergyPrice.per_mwh(Money.pln(Decimal(150))),
-            # threshold for exporting battery energy, net price
-            battery_export_threshold_price=EnergyPrice.per_mwh(Money.pln(Decimal(800))),
+            # evening margin added to midday avg price for battery discharge threshold
+            battery_discharge_evening_margin=EnergyPrice.per_mwh(Money.pln(Decimal(650))),
+            # morning margin added to midday avg price for battery discharge threshold
+            battery_discharge_morning_margin=EnergyPrice.per_mwh(Money.pln(Decimal(350))),
             # skip battery export below this threshold
             battery_export_threshold_energy=EnergyKwh(1.0),
             # start time of night low tariff period (with margin)

@@ -13,8 +13,6 @@ from units.energy_price import EnergyPrice
 class SolarConfiguration:
     time_zone: str
 
-    installation_capacity: EnergyKwh
-
     battery_capacity: EnergyKwh
     battery_voltage: BatteryVoltage
     battery_maximum_current: BatteryCurrent
@@ -39,7 +37,8 @@ class SolarConfiguration:
 
     pv_export_threshold_price: EnergyPrice
 
-    battery_export_threshold_price: EnergyPrice
+    battery_discharge_evening_margin: EnergyPrice
+    battery_discharge_morning_margin: EnergyPrice
     battery_export_threshold_energy: EnergyKwh
 
     night_low_tariff_time_start: time

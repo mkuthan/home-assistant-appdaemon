@@ -1,7 +1,7 @@
 from dataclasses import replace
 from datetime import datetime, time
 from decimal import Decimal
-from unittest.mock import Mock
+from unittest.mock import Mock, call
 
 import pytest
 from solar.battery_discharge_slot import BatteryDischargeSlot
@@ -14,7 +14,7 @@ from units.battery_soc import BatterySoc
 from units.battery_voltage import BatteryVoltage
 from units.energy_kwh import EnergyKwh
 from units.energy_price import EnergyPrice
-from units.hourly_energy import HourlyProductionEnergy
+from units.hourly_energy import HourlyConsumptionEnergy, HourlyProductionEnergy
 from units.hourly_period import HourlyPeriod
 from units.money import Money
 
@@ -27,15 +27,14 @@ def battery_discharge_slot_estimator(
 ) -> BatteryDischargeSlotEstimator:
     configuration = replace(
         configuration,
-        installation_capacity=EnergyKwh(5.0),
-        battery_capacity=EnergyKwh(10.0),
-        battery_voltage=BatteryVoltage(50.0),
-        battery_maximum_current=BatteryCurrent(80.0),
+        battery_capacity=EnergyKwh(20.0),
+        battery_voltage=BatteryVoltage(52.0),
+        battery_maximum_current=BatteryCurrent(160.0),
         battery_reserve_soc_min=BatterySoc(20.0),
         battery_reserve_soc_margin=BatterySoc(5.0),
-        battery_export_threshold_price=EnergyPrice.per_mwh(Money.pln(Decimal(1200))),
+        battery_discharge_evening_margin=EnergyPrice.per_mwh(Money.pln(Decimal(650))),
+        battery_discharge_morning_margin=EnergyPrice.per_mwh(Money.pln(Decimal(350))),
         battery_export_threshold_energy=EnergyKwh(1.0),
-        pv_export_threshold_price=EnergyPrice.per_mwh(Money.pln(Decimal(150))),
     )
 
     return BatteryDischargeSlotEstimator(
@@ -48,9 +47,9 @@ def battery_discharge_slot_estimator(
 @pytest.mark.parametrize(
     ("battery_soc", "expected_start_time", "expected_end_time"),
     [
-        (100.0, time(19, 38), time(21, 0)),
-        (90.0, time(19, 53), time(21, 0)),
-        (80.0, time(20, 0), time(20, 52)),
+        (100.0, time(19, 27), time(21, 0)),
+        (80.0, time(19, 56), time(21, 0)),
+        (60.0, time(20, 0), time(20, 36)),
     ],
 )
 def test_estimate_battery_discharge_at_4_pm(
@@ -65,26 +64,27 @@ def test_estimate_battery_discharge_at_4_pm(
 ) -> None:
     state = replace(state, battery_soc=BatterySoc(battery_soc))
 
-    this_day = datetime.fromisoformat("2025-10-10T13:30:00+00:00")
+    this_day = datetime.fromisoformat("2025-10-10T15:30:00+00:00")
     this_day_4_pm = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     this_day_10_pm = datetime.fromisoformat("2025-10-10T22:00:00+00:00")
     high_tariff_hours = 6
 
-    tomorrow_midnight = datetime.fromisoformat("2025-10-11T00:00:00+00:00")
-    tomorrow_hours = 24
+    tomorrow_7_am = datetime.fromisoformat("2025-10-11T07:00:00+00:00")
+    daytime_hours = 9
     tomorrow_10_30_am = datetime.fromisoformat("2025-10-11T10:30:00+00:00")
     midday_hours = 4
 
-    hourly_period = HourlyPeriod(this_day_4_pm)
+    discharge_period = HourlyPeriod(this_day_4_pm)
+    solar_period = HourlyPeriod(tomorrow_7_am)
 
-    mock_production_forecast.hourly.return_value = [
-        HourlyProductionEnergy(hourly_period, energy=EnergyKwh(2.0)),
+    mock_production_forecast.hourly.side_effect = [
+        [HourlyProductionEnergy(discharge_period, energy=EnergyKwh(2.0))],
+        [HourlyProductionEnergy(solar_period, energy=EnergyKwh(20.0))],
     ]
 
-    mock_production_forecast.total.return_value = EnergyKwh(18.0)
-
-    mock_consumption_forecast.hourly.return_value = [
-        HourlyProductionEnergy(hourly_period, energy=EnergyKwh(4.0)),
+    mock_consumption_forecast.hourly.side_effect = [
+        [HourlyConsumptionEnergy(discharge_period, energy=EnergyKwh(4.0))],
+        [HourlyConsumptionEnergy(solar_period, energy=EnergyKwh(1.0))],
     ]
 
     hourly_price_1 = HourlyPrice(
@@ -96,13 +96,18 @@ def test_estimate_battery_discharge_at_4_pm(
         price=EnergyPrice.per_mwh(Money.pln(Decimal(1600))),
     )
     mock_price_forecast.hourly.return_value = [hourly_price_1, hourly_price_2]
-    mock_price_forecast.average_price.return_value = EnergyPrice.per_mwh(Money.pln(Decimal(1000)))
+    mock_price_forecast.average_price.return_value = EnergyPrice.per_mwh(Money.pln(Decimal(500)))
 
     battery_discharge_slot = battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm(state, this_day)
 
-    mock_production_forecast.hourly.assert_called_once_with(this_day_4_pm, high_tariff_hours)
-    mock_production_forecast.total.assert_called_once_with(tomorrow_midnight, tomorrow_hours)
-    mock_consumption_forecast.hourly.assert_called_once_with(this_day_4_pm, high_tariff_hours)
+    assert mock_production_forecast.hourly.call_args_list == [
+        call(this_day_4_pm, high_tariff_hours),
+        call(tomorrow_7_am, daytime_hours),
+    ]
+    assert mock_consumption_forecast.hourly.call_args_list == [
+        call(this_day_4_pm, high_tariff_hours),
+        call(tomorrow_7_am, daytime_hours),
+    ]
     mock_price_forecast.hourly.assert_called_once_with(this_day_4_pm, this_day_10_pm)
     mock_price_forecast.average_price.assert_called_once_with(tomorrow_10_30_am, midday_hours)
 
@@ -113,7 +118,7 @@ def test_estimate_battery_discharge_at_4_pm(
     )
 
 
-def test_estimate_battery_discharge_at_4_pm_when_tomorrow_midday_price_is_low(
+def test_estimate_battery_discharge_at_4_pm_when_solar_cannot_replenish(
     battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
     state: SolarState,
     mock_production_forecast: Mock,
@@ -124,88 +129,87 @@ def test_estimate_battery_discharge_at_4_pm_when_tomorrow_midday_price_is_low(
 
     this_day = datetime.fromisoformat("2025-10-10T13:30:00+00:00")
     this_day_4_pm = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
-    this_day_10_pm = datetime.fromisoformat("2025-10-10T22:00:00+00:00")
     high_tariff_hours = 6
 
-    tomorrow_midnight = datetime.fromisoformat("2025-10-11T00:00:00+00:00")
-    tomorrow_hours = 24
+    tomorrow_7_am = datetime.fromisoformat("2025-10-11T07:00:00+00:00")
+    daytime_hours = 9
     tomorrow_10_30_am = datetime.fromisoformat("2025-10-11T10:30:00+00:00")
     midday_hours = 4
 
-    hourly_period = HourlyPeriod(this_day_4_pm)
+    discharge_period = HourlyPeriod(this_day_4_pm)
+    solar_period = HourlyPeriod(tomorrow_7_am)
 
-    mock_production_forecast.hourly.return_value = [
-        HourlyProductionEnergy(hourly_period, energy=EnergyKwh(2.0)),
+    mock_production_forecast.hourly.side_effect = [
+        [HourlyProductionEnergy(discharge_period, energy=EnergyKwh(2.0))],
+        [HourlyProductionEnergy(solar_period, energy=EnergyKwh(5.0))],
     ]
 
-    mock_production_forecast.total.return_value = EnergyKwh(18.0)
-
-    mock_consumption_forecast.hourly.return_value = [
-        HourlyProductionEnergy(hourly_period, energy=EnergyKwh(4.0)),
+    mock_consumption_forecast.hourly.side_effect = [
+        [HourlyConsumptionEnergy(discharge_period, energy=EnergyKwh(4.0))],
+        [HourlyConsumptionEnergy(solar_period, energy=EnergyKwh(1.0))],
     ]
 
-    hourly_price_1 = HourlyPrice(
-        period=HourlyPeriod.parse("2025-10-10T19:00:00+00:00"),
-        price=EnergyPrice.per_mwh(Money.pln(Decimal(1150))),
-    )
-    hourly_price_2 = HourlyPrice(
-        period=HourlyPeriod.parse("2025-10-10T20:00:00+00:00"),
-        price=EnergyPrice.per_mwh(Money.pln(Decimal(1200))),
-    )
-    mock_price_forecast.hourly.return_value = [hourly_price_1, hourly_price_2]
-    mock_price_forecast.average_price.return_value = EnergyPrice.per_mwh(Money.pln(Decimal(50)))
+    mock_price_forecast.average_price.return_value = EnergyPrice.per_mwh(Money.pln(Decimal(500)))
 
     battery_discharge_slot = battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm(state, this_day)
 
-    mock_production_forecast.hourly.assert_called_once_with(this_day_4_pm, high_tariff_hours)
-    mock_production_forecast.total.assert_called_once_with(tomorrow_midnight, tomorrow_hours)
-    mock_consumption_forecast.hourly.assert_called_once_with(this_day_4_pm, high_tariff_hours)
-    mock_price_forecast.hourly.assert_called_once_with(this_day_4_pm, this_day_10_pm)
+    assert mock_production_forecast.hourly.call_args_list == [
+        call(this_day_4_pm, high_tariff_hours),
+        call(tomorrow_7_am, daytime_hours),
+    ]
+    assert mock_consumption_forecast.hourly.call_args_list == [
+        call(this_day_4_pm, high_tariff_hours),
+        call(tomorrow_7_am, daytime_hours),
+    ]
+    mock_price_forecast.hourly.assert_not_called()
     mock_price_forecast.average_price.assert_called_once_with(tomorrow_10_30_am, midday_hours)
 
-    assert battery_discharge_slot == BatteryDischargeSlot(
-        start_time=time(20, 0),
-        end_time=time(20, 41),
-        current=battery_discharge_slot_estimator.configuration.battery_maximum_current,
-    )
+    assert battery_discharge_slot is None
 
 
-def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_for_no_slots(
+def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_below_threshold(
     battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
     state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_soc=BatterySoc(50.0))
+    state = replace(state, battery_soc=BatterySoc(30.0))
 
     this_day = datetime.fromisoformat("2025-10-10T13:30:00+00:00")
     this_day_4_pm = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
     high_tariff_hours = 6
 
-    hourly_period = HourlyPeriod(this_day_4_pm)
-
-    tomorrow_midnight = datetime.fromisoformat("2025-10-11T00:00:00+00:00")
-    tomorrow_hours = 24
+    tomorrow_7_am = datetime.fromisoformat("2025-10-11T07:00:00+00:00")
+    daytime_hours = 9
     tomorrow_10_30_am = datetime.fromisoformat("2025-10-11T10:30:00+00:00")
     midday_hours = 4
 
-    mock_production_forecast.hourly.return_value = [
-        HourlyProductionEnergy(hourly_period, energy=EnergyKwh(2.0)),
-    ]
-    mock_production_forecast.total.return_value = EnergyKwh(18.0)
+    discharge_period = HourlyPeriod(this_day_4_pm)
+    solar_period = HourlyPeriod(tomorrow_7_am)
 
-    mock_consumption_forecast.hourly.return_value = [
-        HourlyProductionEnergy(hourly_period, energy=EnergyKwh(4.0)),
+    mock_production_forecast.hourly.side_effect = [
+        [HourlyProductionEnergy(discharge_period, energy=EnergyKwh(2.0))],
+        [HourlyProductionEnergy(solar_period, energy=EnergyKwh(20.0))],
     ]
 
-    mock_price_forecast.average_price.return_value = EnergyPrice.per_mwh(Money.pln(Decimal(1000)))
+    mock_consumption_forecast.hourly.side_effect = [
+        [HourlyConsumptionEnergy(discharge_period, energy=EnergyKwh(4.0))],
+        [HourlyConsumptionEnergy(solar_period, energy=EnergyKwh(1.0))],
+    ]
+
+    mock_price_forecast.average_price.return_value = EnergyPrice.per_mwh(Money.pln(Decimal(500)))
 
     battery_discharge_slot = battery_discharge_slot_estimator.estimate_battery_discharge_at_4_pm(state, this_day)
 
-    mock_production_forecast.hourly.assert_called_once_with(this_day_4_pm, high_tariff_hours)
-    mock_production_forecast.total.assert_called_once_with(tomorrow_midnight, tomorrow_hours)
-    mock_consumption_forecast.hourly.assert_called_once_with(this_day_4_pm, high_tariff_hours)
+    assert mock_production_forecast.hourly.call_args_list == [
+        call(this_day_4_pm, high_tariff_hours),
+        call(tomorrow_7_am, daytime_hours),
+    ]
+    assert mock_consumption_forecast.hourly.call_args_list == [
+        call(this_day_4_pm, high_tariff_hours),
+        call(tomorrow_7_am, daytime_hours),
+    ]
     mock_price_forecast.hourly.assert_not_called()
     mock_price_forecast.average_price.assert_called_once_with(tomorrow_10_30_am, midday_hours)
 
@@ -215,9 +219,9 @@ def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_for_no_slots(
 @pytest.mark.parametrize(
     ("battery_soc", "expected_start_time", "expected_end_time"),
     [
-        (70.0, time(7, 53), time(9, 0)),
-        (60.0, time(8, 0), time(8, 52)),
-        (50.0, time(8, 0), time(8, 37)),
+        (70.0, time(7, 56), time(9, 0)),
+        (60.0, time(8, 0), time(8, 50)),
+        (50.0, time(8, 0), time(8, 36)),
     ],
 )
 def test_estimate_battery_discharge_at_7_am(
@@ -237,21 +241,20 @@ def test_estimate_battery_discharge_at_7_am(
     this_day_9_am = datetime.fromisoformat("2025-10-10T09:00:00+00:00")
     high_tariff_hours = 6
 
-    today_midnight = datetime.fromisoformat("2025-10-10T00:00:00+00:00")
-    today_hours = 24
+    daytime_hours = 9
     today_10_30_am = datetime.fromisoformat("2025-10-10T10:30:00+00:00")
     midday_hours = 4
 
-    hourly_period = HourlyPeriod(this_day_7_am)
+    discharge_period = HourlyPeriod(this_day_7_am)
 
-    mock_production_forecast.hourly.return_value = [
-        HourlyProductionEnergy(hourly_period, energy=EnergyKwh(2.0)),
+    mock_production_forecast.hourly.side_effect = [
+        [HourlyProductionEnergy(discharge_period, energy=EnergyKwh(2.0))],
+        [HourlyProductionEnergy(discharge_period, energy=EnergyKwh(20.0))],
     ]
 
-    mock_production_forecast.total.return_value = EnergyKwh(18.0)
-
-    mock_consumption_forecast.hourly.return_value = [
-        HourlyProductionEnergy(hourly_period, energy=EnergyKwh(1.0)),
+    mock_consumption_forecast.hourly.side_effect = [
+        [HourlyConsumptionEnergy(discharge_period, energy=EnergyKwh(1.0))],
+        [HourlyConsumptionEnergy(discharge_period, energy=EnergyKwh(1.0))],
     ]
 
     hourly_price_1 = HourlyPrice(
@@ -263,13 +266,18 @@ def test_estimate_battery_discharge_at_7_am(
         price=EnergyPrice.per_mwh(Money.pln(Decimal(1600))),
     )
     mock_price_forecast.hourly.return_value = [hourly_price_1, hourly_price_2]
-    mock_price_forecast.average_price.return_value = EnergyPrice.per_mwh(Money.pln(Decimal(1000)))
+    mock_price_forecast.average_price.return_value = EnergyPrice.per_mwh(Money.pln(Decimal(800)))
 
     battery_discharge_slot = battery_discharge_slot_estimator.estimate_battery_discharge_at_7_am(state, this_day)
 
-    mock_production_forecast.hourly.assert_called_once_with(this_day_7_am, high_tariff_hours)
-    mock_production_forecast.total.assert_called_once_with(today_midnight, today_hours)
-    mock_consumption_forecast.hourly.assert_called_once_with(this_day_7_am, high_tariff_hours)
+    assert mock_production_forecast.hourly.call_args_list == [
+        call(this_day_7_am, high_tariff_hours),
+        call(this_day_7_am, daytime_hours),
+    ]
+    assert mock_consumption_forecast.hourly.call_args_list == [
+        call(this_day_7_am, high_tariff_hours),
+        call(this_day_7_am, daytime_hours),
+    ]
     mock_price_forecast.hourly.assert_called_once_with(this_day_7_am, this_day_9_am)
     mock_price_forecast.average_price.assert_called_once_with(today_10_30_am, midday_hours)
 
@@ -280,99 +288,94 @@ def test_estimate_battery_discharge_at_7_am(
     )
 
 
-def test_estimate_battery_discharge_at_7_am_when_today_midday_price_is_low(
+def test_estimate_battery_discharge_at_7_am_when_solar_cannot_replenish(
     battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
     state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_soc=BatterySoc(100.0))
+    state = replace(state, battery_soc=BatterySoc(70.0))
 
     this_day = datetime.fromisoformat("2025-10-10T06:30:00+00:00")
     this_day_7_am = datetime.fromisoformat("2025-10-10T07:00:00+00:00")
-    this_day_9_am = datetime.fromisoformat("2025-10-10T09:00:00+00:00")
     high_tariff_hours = 6
 
-    today_midnight = datetime.fromisoformat("2025-10-10T00:00:00+00:00")
-    today_hours = 24
+    daytime_hours = 9
     today_10_30_am = datetime.fromisoformat("2025-10-10T10:30:00+00:00")
     midday_hours = 4
 
-    hourly_period = HourlyPeriod(this_day_7_am)
+    discharge_period = HourlyPeriod(this_day_7_am)
 
-    mock_production_forecast.hourly.return_value = [
-        HourlyProductionEnergy(hourly_period, energy=EnergyKwh(2.0)),
+    mock_production_forecast.hourly.side_effect = [
+        [HourlyProductionEnergy(discharge_period, energy=EnergyKwh(2.0))],
+        [HourlyProductionEnergy(discharge_period, energy=EnergyKwh(5.0))],
     ]
 
-    mock_production_forecast.total.return_value = EnergyKwh(18.0)
-
-    mock_consumption_forecast.hourly.return_value = [
-        HourlyProductionEnergy(hourly_period, energy=EnergyKwh(4.0)),
+    mock_consumption_forecast.hourly.side_effect = [
+        [HourlyConsumptionEnergy(discharge_period, energy=EnergyKwh(1.0))],
+        [HourlyConsumptionEnergy(discharge_period, energy=EnergyKwh(1.0))],
     ]
 
-    hourly_price_1 = HourlyPrice(
-        period=HourlyPeriod.parse("2025-10-10T07:00:00+00:00"),
-        price=EnergyPrice.per_mwh(Money.pln(Decimal(1150))),
-    )
-    hourly_price_2 = HourlyPrice(
-        period=HourlyPeriod.parse("2025-10-10T08:00:00+00:00"),
-        price=EnergyPrice.per_mwh(Money.pln(Decimal(1200))),
-    )
-    mock_price_forecast.hourly.return_value = [hourly_price_1, hourly_price_2]
-    mock_price_forecast.average_price.return_value = EnergyPrice.per_mwh(Money.pln(Decimal(50)))
+    mock_price_forecast.average_price.return_value = EnergyPrice.per_mwh(Money.pln(Decimal(800)))
 
     battery_discharge_slot = battery_discharge_slot_estimator.estimate_battery_discharge_at_7_am(state, this_day)
 
-    mock_production_forecast.hourly.assert_called_once_with(this_day_7_am, high_tariff_hours)
-    mock_production_forecast.total.assert_called_once_with(today_midnight, today_hours)
-    mock_consumption_forecast.hourly.assert_called_once_with(this_day_7_am, high_tariff_hours)
-    mock_price_forecast.hourly.assert_called_once_with(this_day_7_am, this_day_9_am)
+    assert mock_production_forecast.hourly.call_args_list == [
+        call(this_day_7_am, high_tariff_hours),
+        call(this_day_7_am, daytime_hours),
+    ]
+    assert mock_consumption_forecast.hourly.call_args_list == [
+        call(this_day_7_am, high_tariff_hours),
+        call(this_day_7_am, daytime_hours),
+    ]
+    mock_price_forecast.hourly.assert_not_called()
     mock_price_forecast.average_price.assert_called_once_with(today_10_30_am, midday_hours)
 
-    assert battery_discharge_slot == BatteryDischargeSlot(
-        start_time=time(8, 0),
-        end_time=time(8, 41),
-        current=battery_discharge_slot_estimator.configuration.battery_maximum_current,
-    )
+    assert battery_discharge_slot is None
 
 
-def test_estimate_battery_discharge_at_7_am_when_surplus_energy_for_no_slots(
+def test_estimate_battery_discharge_at_7_am_when_surplus_energy_below_threshold(
     battery_discharge_slot_estimator: BatteryDischargeSlotEstimator,
     state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
 ) -> None:
-    state = replace(state, battery_soc=BatterySoc(50.0))
+    state = replace(state, battery_soc=BatterySoc(30.0))
 
     this_day = datetime.fromisoformat("2025-10-10T06:30:00+00:00")
     this_day_7_am = datetime.fromisoformat("2025-10-10T07:00:00+00:00")
     high_tariff_hours = 6
 
-    today_midnight = datetime.fromisoformat("2025-10-10T00:00:00+00:00")
-    today_hours = 24
+    daytime_hours = 9
     today_10_30_am = datetime.fromisoformat("2025-10-10T10:30:00+00:00")
     midday_hours = 4
 
-    hourly_period = HourlyPeriod(this_day_7_am)
+    discharge_period = HourlyPeriod(this_day_7_am)
 
-    mock_production_forecast.hourly.return_value = [
-        HourlyProductionEnergy(hourly_period, energy=EnergyKwh(2.0)),
-    ]
-    mock_production_forecast.total.return_value = EnergyKwh(18.0)
-
-    mock_consumption_forecast.hourly.return_value = [
-        HourlyProductionEnergy(hourly_period, energy=EnergyKwh(4.0)),
+    mock_production_forecast.hourly.side_effect = [
+        [HourlyProductionEnergy(discharge_period, energy=EnergyKwh(2.0))],
+        [HourlyProductionEnergy(discharge_period, energy=EnergyKwh(20.0))],
     ]
 
-    mock_price_forecast.average_price.return_value = EnergyPrice.per_mwh(Money.pln(Decimal(1000)))
+    mock_consumption_forecast.hourly.side_effect = [
+        [HourlyConsumptionEnergy(discharge_period, energy=EnergyKwh(4.0))],
+        [HourlyConsumptionEnergy(discharge_period, energy=EnergyKwh(1.0))],
+    ]
+
+    mock_price_forecast.average_price.return_value = EnergyPrice.per_mwh(Money.pln(Decimal(800)))
 
     battery_discharge_slot = battery_discharge_slot_estimator.estimate_battery_discharge_at_7_am(state, this_day)
 
-    mock_production_forecast.hourly.assert_called_once_with(this_day_7_am, high_tariff_hours)
-    mock_production_forecast.total.assert_called_once_with(today_midnight, today_hours)
-    mock_consumption_forecast.hourly.assert_called_once_with(this_day_7_am, high_tariff_hours)
+    assert mock_production_forecast.hourly.call_args_list == [
+        call(this_day_7_am, high_tariff_hours),
+        call(this_day_7_am, daytime_hours),
+    ]
+    assert mock_consumption_forecast.hourly.call_args_list == [
+        call(this_day_7_am, high_tariff_hours),
+        call(this_day_7_am, daytime_hours),
+    ]
     mock_price_forecast.hourly.assert_not_called()
     mock_price_forecast.average_price.assert_called_once_with(today_10_30_am, midday_hours)
 
