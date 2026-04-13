@@ -3,6 +3,7 @@ from units.battery_soc import BatterySoc
 from units.energy_kwh import EnergyKwh
 from utils.battery_estimators import (
     estimate_battery_max_soc,
+    estimate_battery_replenish_energy,
     estimate_battery_reserve_soc,
     estimate_battery_surplus_energy,
 )
@@ -105,3 +106,24 @@ def test_estimate_battery_max_soc(
 ) -> None:
     result = estimate_battery_max_soc(energy_surplus, battery_soc, battery_capacity)
     assert result.value == pytest.approx(expected.value)
+
+
+@pytest.mark.parametrize(
+    ("battery_capacity", "battery_reserve_soc_min", "battery_reserve_soc_margin", "expected"),
+    [
+        # 10 kWh battery, 20% min, 5% margin → 75% available → 7.5 kWh
+        (EnergyKwh(10.0), BatterySoc(20.0), BatterySoc(5.0), EnergyKwh(7.5)),
+        # 20 kWh battery, 20% min, 5% margin → 75% available → 15.0 kWh
+        (EnergyKwh(20.0), BatterySoc(20.0), BatterySoc(5.0), EnergyKwh(15.0)),
+        # 10 kWh battery, 0% min, 0% margin → 100% available → 10.0 kWh
+        (EnergyKwh(10.0), BatterySoc(0.0), BatterySoc(0.0), EnergyKwh(10.0)),
+    ],
+)
+def test_estimate_battery_replenish_energy(
+    battery_capacity: EnergyKwh,
+    battery_reserve_soc_min: BatterySoc,
+    battery_reserve_soc_margin: BatterySoc,
+    expected: EnergyKwh,
+) -> None:
+    result = estimate_battery_replenish_energy(battery_capacity, battery_reserve_soc_min, battery_reserve_soc_margin)
+    assert result == pytest.approx(expected)

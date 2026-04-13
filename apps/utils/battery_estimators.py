@@ -1,4 +1,4 @@
-from units.battery_soc import BatterySoc
+from units.battery_soc import BATTERY_SOC_MAX, BatterySoc
 from units.energy_kwh import EnergyKwh
 from utils.battery_converters import energy_to_soc, soc_to_energy
 
@@ -38,3 +38,12 @@ def estimate_battery_max_soc(
     surplus_ratio = (energy_surplus / battery_capacity) * 100.0
     surplus_soc = BatterySoc(min(surplus_ratio, 100.0))
     return battery_soc + surplus_soc
+
+
+def estimate_battery_replenish_energy(
+    battery_capacity: EnergyKwh,
+    battery_reserve_soc_min: BatterySoc,
+    battery_reserve_soc_margin: BatterySoc,
+) -> EnergyKwh:
+    available_soc = BATTERY_SOC_MAX - battery_reserve_soc_min - battery_reserve_soc_margin
+    return soc_to_energy(available_soc, battery_capacity)
