@@ -381,7 +381,7 @@ def test_schedule_battery_discharge_at_4_pm(
     )
 
 
-def test_schedule_battery_discharge_at_6_am(
+def test_schedule_battery_discharge_at_7_am(
     solar: Solar,
     state: SolarState,
     mock_appdaemon_service: Mock,
@@ -408,12 +408,12 @@ def test_schedule_battery_discharge_at_6_am(
         current=new_slot1_discharge_current,
     )
 
-    mock_battery_discharge_slot_estimator.estimate_battery_discharge_at_6_am.return_value = estimated_discharge_slot
+    mock_battery_discharge_slot_estimator.estimate_battery_discharge_at_7_am.return_value = estimated_discharge_slot
 
     now = datetime.now()
-    solar.schedule_battery_discharge_at_6_am(now)
+    solar.schedule_battery_discharge_at_7_am(now)
 
-    mock_battery_discharge_slot_estimator.estimate_battery_discharge_at_6_am.assert_called_once_with(state, now)
+    mock_battery_discharge_slot_estimator.estimate_battery_discharge_at_7_am.assert_called_once_with(state, now)
 
     mock_appdaemon_service.call_service.assert_any_call(
         "text/set_value",
