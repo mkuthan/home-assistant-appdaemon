@@ -23,8 +23,8 @@ from utils.appdaemon_utils import LoggingAppdaemonService, is_dry_run
 
 
 class SolarApp(hass.Hass):
-    _PRODUCTION_START_CONSTRAINT = "sunrise +01:00:00"
-    _PRODUCTION_END_CONSTRAINT = "sunset -01:00:00"
+    _PRODUCTION_START_CONSTRAINT = "sunrise +00:30:00"
+    _PRODUCTION_END_CONSTRAINT = "sunset -00:30:00"
 
     def initialize(self) -> None:
         appdaemon_logger = self
@@ -41,7 +41,7 @@ class SolarApp(hass.Hass):
             battery_voltage=BatteryVoltage(52.0),
             # maximum battery discharge/charge current
             battery_maximum_current=BatteryCurrent(160.0),
-            # night charge current to replenish battery reserve during low tariff periods
+            # night charge current during low tariff periods
             battery_night_charge_current=BatteryCurrent(40.0),
             # minimum reserve SOC
             battery_reserve_soc_min=BatterySoc(20.0),
@@ -113,9 +113,9 @@ class SolarApp(hass.Hass):
         self.log("Setting up battery max discharge current control")
         self.run_every(self.control_battery_max_discharge_current, "00:00:00", 5 * 60)
 
-        self.log("Setting up excess energy mode control")
+        self.log("Setting up storage mode control triggers")
         self.listen_state(
-            self.control_excess_energy,
+            self.control_storage_mode,
             [
                 BATTERY_SOC_ENTITY,
                 PRICE_FORECAST_TODAY_ENTITY,
@@ -124,9 +124,9 @@ class SolarApp(hass.Hass):
             constrain_end_time=self._PRODUCTION_END_CONSTRAINT,
         )
 
-        self.log("Setting up storage mode control triggers")
+        self.log("Setting up excess energy mode control triggers")
         self.listen_state(
-            self.control_storage_mode,
+            self.control_excess_energy,
             [
                 BATTERY_SOC_ENTITY,
                 PRICE_FORECAST_TODAY_ENTITY,
@@ -166,11 +166,11 @@ class SolarApp(hass.Hass):
         self.log("Initial battery max discharge current control run")
         self.solar.control_battery_max_discharge_current()
 
-        self.log("Initial excess energy mode control run")
-        self.solar.control_excess_energy(self.get_now())
-
         self.log("Initial storage mode control run")
         self.solar.control_storage_mode(self.get_now())
+
+        self.log("Initial excess energy mode control run")
+        self.solar.control_excess_energy(self.get_now())
 
     def solar_debug(self, event_type, data, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
         self.solar.log_state()
