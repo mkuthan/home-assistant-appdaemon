@@ -31,7 +31,7 @@ class BatteryCurrent:
         return BatteryCurrent(value=floor(self.value + 0.5))
 
     def __str__(self) -> str:
-        return f"{self.value:.2f}A"
+        return f"{self.value:z.2f}A"
 
 
 BATTERY_CURRENT_ZERO = BatteryCurrent(BatteryCurrent._ZERO_VALUE)

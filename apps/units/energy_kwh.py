@@ -26,7 +26,7 @@ class EnergyKwh:
         return EnergyKwh(value=-self.value)
 
     def __str__(self) -> str:
-        return f"{self.value:.2f}kWh"
+        return f"{self.value:z.2f}kWh"
 
 
 ENERGY_KWH_ZERO = EnergyKwh(EnergyKwh._ZERO_VALUE)

@@ -156,6 +156,14 @@ def test_round(current_value: float, expected_value: float) -> None:
     assert rounded_current == BatteryCurrent(value=expected_value)
 
 
-def test_str() -> None:
-    current = BatteryCurrent(value=12.3456)
-    assert f"{current}" == "12.35A"
+@pytest.mark.parametrize(
+    ("current_value", "expected"),
+    [
+        (12.3456, "12.35A"),
+        (0.0, "0.00A"),
+        (-0.0, "0.00A"),
+    ],
+)
+def test_str(current_value: float, expected: str) -> None:
+    current = BatteryCurrent(value=current_value)
+    assert f"{current}" == expected

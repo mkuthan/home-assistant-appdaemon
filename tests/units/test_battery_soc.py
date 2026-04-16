@@ -122,6 +122,14 @@ def test_round(soc_value: float, expected: float) -> None:
     assert rounded_soc.value == expected
 
 
-def test_str() -> None:
-    soc = BatterySoc(value=75.4567)
-    assert f"{soc}" == "75.46%"
+@pytest.mark.parametrize(
+    ("soc_value", "expected"),
+    [
+        (75.4567, "75.46%"),
+        (0.0, "0.00%"),
+        (-0.0, "0.00%"),
+    ],
+)
+def test_str(soc_value: float, expected: str) -> None:
+    soc = BatterySoc(value=soc_value)
+    assert f"{soc}" == expected

@@ -80,6 +80,14 @@ def test_greater_than_or_equal(voltage1: float, voltage2: float, expected: bool)
     assert result == expected
 
 
-def test_str() -> None:
-    voltage = BatteryVoltage(value=12.3456)
-    assert f"{voltage}" == "12.35V"
+@pytest.mark.parametrize(
+    ("voltage_value", "expected"),
+    [
+        (12.3456, "12.35V"),
+        (0.0, "0.00V"),
+        (-0.0, "0.00V"),
+    ],
+)
+def test_str(voltage_value: float, expected: str) -> None:
+    voltage = BatteryVoltage(value=voltage_value)
+    assert f"{voltage}" == expected

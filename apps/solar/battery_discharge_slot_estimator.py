@@ -41,8 +41,8 @@ class BatteryDischargeSlotEstimator:
         production_forecast = self.forecast_factory.create_production_forecast(state)
         price_forecast = self.forecast_factory.create_price_forecast(state)
 
-        hourly_consumptions = consumption_forecast.hourly(today_4_pm, high_tariff_hours)
-        hourly_productions = production_forecast.hourly(today_4_pm, high_tariff_hours)
+        evening_consumptions = consumption_forecast.hourly(today_4_pm, high_tariff_hours)
+        evening_productions = production_forecast.hourly(today_4_pm, high_tariff_hours)
         daytime_consumptions = consumption_forecast.hourly(tomorrow_7_am, daytime_hours)
         daytime_productions = production_forecast.hourly(tomorrow_7_am, daytime_hours)
         midday_average_price = price_forecast.average_price(tomorrow_10_30_am, midday_hours)
@@ -50,8 +50,8 @@ class BatteryDischargeSlotEstimator:
         return self._estimate_battery_discharge_slot(
             state,
             self.configuration.battery_discharge_evening_margin,
-            hourly_consumptions,
-            hourly_productions,
+            evening_consumptions,
+            evening_productions,
             daytime_consumptions,
             daytime_productions,
             midday_average_price,
@@ -74,8 +74,8 @@ class BatteryDischargeSlotEstimator:
         production_forecast = self.forecast_factory.create_production_forecast(state)
         price_forecast = self.forecast_factory.create_price_forecast(state)
 
-        hourly_consumptions = consumption_forecast.hourly(today_7_am, high_tariff_hours)
-        hourly_productions = production_forecast.hourly(today_7_am, high_tariff_hours)
+        morning_consumptions = consumption_forecast.hourly(today_7_am, high_tariff_hours)
+        morning_productions = production_forecast.hourly(today_7_am, high_tariff_hours)
         daytime_consumptions = consumption_forecast.hourly(today_7_am, daytime_hours)
         daytime_productions = production_forecast.hourly(today_7_am, daytime_hours)
         midday_average_price = price_forecast.average_price(today_10_30_am, midday_hours)
@@ -83,8 +83,8 @@ class BatteryDischargeSlotEstimator:
         return self._estimate_battery_discharge_slot(
             state,
             self.configuration.battery_discharge_morning_margin,
-            hourly_consumptions,
-            hourly_productions,
+            morning_consumptions,
+            morning_productions,
             daytime_consumptions,
             daytime_productions,
             midday_average_price,
@@ -97,8 +97,8 @@ class BatteryDischargeSlotEstimator:
         self,
         state: SolarState,
         margin: EnergyPrice,
-        hourly_consumptions: list[HourlyConsumptionEnergy],
-        hourly_productions: list[HourlyProductionEnergy],
+        high_tariff_consumptions: list[HourlyConsumptionEnergy],
+        high_tariff_productions: list[HourlyProductionEnergy],
         daytime_consumptions: list[HourlyConsumptionEnergy],
         daytime_productions: list[HourlyProductionEnergy],
         midday_average_price: EnergyPrice | None,
@@ -106,60 +106,57 @@ class BatteryDischargeSlotEstimator:
         discharge_window_start: datetime,
         discharge_window_end: datetime,
     ) -> BatteryDischargeSlot | None:
-        discharge_threshold = (
-            midday_average_price.non_negative() + margin if midday_average_price is not None else margin
-        )
-        self.appdaemon_logger.log("Discharge threshold: %s", discharge_threshold, level=logging.DEBUG)
+        high_tariff_reserve = maximum_cumulative_deficit(high_tariff_consumptions, high_tariff_productions)
+        self.appdaemon_logger.log("High tariff reserve: %s", high_tariff_reserve, level=logging.DEBUG)
 
-        energy_reserve = maximum_cumulative_deficit(hourly_consumptions, hourly_productions)
-        self.appdaemon_logger.log("Energy reserve: %s", energy_reserve, level=logging.DEBUG)
-
-        energy_surplus = estimate_battery_surplus_energy(
-            energy_reserve,
+        high_tariff_surplus = estimate_battery_surplus_energy(
+            high_tariff_reserve,
             state.battery_soc,
             self.configuration.battery_capacity,
             self.configuration.battery_reserve_soc_min,
             self.configuration.battery_reserve_soc_margin,
         )
-        self.appdaemon_logger.log("Energy surplus: %s", energy_surplus, level=logging.DEBUG)
+        self.appdaemon_logger.log("High tariff surplus: %s", high_tariff_surplus, level=logging.DEBUG)
 
-        if energy_surplus < self.configuration.battery_export_threshold_energy:
+        if high_tariff_surplus < self.configuration.battery_export_threshold_energy:
             self.appdaemon_logger.log(
-                "Skip, estimated energy surplus %s < threshold %s",
-                energy_surplus,
+                "Skip, high tariff surplus %s < threshold %s",
+                high_tariff_surplus,
                 self.configuration.battery_export_threshold_energy,
                 level=logging.DEBUG,
             )
             return None
 
-        energy_to_replenish = estimate_battery_replenish_energy(
+        daytime_surplus = total_surplus(daytime_consumptions, daytime_productions)
+        self.appdaemon_logger.log("Daytime surplus: %s", daytime_surplus, level=logging.DEBUG)
+
+        energy_to_battery_replenish = estimate_battery_replenish_energy(
             self.configuration.battery_capacity,
             self.configuration.battery_reserve_soc_min,
             self.configuration.battery_reserve_soc_margin,
         )
-        self.appdaemon_logger.log("Energy to replenish: %s", energy_to_replenish, level=logging.DEBUG)
 
-        daytime_surplus = total_surplus(daytime_consumptions, daytime_productions)
-        self.appdaemon_logger.log("Daytime surplus: %s", daytime_surplus, level=logging.DEBUG)
-
-        if daytime_surplus <= energy_to_replenish:
+        if daytime_surplus <= energy_to_battery_replenish:
             self.appdaemon_logger.log(
-                "Skip, daytime surplus %s <= energy to replenish %s",
+                "Skip, daytime surplus %s <= energy to battery replenish %s",
                 daytime_surplus,
-                energy_to_replenish,
+                energy_to_battery_replenish,
                 level=logging.DEBUG,
             )
             return None
 
+        hourly_prices = price_forecast.hourly(discharge_window_start, discharge_window_end)
+
+        price_threshold = midday_average_price.non_negative() + margin if midday_average_price is not None else margin
+
         battery_discharge_energy_1h = EnergyKwh(
             self.configuration.battery_maximum_current.value * self.configuration.battery_voltage.value / 1000
         )
-        hours = energy_surplus / battery_discharge_energy_1h
+        hours = high_tariff_surplus / battery_discharge_energy_1h
 
-        hourly_prices = price_forecast.hourly(discharge_window_start, discharge_window_end)
         revenue_period = find_max_revenue_period(
             hourly_prices,
-            discharge_threshold,
+            price_threshold,
             int(hours * 60),
             battery_discharge_energy_1h,
         )
@@ -172,10 +169,13 @@ class BatteryDischargeSlotEstimator:
                     current=self.configuration.battery_maximum_current,
                 )
                 self.appdaemon_logger.log(
-                    "Revenue period found: %s, battery discharge slot: %s", revenue, discharge_slot
+                    "Price threshold: %s, revenue: %s, battery discharge slot: %s",
+                    price_threshold,
+                    revenue,
+                    discharge_slot,
                 )
 
                 return discharge_slot
             case None:
-                self.appdaemon_logger.log("Skip, no suitable revenue period found")
+                self.appdaemon_logger.log("Skip, no suitable revenue for price threshold %s", price_threshold)
                 return None

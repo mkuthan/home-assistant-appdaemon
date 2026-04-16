@@ -146,13 +146,14 @@ def test_round(temp_value: float, expected_value: float) -> None:
 
 
 @pytest.mark.parametrize(
-    ("temp_value", "expected_str"),
+    ("temp_value", "expected"),
     [
-        (0.0, "0.0°C"),
         (20.5, "20.5°C"),
+        (0.0, "0.0°C"),
+        (-0.0, "0.0°C"),
         (-10.3, "-10.3°C"),
     ],
 )
-def test_str(temp_value: float, expected_str: str) -> None:
+def test_str(temp_value: float, expected: str) -> None:
     temp = Celsius(temp_value)
-    assert str(temp) == expected_str
+    assert f"{temp}" == expected
