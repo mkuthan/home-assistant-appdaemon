@@ -108,6 +108,14 @@ def test_greater_than_or_equal(energy1: float, energy2: float, expected: bool) -
     assert result == expected
 
 
-def test_str() -> None:
-    energy = EnergyKwh(75.4567)
-    assert f"{energy}" == "75.46kWh"
+@pytest.mark.parametrize(
+    ("energy_value", "expected"),
+    [
+        (50.0, "50.00kWh"),
+        (0.0, "0.00kWh"),
+        (-0.0, "0.00kWh"),
+    ],
+)
+def test_str(energy_value: float, expected: str) -> None:
+    energy = EnergyKwh(energy_value)
+    assert f"{energy}" == expected

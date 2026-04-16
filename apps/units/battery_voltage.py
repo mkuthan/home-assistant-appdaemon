@@ -13,7 +13,7 @@ class BatteryVoltage:
             raise ValueError(f"Battery voltage must be non-negative, got {self.value}")
 
     def __str__(self) -> str:
-        return f"{self.value:.2f}V"
+        return f"{self.value:z.2f}V"
 
 
 BATTERY_VOLTAGE_ZERO = BatteryVoltage(BatteryVoltage._ZERO_VALUE)

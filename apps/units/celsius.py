@@ -27,7 +27,7 @@ class Celsius:
         return Celsius(value=floor(self.value + 0.5))
 
     def __str__(self) -> str:
-        return f"{self.value:.1f}°C"
+        return f"{self.value:z.1f}°C"
 
 
 CELSIUS_ZERO = Celsius(Celsius._ZERO_VALUE)

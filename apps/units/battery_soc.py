@@ -24,7 +24,7 @@ class BatterySoc:
         return BatterySoc(value=floor(self.value + 0.5))
 
     def __str__(self) -> str:
-        return f"{self.value:.2f}%"
+        return f"{self.value:z.2f}%"
 
 
 BATTERY_SOC_MIN = BatterySoc(BatterySoc._MIN_VALUE)
