@@ -64,9 +64,9 @@ class SolarApp(hass.Hass):
             # regular consumption when in away mode
             regular_consumption_away=EnergyKwh(0.35),
             # consumption during daytime
-            regular_consumption_day=EnergyKwh(0.5),
+            regular_consumption_day=EnergyKwh(0.6),
             # consumption during evening
-            regular_consumption_evening=EnergyKwh(0.8),
+            regular_consumption_evening=EnergyKwh(1.0),
             # threshold for exporting PV energy, net price
             pv_export_threshold_price=EnergyPrice.per_mwh(Money.pln(Decimal(150))),
             # evening margin added to midday avg price for battery discharge threshold
