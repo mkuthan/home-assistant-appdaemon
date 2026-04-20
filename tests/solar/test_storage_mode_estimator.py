@@ -27,6 +27,7 @@ def storage_mode_estimator(
         configuration,
         battery_capacity=EnergyKwh(10.0),
         battery_reserve_soc_min=BatterySoc(20.0),
+        battery_reserve_soc_margin=BatterySoc(5.0),
         pv_export_threshold_price=EnergyPrice.per_mwh(Money.pln(Decimal(200))),
     )
 
@@ -37,51 +38,14 @@ def storage_mode_estimator(
     )
 
 
-def test_estimator_skip_when_storage_mode_unchanged(
-    storage_mode_estimator: StorageModeEstimator,
-    state: SolarState,
-) -> None:
-    state = replace(state, inverter_storage_mode=StorageMode.SELF_USE)
-
-    now = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
-
-    storage_mode = storage_mode_estimator.estimate_storage_mode(state, now)
-
-    assert storage_mode is None
+@pytest.fixture
+def any_hourly_period() -> HourlyPeriod:
+    return HourlyPeriod(datetime.fromisoformat("2025-10-10T12:00:00+00:00"))
 
 
-def test_estimator_feed_in_priority(
-    storage_mode_estimator: StorageModeEstimator,
-    state: SolarState,
-    mock_production_forecast: Mock,
-    mock_consumption_forecast: Mock,
-    mock_price_forecast: Mock,
-) -> None:
-    state = replace(
-        state,
-        inverter_storage_mode=StorageMode.SELF_USE,
-        battery_soc=BatterySoc(80.0),
-        hourly_price=EnergyPrice.per_mwh(Money.pln(Decimal(250))),
-    )
-
-    now = datetime.fromisoformat("2025-10-10T12:00:00+00:00")
-    remaining_hours = StorageModeEstimator._END_HOUR - now.hour
-
-    hourly_period = HourlyPeriod(now)
-
-    mock_production_forecast.hourly.return_value = [HourlyProductionEnergy(hourly_period, EnergyKwh(8.0))]
-    mock_consumption_forecast.hourly.return_value = [HourlyConsumptionEnergy(hourly_period, EnergyKwh(6.0))]
-    mock_price_forecast.find_min_hour.return_value = HourlyPrice(
-        hourly_period, EnergyPrice.per_mwh(Money.pln(Decimal(30)))
-    )
-
-    storage_mode = storage_mode_estimator.estimate_storage_mode(state, now)
-
-    mock_production_forecast.hourly.assert_called_once_with(now, remaining_hours)
-    mock_consumption_forecast.hourly.assert_called_once_with(now, remaining_hours)
-    mock_price_forecast.find_min_hour.assert_called_once_with(now, remaining_hours)
-
-    assert storage_mode == StorageMode.FEED_IN_PRIORITY
+@pytest.fixture
+def any_hourly_price(any_hourly_period: HourlyPeriod) -> HourlyPrice:
+    return HourlyPrice(any_hourly_period, EnergyPrice.per_mwh(Money.pln(Decimal(0))))
 
 
 def test_estimator_self_use_when_no_remaining_hours(
@@ -93,7 +57,31 @@ def test_estimator_self_use_when_no_remaining_hours(
 ) -> None:
     state = replace(state, inverter_storage_mode=StorageMode.FEED_IN_PRIORITY)
 
-    now = datetime.fromisoformat("2025-10-10T16:00:00+00:00")
+    now = datetime.fromisoformat("2025-10-10T12:00:00+00:00")
+
+    storage_mode = storage_mode_estimator.estimate_storage_mode(state, now)
+
+    mock_production_forecast.hourly.assert_not_called()
+    mock_consumption_forecast.hourly.assert_not_called()
+    mock_price_forecast.find_min_hour.assert_not_called()
+
+    assert storage_mode == StorageMode.SELF_USE
+
+
+def test_estimator_self_use_when_battery_soc_below_reserve(
+    storage_mode_estimator: StorageModeEstimator,
+    state: SolarState,
+    mock_production_forecast: Mock,
+    mock_consumption_forecast: Mock,
+    mock_price_forecast: Mock,
+) -> None:
+    state = replace(
+        state,
+        inverter_storage_mode=StorageMode.FEED_IN_PRIORITY,
+        battery_soc=BatterySoc(22.0),
+    )
+
+    now = datetime.fromisoformat("2025-10-10T10:00:00+00:00")
 
     storage_mode = storage_mode_estimator.estimate_storage_mode(state, now)
 
@@ -115,19 +103,20 @@ def test_estimator_self_use_when_min_price_not_found(
         state,
         inverter_storage_mode=StorageMode.FEED_IN_PRIORITY,
         battery_soc=BatterySoc(80.0),
-        hourly_price=EnergyPrice.per_mwh(Money.pln(Decimal(250))),
     )
 
     mock_price_forecast.find_min_hour.return_value = None
 
-    now = datetime.fromisoformat("2025-10-10T12:00:00+00:00")
-    remaining_hours = StorageModeEstimator._END_HOUR - now.hour
+    now = datetime.fromisoformat("2025-10-10T10:00:00+00:00")
+
+    today_8_am = datetime.fromisoformat("2025-10-10T08:00:00+00:00")
+    day_hours = 8
 
     storage_mode = storage_mode_estimator.estimate_storage_mode(state, now)
 
     mock_production_forecast.hourly.assert_not_called()
     mock_consumption_forecast.hourly.assert_not_called()
-    mock_price_forecast.find_min_hour.assert_called_once_with(now, remaining_hours)
+    mock_price_forecast.find_min_hour.assert_called_once_with(today_8_am, day_hours)
 
     assert storage_mode == StorageMode.SELF_USE
 
@@ -138,6 +127,7 @@ def test_estimator_self_use_when_current_price_below_threshold(
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
+    any_hourly_price: HourlyPrice,
 ) -> None:
     state = replace(
         state,
@@ -146,86 +136,18 @@ def test_estimator_self_use_when_current_price_below_threshold(
         hourly_price=EnergyPrice.per_mwh(Money.pln(Decimal(150))),
     )
 
-    now = datetime.fromisoformat("2025-10-10T12:00:00+00:00")
-    hourly_period = HourlyPeriod(now)
+    now = datetime.fromisoformat("2025-10-10T10:00:00+00:00")
 
-    mock_price_forecast.find_min_hour.return_value = HourlyPrice(
-        hourly_period, EnergyPrice.per_mwh(Money.pln(Decimal(30)))
-    )
+    today_8_am = datetime.fromisoformat("2025-10-10T08:00:00+00:00")
+    day_hours = 8
 
-    now = datetime.fromisoformat("2025-10-10T12:00:00+00:00")
-    remaining_hours = StorageModeEstimator._END_HOUR - now.hour
+    mock_price_forecast.find_min_hour.return_value = any_hourly_price
 
     storage_mode = storage_mode_estimator.estimate_storage_mode(state, now)
 
     mock_production_forecast.hourly.assert_not_called()
     mock_consumption_forecast.hourly.assert_not_called()
-    mock_price_forecast.find_min_hour.assert_called_once_with(now, remaining_hours)
-
-    assert storage_mode == StorageMode.SELF_USE
-
-
-def test_estimator_self_use_when_current_price_below_multiplier_threshold(
-    storage_mode_estimator: StorageModeEstimator,
-    state: SolarState,
-    mock_production_forecast: Mock,
-    mock_consumption_forecast: Mock,
-    mock_price_forecast: Mock,
-) -> None:
-    state = replace(
-        state,
-        inverter_storage_mode=StorageMode.FEED_IN_PRIORITY,
-        battery_soc=BatterySoc(80.0),
-        hourly_price=EnergyPrice.per_mwh(Money.pln(Decimal(260))),
-    )
-
-    now = datetime.fromisoformat("2025-10-10T12:00:00+00:00")
-    remaining_hours = StorageModeEstimator._END_HOUR - now.hour
-
-    hourly_period = HourlyPeriod(now)
-
-    # min_price * 1.1 = 250 * 1.1 = 275 > 200 (floor), threshold = 275; 260 <= 275
-    mock_price_forecast.find_min_hour.return_value = HourlyPrice(
-        hourly_period, EnergyPrice.per_mwh(Money.pln(Decimal(250)))
-    )
-
-    storage_mode = storage_mode_estimator.estimate_storage_mode(state, now)
-
-    mock_production_forecast.hourly.assert_not_called()
-    mock_consumption_forecast.hourly.assert_not_called()
-    mock_price_forecast.find_min_hour.assert_called_once_with(now, remaining_hours)
-
-    assert storage_mode == StorageMode.SELF_USE
-
-
-def test_estimator_self_use_when_battery_soc_below_reserve(
-    storage_mode_estimator: StorageModeEstimator,
-    state: SolarState,
-    mock_production_forecast: Mock,
-    mock_consumption_forecast: Mock,
-    mock_price_forecast: Mock,
-) -> None:
-    state = replace(
-        state,
-        inverter_storage_mode=StorageMode.FEED_IN_PRIORITY,
-        battery_soc=BatterySoc(20.0),
-        hourly_price=EnergyPrice.per_mwh(Money.pln(Decimal(250))),
-    )
-
-    now = datetime.fromisoformat("2025-10-10T12:00:00+00:00")
-    remaining_hours = StorageModeEstimator._END_HOUR - now.hour
-
-    hourly_period = HourlyPeriod(now)
-
-    mock_price_forecast.find_min_hour.return_value = HourlyPrice(
-        hourly_period, EnergyPrice.per_mwh(Money.pln(Decimal(30)))
-    )
-
-    storage_mode = storage_mode_estimator.estimate_storage_mode(state, now)
-
-    mock_production_forecast.hourly.assert_not_called()
-    mock_consumption_forecast.hourly.assert_not_called()
-    mock_price_forecast.find_min_hour.assert_called_once_with(now, remaining_hours)
+    mock_price_forecast.find_min_hour.assert_called_once_with(today_8_am, day_hours)
 
     assert storage_mode == StorageMode.SELF_USE
 
@@ -236,6 +158,7 @@ def test_estimator_self_use_when_no_enough_surplus_energy(
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
+    any_hourly_price: HourlyPrice,
 ) -> None:
     state = replace(
         state,
@@ -244,21 +167,73 @@ def test_estimator_self_use_when_no_enough_surplus_energy(
         hourly_price=EnergyPrice.per_mwh(Money.pln(Decimal(250))),
     )
 
-    now = datetime.fromisoformat("2025-10-10T12:00:00+00:00")
-    remaining_hours = StorageModeEstimator._END_HOUR - now.hour
+    now = datetime.fromisoformat("2025-10-10T10:00:00+00:00")
+    remaining_hours = 16 - now.hour
+
+    today_8_am = datetime.fromisoformat("2025-10-10T08:00:00+00:00")
+    day_hours = 8
+
+    mock_price_forecast.find_min_hour.return_value = any_hourly_price
 
     hourly_period = HourlyPeriod(now)
 
     mock_production_forecast.hourly.return_value = [HourlyProductionEnergy(hourly_period, EnergyKwh(5.0))]
     mock_consumption_forecast.hourly.return_value = [HourlyConsumptionEnergy(hourly_period, EnergyKwh(6.0))]
-    mock_price_forecast.find_min_hour.return_value = HourlyPrice(
-        hourly_period, EnergyPrice.per_mwh(Money.pln(Decimal(30)))
-    )
 
     storage_mode = storage_mode_estimator.estimate_storage_mode(state, now)
 
     mock_production_forecast.hourly.assert_called_once_with(now, remaining_hours)
     mock_consumption_forecast.hourly.assert_called_once_with(now, remaining_hours)
-    mock_price_forecast.find_min_hour.assert_called_once_with(now, remaining_hours)
+    mock_price_forecast.find_min_hour.assert_called_once_with(today_8_am, day_hours)
 
     assert storage_mode == StorageMode.SELF_USE
+
+
+def test_estimator_feed_in_priority(
+    storage_mode_estimator: StorageModeEstimator,
+    state: SolarState,
+    mock_production_forecast: Mock,
+    mock_consumption_forecast: Mock,
+    mock_price_forecast: Mock,
+    any_hourly_price: HourlyPrice,
+) -> None:
+    state = replace(
+        state,
+        inverter_storage_mode=StorageMode.SELF_USE,
+        battery_soc=BatterySoc(80.0),
+        hourly_price=EnergyPrice.per_mwh(Money.pln(Decimal(250))),
+    )
+
+    now = datetime.fromisoformat("2025-10-10T10:00:00+00:00")
+    remaining_hours = 16 - now.hour
+
+    today_8_am = datetime.fromisoformat("2025-10-10T08:00:00+00:00")
+    day_hours = 8
+
+    mock_price_forecast.find_min_hour.return_value = any_hourly_price
+
+    hourly_period = HourlyPeriod(now)
+
+    mock_production_forecast.hourly.return_value = [HourlyProductionEnergy(hourly_period, EnergyKwh(8.0))]
+    mock_consumption_forecast.hourly.return_value = [HourlyConsumptionEnergy(hourly_period, EnergyKwh(4.0))]
+
+    storage_mode = storage_mode_estimator.estimate_storage_mode(state, now)
+
+    mock_production_forecast.hourly.assert_called_once_with(now, remaining_hours)
+    mock_consumption_forecast.hourly.assert_called_once_with(now, remaining_hours)
+    mock_price_forecast.find_min_hour.assert_called_once_with(today_8_am, day_hours)
+
+    assert storage_mode == StorageMode.FEED_IN_PRIORITY
+
+
+def test_estimator_skip_when_storage_mode_unchanged(
+    storage_mode_estimator: StorageModeEstimator,
+    state: SolarState,
+) -> None:
+    state = replace(state, inverter_storage_mode=StorageMode.SELF_USE)
+
+    now = datetime.fromisoformat("2025-10-10T13:00:00+00:00")
+
+    storage_mode = storage_mode_estimator.estimate_storage_mode(state, now)
+
+    assert storage_mode is None

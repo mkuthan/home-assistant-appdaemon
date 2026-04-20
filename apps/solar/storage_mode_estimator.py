@@ -1,21 +1,18 @@
 import logging
 from datetime import datetime
-from decimal import Decimal
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from solar.forecast_factory import ForecastFactory
 from solar.solar_configuration import SolarConfiguration
 from solar.solar_state import SolarState
 from solar.storage_mode import StorageMode
-from units.battery_soc import BATTERY_SOC_MAX
-from utils.battery_estimators import estimate_battery_max_soc
+from utils.battery_estimators import estimate_battery_energy_gap_to_full
 from utils.energy_aggregators import total_surplus
 from utils.time_utils import truncate_to_hour
 
 
 class StorageModeEstimator:
-    _END_HOUR: int = 16
-    _PRICE_THRESHOLD_MULTIPLIER: Decimal = Decimal("1.1")
+    _FEED_IN_PRIORITY_END_HOUR: int = 12
 
     def __init__(
         self,
@@ -28,54 +25,54 @@ class StorageModeEstimator:
         self.forecast_factory = forecast_factory
 
     def estimate_storage_mode(self, state: SolarState, now: datetime) -> StorageMode | None:
-        remaining_hours = self._END_HOUR - now.hour
-        if remaining_hours <= 0:
-            reason = "no remaining hours in the day"
-            return self._return_if_changed(state, StorageMode.SELF_USE, reason)
-
-        current_hour = truncate_to_hour(now)
-
-        price_forecast = self.forecast_factory.create_price_forecast(state)
-        min_hour = price_forecast.find_min_hour(current_hour, remaining_hours)
-        if min_hour is None:
-            reason = "minimum price not found in the forecast"
-            return self._return_if_changed(state, StorageMode.SELF_USE, reason)
-
-        current_price = state.hourly_price.non_negative()
-        price_threshold = max(
-            min_hour.price.non_negative() * self._PRICE_THRESHOLD_MULTIPLIER,
-            self.configuration.pv_export_threshold_price,
-        )
-        if current_price <= price_threshold:
-            reason = f"current price {current_price} <= {price_threshold}"
+        if now.hour >= self._FEED_IN_PRIORITY_END_HOUR:
+            reason = "past feed-in priority end hour"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
         required_battery_reserve_soc = (
             self.configuration.battery_reserve_soc_min + self.configuration.battery_reserve_soc_margin
         )
-        if state.battery_soc <= required_battery_reserve_soc:
-            reason = f"battery SoC {state.battery_soc} <= {required_battery_reserve_soc}"
+        current_battery_soc = state.battery_soc
+
+        if current_battery_soc <= required_battery_reserve_soc:
+            reason = f"battery SoC {current_battery_soc} <= {required_battery_reserve_soc}"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
+
+        today_8_am = now.replace(hour=8, minute=0, second=0, microsecond=0)
+        day_hours = 8
+
+        price_forecast = self.forecast_factory.create_price_forecast(state)
+        min_price = price_forecast.find_min_hour(today_8_am, day_hours)
+        if min_price is None:
+            reason = "minimum price not found in the forecast"
+            return self._return_if_changed(state, StorageMode.SELF_USE, reason)
+
+        price_threshold = max(min_price.price.non_negative(), self.configuration.pv_export_threshold_price)
+        current_price = state.hourly_price.non_negative()
+        if current_price <= price_threshold:
+            reason = f"price {current_price} <= {price_threshold}"
+            return self._return_if_changed(state, StorageMode.SELF_USE, reason)
+
+        current_hour = truncate_to_hour(now)
+        remaining_hours = 16 - now.hour
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
-        consumptions = consumption_forecast.hourly(current_hour, remaining_hours)
+        remaining_consumptions = consumption_forecast.hourly(current_hour, remaining_hours)
 
         production_forecast = self.forecast_factory.create_production_forecast(state)
-        productions = production_forecast.hourly(current_hour, remaining_hours)
+        remaining_productions = production_forecast.hourly(current_hour, remaining_hours)
 
-        energy_surplus = total_surplus(consumptions, productions)
+        remaining_surplus = total_surplus(remaining_consumptions, remaining_productions)
 
-        battery_soc_max = estimate_battery_max_soc(
-            energy_surplus, state.battery_soc, self.configuration.battery_capacity
+        battery_gap_to_full = estimate_battery_energy_gap_to_full(
+            current_battery_soc, self.configuration.battery_capacity
         )
 
-        if battery_soc_max < BATTERY_SOC_MAX:
-            reason = f"battery SoC max {battery_soc_max} < {BATTERY_SOC_MAX}, energy surplus: {energy_surplus}"
+        if remaining_surplus <= battery_gap_to_full:
+            reason = f"remaining surplus: {remaining_surplus} <= battery gap to full: {battery_gap_to_full}"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
-        reason = (
-            f"price: {current_price}, " + f"battery SoC: {state.battery_soc}, " + f"energy surplus: {energy_surplus}"
-        )
+        reason = f"price: {current_price}, battery SoC: {current_battery_soc}, remaining surplus: {remaining_surplus}"
         return self._return_if_changed(state, StorageMode.FEED_IN_PRIORITY, reason)
 
     def _return_if_changed(self, state: SolarState, storage_mode: StorageMode, reason: str) -> StorageMode | None:

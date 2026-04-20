@@ -2,8 +2,9 @@ import pytest
 from units.battery_soc import BatterySoc
 from units.energy_kwh import EnergyKwh
 from utils.battery_estimators import (
+    estimate_battery_energy_gap_to_full,
+    estimate_battery_energy_to_full,
     estimate_battery_max_soc,
-    estimate_battery_replenish_energy,
     estimate_battery_reserve_soc,
     estimate_battery_surplus_energy,
 )
@@ -119,11 +120,31 @@ def test_estimate_battery_max_soc(
         (EnergyKwh(10.0), BatterySoc(0.0), BatterySoc(0.0), EnergyKwh(10.0)),
     ],
 )
-def test_estimate_battery_replenish_energy(
+def test_estimate_battery_energy_to_full(
     battery_capacity: EnergyKwh,
     battery_reserve_soc_min: BatterySoc,
     battery_reserve_soc_margin: BatterySoc,
     expected: EnergyKwh,
 ) -> None:
-    result = estimate_battery_replenish_energy(battery_capacity, battery_reserve_soc_min, battery_reserve_soc_margin)
+    result = estimate_battery_energy_to_full(battery_capacity, battery_reserve_soc_min, battery_reserve_soc_margin)
+    assert result == pytest.approx(expected)
+
+
+@pytest.mark.parametrize(
+    ("battery_soc", "battery_capacity", "expected"),
+    [
+        # 30% battery (10kWh) → 70% gap → 7.0 kWh
+        (BatterySoc(30.0), EnergyKwh(10.0), EnergyKwh(7.0)),
+        # 50% battery (20kWh) → 50% gap → 10.0 kWh
+        (BatterySoc(50.0), EnergyKwh(20.0), EnergyKwh(10.0)),
+        # 0% battery (10kWh) → 100% gap → 10.0 kWh
+        (BatterySoc(0.0), EnergyKwh(10.0), EnergyKwh(10.0)),
+    ],
+)
+def test_estimate_battery_energy_gap_to_full(
+    battery_soc: BatterySoc,
+    battery_capacity: EnergyKwh,
+    expected: EnergyKwh,
+) -> None:
+    result = estimate_battery_energy_gap_to_full(battery_soc, battery_capacity)
     assert result == pytest.approx(expected)
