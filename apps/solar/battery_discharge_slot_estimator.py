@@ -10,7 +10,7 @@ from solar.solar_state import SolarState
 from units.energy_kwh import EnergyKwh
 from units.energy_price import EnergyPrice
 from units.hourly_energy import HourlyConsumptionEnergy, HourlyProductionEnergy
-from utils.battery_estimators import estimate_battery_replenish_energy, estimate_battery_surplus_energy
+from utils.battery_estimators import estimate_battery_energy_to_full, estimate_battery_surplus_energy
 from utils.energy_aggregators import maximum_cumulative_deficit, total_surplus
 from utils.revenue_estimators import find_max_revenue_period
 
@@ -130,7 +130,7 @@ class BatteryDischargeSlotEstimator:
         daytime_surplus = total_surplus(daytime_consumptions, daytime_productions)
         self.appdaemon_logger.log("Daytime surplus: %s", daytime_surplus, level=logging.DEBUG)
 
-        energy_to_battery_replenish = estimate_battery_replenish_energy(
+        energy_to_battery_replenish = estimate_battery_energy_to_full(
             self.configuration.battery_capacity,
             self.configuration.battery_reserve_soc_min,
             self.configuration.battery_reserve_soc_margin,

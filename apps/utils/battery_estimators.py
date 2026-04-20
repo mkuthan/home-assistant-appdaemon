@@ -40,10 +40,18 @@ def estimate_battery_max_soc(
     return battery_soc + surplus_soc
 
 
-def estimate_battery_replenish_energy(
+def estimate_battery_energy_to_full(
     battery_capacity: EnergyKwh,
     battery_reserve_soc_min: BatterySoc,
     battery_reserve_soc_margin: BatterySoc,
 ) -> EnergyKwh:
-    available_soc = BATTERY_SOC_MAX - battery_reserve_soc_min - battery_reserve_soc_margin
-    return soc_to_energy(available_soc, battery_capacity)
+    energy_gap = BATTERY_SOC_MAX - battery_reserve_soc_min - battery_reserve_soc_margin
+    return soc_to_energy(energy_gap, battery_capacity)
+
+
+def estimate_battery_energy_gap_to_full(
+    battery_soc: BatterySoc,
+    battery_capacity: EnergyKwh,
+) -> EnergyKwh:
+    energy_gap = BATTERY_SOC_MAX - battery_soc
+    return soc_to_energy(energy_gap, battery_capacity)
