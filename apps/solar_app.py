@@ -144,8 +144,8 @@ class SolarApp(hass.Hass):
         )
 
         self.log("Setting up battery discharge morning schedule")
-        self.run_daily(self.schedule_battery_discharge_at_7_am, "06:30:00")
-        self.run_daily(self.schedule_battery_discharge_at_7_am, "07:00:00")  # backup call
+        self.run_daily(self.schedule_battery_discharge_at_6_am, "05:30:00")
+        self.run_daily(self.schedule_battery_discharge_at_6_am, "06:00:00")  # backup call
 
         self.log("Setting up battery discharge evening schedule")
         self.run_daily(self.schedule_battery_discharge_at_4_pm, "15:30:00")
@@ -190,8 +190,8 @@ class SolarApp(hass.Hass):
     def control_storage_mode(self, entity, attribute, old, new, **kwargs) -> None:  # noqa: ANN001, ANN003, ARG002
         self.solar.control_storage_mode(self.get_now())
 
-    def schedule_battery_discharge_at_7_am(self, **kwargs: object) -> None:  # noqa: ARG002
-        self.solar.schedule_battery_discharge_at_7_am(self.get_now())
+    def schedule_battery_discharge_at_6_am(self, **kwargs: object) -> None:  # noqa: ARG002
+        self.solar.schedule_battery_discharge_at_6_am(self.get_now())
 
     def schedule_battery_discharge_at_4_pm(self, **kwargs: object) -> None:  # noqa: ARG002
         self.solar.schedule_battery_discharge_at_4_pm(self.get_now())

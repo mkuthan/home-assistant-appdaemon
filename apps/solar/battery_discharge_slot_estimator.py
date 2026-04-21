@@ -60,15 +60,17 @@ class BatteryDischargeSlotEstimator:
             today_10_pm,
         )
 
-    def estimate_battery_discharge_at_7_am(self, state: SolarState, now: datetime) -> BatteryDischargeSlot | None:
-        today_7_am = now.replace(hour=7, minute=0, second=0, microsecond=0)
+    def estimate_battery_discharge_at_6_am(self, state: SolarState, now: datetime) -> BatteryDischargeSlot | None:
+        today_6_am = now.replace(hour=6, minute=0, second=0, microsecond=0)
         today_9_am = now.replace(hour=9, minute=0, second=0, microsecond=0)
-        high_tariff_hours = 6
 
-        daytime_hours = 9
+        today_7_am = now.replace(hour=7, minute=0, second=0, microsecond=0)
+        high_tariff_hours = 6
 
         today_10_30_am = now.replace(hour=10, minute=30, second=0, microsecond=0)
         midday_hours = 4
+
+        daytime_hours = 9
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
         production_forecast = self.forecast_factory.create_production_forecast(state)
@@ -89,7 +91,7 @@ class BatteryDischargeSlotEstimator:
             daytime_productions,
             midday_average_price,
             price_forecast,
-            today_7_am,
+            today_6_am,
             today_9_am,
         )
 

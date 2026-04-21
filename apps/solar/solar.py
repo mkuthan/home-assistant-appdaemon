@@ -162,14 +162,14 @@ class Solar:
             self.appdaemon_logger.log("Disable battery discharge")
             self._disable_slot1_discharge(state)
 
-    def schedule_battery_discharge_at_7_am(self, now: datetime) -> None:
-        self.appdaemon_logger.log("Schedule battery discharge at 7 AM")
+    def schedule_battery_discharge_at_6_am(self, now: datetime) -> None:
+        self.appdaemon_logger.log("Schedule battery discharge at 6 AM")
 
         if (state := self.state_factory.create()) is None:
             self.appdaemon_logger.log("Unknown state, cannot schedule battery discharge", level=logging.WARNING)
             return
 
-        estimated_battery_discharge_slot = self.battery_discharge_slot_estimator.estimate_battery_discharge_at_7_am(
+        estimated_battery_discharge_slot = self.battery_discharge_slot_estimator.estimate_battery_discharge_at_6_am(
             state, now
         )
 
