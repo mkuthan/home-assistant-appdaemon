@@ -59,8 +59,8 @@ def test_find_max_revenue_period_28_minutes(standard_periods: list[HourlyPrice])
     expected_revenue = (200 / 1000) * (4.0 / 60) * 28
 
     assert revenue.value == pytest.approx(Decimal.from_float(expected_revenue))
-    assert start_time == datetime.fromisoformat("2025-01-01T02:00:00+00:00")
-    assert end_time == datetime.fromisoformat("2025-01-01T02:28:00+00:00")
+    assert start_time == datetime.fromisoformat("2025-01-01T02:32:00+00:00")
+    assert end_time == datetime.fromisoformat("2025-01-01T03:00:00+00:00")
 
 
 def test_find_max_revenue_period_105_minutes(standard_periods: list[HourlyPrice]) -> None:

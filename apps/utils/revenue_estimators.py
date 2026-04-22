@@ -93,7 +93,7 @@ def find_max_revenue_period(
             if minutes_covered >= 1:
                 end_time = start_time + timedelta(minutes=minutes_covered)
 
-                if max_revenue is None or revenue > max_revenue:
+                if max_revenue is None or revenue >= max_revenue:
                     max_revenue = revenue
                     best_start_time = start_time
                     best_end_time = end_time
