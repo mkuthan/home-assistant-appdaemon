@@ -34,8 +34,8 @@ class StorageModeEstimator:
         )
         current_battery_soc = state.battery_soc
 
-        if current_battery_soc <= required_battery_reserve_soc:
-            reason = f"battery SoC {current_battery_soc} <= {required_battery_reserve_soc}"
+        if current_battery_soc < required_battery_reserve_soc:
+            reason = f"battery SoC {current_battery_soc} < {required_battery_reserve_soc}"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
         today_8_am = now.replace(hour=8, minute=0, second=0, microsecond=0)
@@ -49,8 +49,8 @@ class StorageModeEstimator:
 
         price_threshold = max(min_price.price.non_negative(), self.configuration.pv_export_threshold_price)
         current_price = state.hourly_price.non_negative()
-        if current_price <= price_threshold:
-            reason = f"price {current_price} <= {price_threshold}"
+        if current_price < price_threshold:
+            reason = f"price {current_price} < {price_threshold}"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
         current_hour = truncate_to_hour(now)
@@ -68,8 +68,8 @@ class StorageModeEstimator:
             current_battery_soc, self.configuration.battery_capacity
         )
 
-        if remaining_surplus <= battery_gap_to_full:
-            reason = f"remaining surplus: {remaining_surplus} <= battery gap to full: {battery_gap_to_full}"
+        if remaining_surplus < battery_gap_to_full:
+            reason = f"remaining surplus: {remaining_surplus} < battery gap to full: {battery_gap_to_full}"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
         reason = f"price: {current_price}, battery SoC: {current_battery_soc}, remaining surplus: {remaining_surplus}"

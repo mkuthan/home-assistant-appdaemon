@@ -70,9 +70,9 @@ class SolarApp(hass.Hass):
             # threshold for exporting PV energy, net price
             pv_export_threshold_price=EnergyPrice.per_mwh(Money.pln(Decimal(150))),
             # evening margin added to midday avg price for battery discharge threshold
-            battery_discharge_evening_margin=EnergyPrice.per_mwh(Money.pln(Decimal(650))),
+            battery_discharge_evening_margin=EnergyPrice.per_mwh(Money.pln(Decimal(750))),
             # morning margin added to midday avg price for battery discharge threshold
-            battery_discharge_morning_margin=EnergyPrice.per_mwh(Money.pln(Decimal(350))),
+            battery_discharge_morning_margin=EnergyPrice.per_mwh(Money.pln(Decimal(450))),
             # skip battery export below this threshold
             battery_export_threshold_energy=EnergyKwh(1.0),
             # start time of night low tariff period (with margin)
