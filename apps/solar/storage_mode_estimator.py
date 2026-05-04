@@ -72,7 +72,10 @@ class StorageModeEstimator:
             reason = f"remaining surplus: {remaining_surplus} < battery gap to full: {battery_gap_to_full}"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
-        reason = f"price: {current_price}, battery SoC: {current_battery_soc}, remaining surplus: {remaining_surplus}"
+        reason = (
+            f"current price: {current_price}, threshold price: {price_threshold}, "
+            + f"battery gap to full: {battery_gap_to_full}, remaining surplus: {remaining_surplus}"
+        )
         return self._return_if_changed(state, StorageMode.FEED_IN_PRIORITY, reason)
 
     def _return_if_changed(self, state: SolarState, storage_mode: StorageMode, reason: str) -> StorageMode | None:
