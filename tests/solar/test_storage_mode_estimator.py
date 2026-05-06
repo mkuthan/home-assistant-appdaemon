@@ -168,8 +168,7 @@ def test_estimator_self_use_when_no_enough_surplus_energy(
     )
 
     now = datetime.fromisoformat("2025-10-10T10:00:00+00:00")
-    remaining_hours = 16 - now.hour
-
+    remaining_hours = 15 - now.hour
     today_8_am = datetime.fromisoformat("2025-10-10T08:00:00+00:00")
     day_hours = 8
 
@@ -205,7 +204,7 @@ def test_estimator_feed_in_priority(
     )
 
     now = datetime.fromisoformat("2025-10-10T10:00:00+00:00")
-    remaining_hours = 16 - now.hour
+    remaining_hours = 15 - now.hour
 
     today_8_am = datetime.fromisoformat("2025-10-10T08:00:00+00:00")
     day_hours = 8

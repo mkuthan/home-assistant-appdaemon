@@ -13,6 +13,7 @@ from utils.time_utils import truncate_to_hour
 
 class StorageModeEstimator:
     _FEED_IN_PRIORITY_END_HOUR: int = 12
+    _BATTERY_FULL_BY_HOUR: int = 15
 
     def __init__(
         self,
@@ -54,7 +55,7 @@ class StorageModeEstimator:
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
         current_hour = truncate_to_hour(now)
-        remaining_hours = 16 - now.hour
+        remaining_hours = self._BATTERY_FULL_BY_HOUR - now.hour
 
         consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
         remaining_consumptions = consumption_forecast.hourly(current_hour, remaining_hours)
