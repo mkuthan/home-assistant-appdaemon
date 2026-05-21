@@ -14,6 +14,7 @@ from utils.time_utils import truncate_to_hour
 class StorageModeEstimator:
     _FEED_IN_PRIORITY_END_HOUR: int = 12
     _BATTERY_FULL_BY_HOUR: int = 15
+    _SURPLUS_SAFETY_FACTOR: float = 1.2
 
     def __init__(
         self,
@@ -69,8 +70,9 @@ class StorageModeEstimator:
             current_battery_soc, self.configuration.battery_capacity
         )
 
-        if remaining_surplus < battery_gap_to_full:
-            reason = f"remaining surplus: {remaining_surplus} < battery gap to full: {battery_gap_to_full}"
+        required_surplus = battery_gap_to_full * self._SURPLUS_SAFETY_FACTOR
+        if remaining_surplus < required_surplus:
+            reason = f"remaining surplus: {remaining_surplus} < required: {required_surplus}"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
         reason = (
