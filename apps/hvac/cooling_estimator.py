@@ -21,7 +21,7 @@ class CoolingEstimator:
         self.configuration = configuration
 
     def estimate_temperature(self, state: HvacState, now: datetime) -> Celsius | None:
-        if not is_cooling_enabled(state.heating_mode):
+        if not is_cooling_enabled(state.cooling_mode):
             return None
 
         if state.is_eco_mode:

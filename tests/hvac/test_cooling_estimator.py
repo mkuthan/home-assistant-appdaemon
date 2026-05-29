@@ -39,7 +39,7 @@ def test_estimate_temperature_normal_mode(
     )
     cooling_estimator = CoolingEstimator(mock_appdaemon_logger, configuration)
 
-    state = replace(state, heating_mode="cool", is_eco_mode=False)
+    state = replace(state, cooling_mode="cool", is_eco_mode=False)
 
     result = cooling_estimator.estimate_temperature(state, datetime.fromisoformat(now))
 
@@ -76,7 +76,7 @@ def test_estimate_temperature_eco_mode(
     )
     cooling_estimator = CoolingEstimator(mock_appdaemon_logger, configuration)
 
-    state = replace(state, heating_mode="cool", is_eco_mode=True)
+    state = replace(state, cooling_mode="cool", is_eco_mode=True)
 
     result = cooling_estimator.estimate_temperature(state, datetime.fromisoformat(now))
 
@@ -98,7 +98,7 @@ def test_estimate_temperature_adjustment(
 
     state = replace(
         state,
-        heating_mode="cool",
+        cooling_mode="cool",
         is_eco_mode=False,
         cooling_target_temperature=Celsius(24.0),
         temperature_adjustment=Celsius(-1.0),
@@ -123,7 +123,7 @@ def test_estimate_temperature_no_change(
     )
     cooling_estimator = CoolingEstimator(mock_appdaemon_logger, configuration)
 
-    state = replace(state, heating_mode="cool", is_eco_mode=False, cooling_target_temperature=Celsius(24.0))
+    state = replace(state, cooling_mode="cool", is_eco_mode=False, cooling_target_temperature=Celsius(24.0))
 
     outside_boost_datetime = datetime.fromisoformat("2025-10-29T08:00:00+00:00")
     result = cooling_estimator.estimate_temperature(state, outside_boost_datetime)
@@ -131,14 +131,14 @@ def test_estimate_temperature_no_change(
     assert result is None
 
 
-def test_estimate_temperature_heating_mode_off(
+def test_estimate_temperature_cooling_mode_off(
     mock_appdaemon_logger: Mock,
     configuration: HvacConfiguration,
     state: HvacState,
 ) -> None:
     cooling_estimator = CoolingEstimator(mock_appdaemon_logger, configuration)
 
-    state = replace(state, heating_mode="off")
+    state = replace(state, cooling_mode="off")
 
     any_datetime = datetime.fromisoformat("2025-10-29T04:00:00+00:00")
     result = cooling_estimator.estimate_temperature(state, any_datetime)
