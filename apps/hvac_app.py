@@ -49,11 +49,11 @@ class HvacApp(hass.Hass):
             # cooling temperature in eco mode
             cooling_temp_eco_on=Celsius(26.0),
             # cool when there is plenty of solar energy
-            cooling_boost_time_start_eco_on=time.fromisoformat("12:00:00"),
+            cooling_boost_time_start_eco_on=time.fromisoformat("10:00:00"),
             cooling_boost_time_end_eco_on=time.fromisoformat("16:00:00"),
             # extends cooling period a bit when eco mode is off
-            cooling_boost_time_start_eco_off=time.fromisoformat("10:00:00"),
-            cooling_boost_time_end_eco_off=time.fromisoformat("18:00:00"),
+            cooling_boost_time_start_eco_off=time.fromisoformat("08:00:00"),
+            cooling_boost_time_end_eco_off=time.fromisoformat("22:00:00"),
         )
 
         state_factory = DefaultHvacStateFactory(appdaemon_logger, appdaemon_state)
