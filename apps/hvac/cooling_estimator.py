@@ -10,7 +10,7 @@ from utils.time_utils import is_time_in_range
 
 
 class CoolingEstimator:
-    _COOLING_TARGET_OFFSET = Celsius(-2.0)
+    _COOLING_TARGET_OFFSET = Celsius(-1.0)
 
     def __init__(
         self,

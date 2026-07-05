@@ -15,11 +15,11 @@ from units.celsius import Celsius
         # Just before boost period
         ("2025-10-29T09:59:00+00:00", 24.0),
         # At boost start boundary
-        ("2025-10-29T10:00:00+00:00", 22.0),
+        ("2025-10-29T10:00:00+00:00", 23.0),
         # Inside boost period
-        ("2025-10-29T14:00:00+00:00", 22.0),
+        ("2025-10-29T14:00:00+00:00", 23.0),
         # At boost end boundary
-        ("2025-10-29T18:00:00+00:00", 22.0),
+        ("2025-10-29T18:00:00+00:00", 23.0),
         # Just after boost period
         ("2025-10-29T18:01:00+00:00", 24.0),
     ],
@@ -52,11 +52,11 @@ def test_estimate_temperature_normal_mode(
         # Just before boost period
         ("2025-10-29T11:59:00+00:00", 26.0),
         # At boost start boundary
-        ("2025-10-29T12:00:00+00:00", 24.0),
+        ("2025-10-29T12:00:00+00:00", 25.0),
         # Inside boost period
-        ("2025-10-29T13:00:00+00:00", 24.0),
+        ("2025-10-29T13:00:00+00:00", 25.0),
         # At boost end boundary
-        ("2025-10-29T16:00:00+00:00", 24.0),
+        ("2025-10-29T16:00:00+00:00", 25.0),
         # Just after boost period
         ("2025-10-29T16:01:00+00:00", 26.0),
     ],
