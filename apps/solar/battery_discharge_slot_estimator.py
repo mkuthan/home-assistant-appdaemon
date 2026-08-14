@@ -16,6 +16,8 @@ from utils.revenue_estimators import find_max_revenue_period
 
 
 class BatteryDischargeSlotEstimator:
+    _BATTERY_DISCHARGE_EFFICIENCY = 0.8
+
     def __init__(
         self,
         appdaemon_logger: AppdaemonLogger,
@@ -154,13 +156,14 @@ class BatteryDischargeSlotEstimator:
         battery_discharge_energy_1h = EnergyKwh(
             self.configuration.battery_maximum_current.value * self.configuration.battery_voltage.value / 1000
         )
-        hours = high_tariff_surplus / battery_discharge_energy_1h
+        battery_export_energy_1h = EnergyKwh(battery_discharge_energy_1h.value * self._BATTERY_DISCHARGE_EFFICIENCY)
+        hours = high_tariff_surplus * self._BATTERY_DISCHARGE_EFFICIENCY / battery_discharge_energy_1h
 
         revenue_period = find_max_revenue_period(
             hourly_prices,
             price_threshold,
             int(hours * 60),
-            battery_discharge_energy_1h,
+            battery_export_energy_1h,
         )
 
         match revenue_period:

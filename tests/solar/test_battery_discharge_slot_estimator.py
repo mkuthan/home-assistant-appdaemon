@@ -47,9 +47,9 @@ def battery_discharge_slot_estimator(
 @pytest.mark.parametrize(
     ("battery_soc", "expected_start_time", "expected_end_time"),
     [
-        (100.0, time(19, 27), time(21, 0)),
-        (80.0, time(19, 56), time(21, 0)),
-        (60.0, time(20, 24), time(21, 0)),
+        (100.0, time(19, 45), time(21, 0)),
+        (80.0, time(20, 9), time(21, 0)),
+        (60.0, time(20, 32), time(21, 0)),
     ],
 )
 def test_estimate_battery_discharge_at_4_pm(
@@ -220,9 +220,9 @@ def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_below_threshold(
 @pytest.mark.parametrize(
     ("battery_soc", "expected_start_time", "expected_end_time"),
     [
-        (70.0, time(6, 56), time(8, 0)),
-        (60.0, time(7, 10), time(8, 0)),
-        (50.0, time(7, 24), time(8, 0)),
+        (70.0, time(7, 9), time(8, 0)),
+        (60.0, time(7, 20), time(8, 0)),
+        (50.0, time(7, 32), time(8, 0)),
     ],
 )
 def test_estimate_battery_discharge_at_6_am(
