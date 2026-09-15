@@ -1,11 +1,13 @@
 import logging
 from datetime import datetime
+from decimal import Decimal
 
 from appdaemon_protocols.appdaemon_logger import AppdaemonLogger
 from solar.forecast_factory import ForecastFactory
 from solar.solar_configuration import SolarConfiguration
 from solar.solar_state import SolarState
 from solar.storage_mode import StorageMode
+from units.battery_soc import BatterySoc
 from utils.battery_estimators import estimate_battery_energy_gap_to_full
 from utils.energy_aggregators import total_surplus
 from utils.time_utils import truncate_to_hour
@@ -15,6 +17,12 @@ class StorageModeEstimator:
     _FEED_IN_PRIORITY_END_HOUR: int = 12
     _BATTERY_FULL_BY_HOUR: int = 15
     _SURPLUS_SAFETY_FACTOR: float = 1.2
+
+    # Entering FEED_IN_PRIORITY requires clearing the threshold by the margin; leaving it
+    # requires dropping below the threshold by the margin.
+    _SOC_HYSTERESIS_MARGIN: BatterySoc = BatterySoc(1.0)
+    _PRICE_HYSTERESIS_MARGIN: Decimal = Decimal("0.1")
+    _SURPLUS_HYSTERESIS_MARGIN: float = 0.1
 
     def __init__(
         self,
@@ -31,13 +39,20 @@ class StorageModeEstimator:
             reason = "past feed-in priority end hour"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
+        currently_feed_in_priority = state.inverter_storage_mode == StorageMode.FEED_IN_PRIORITY
+
         required_battery_reserve_soc = (
             self.configuration.battery_reserve_soc_min + self.configuration.battery_reserve_soc_margin
         )
         current_battery_soc = state.battery_soc
 
-        if current_battery_soc < required_battery_reserve_soc:
-            reason = f"battery SoC {current_battery_soc} < {required_battery_reserve_soc}"
+        effective_battery_reserve_soc = (
+            required_battery_reserve_soc - self._SOC_HYSTERESIS_MARGIN
+            if currently_feed_in_priority
+            else required_battery_reserve_soc + self._SOC_HYSTERESIS_MARGIN
+        )
+        if current_battery_soc < effective_battery_reserve_soc:
+            reason = f"battery SoC {current_battery_soc} < {effective_battery_reserve_soc}"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
         today_8_am = now.replace(hour=8, minute=0, second=0, microsecond=0)
@@ -51,8 +66,14 @@ class StorageModeEstimator:
 
         price_threshold = max(min_price.price.non_negative(), self.configuration.pv_export_threshold_price)
         current_price = state.hourly_price.non_negative()
-        if current_price < price_threshold:
-            reason = f"price {current_price} < {price_threshold}"
+
+        effective_price_threshold = (
+            price_threshold * (Decimal(1) - self._PRICE_HYSTERESIS_MARGIN)
+            if currently_feed_in_priority
+            else price_threshold * (Decimal(1) + self._PRICE_HYSTERESIS_MARGIN)
+        )
+        if current_price < effective_price_threshold:
+            reason = f"price {current_price} < {effective_price_threshold}"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
         current_hour = truncate_to_hour(now)
@@ -71,8 +92,13 @@ class StorageModeEstimator:
         )
 
         required_surplus = battery_gap_to_full * self._SURPLUS_SAFETY_FACTOR
-        if remaining_surplus < required_surplus:
-            reason = f"remaining surplus: {remaining_surplus} < required: {required_surplus}"
+        effective_required_surplus = (
+            required_surplus * (1 - self._SURPLUS_HYSTERESIS_MARGIN)
+            if currently_feed_in_priority
+            else required_surplus * (1 + self._SURPLUS_HYSTERESIS_MARGIN)
+        )
+        if remaining_surplus < effective_required_surplus:
+            reason = f"remaining surplus: {remaining_surplus} < required: {effective_required_surplus}"
             return self._return_if_changed(state, StorageMode.SELF_USE, reason)
 
         reason = (

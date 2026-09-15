@@ -225,6 +225,133 @@ def test_estimator_feed_in_priority(
     assert storage_mode == StorageMode.FEED_IN_PRIORITY
 
 
+def test_estimator_stays_feed_in_priority_when_soc_dips_inside_hysteresis_margin(
+    storage_mode_estimator: StorageModeEstimator,
+    state: SolarState,
+    mock_production_forecast: Mock,
+    mock_consumption_forecast: Mock,
+    mock_price_forecast: Mock,
+    any_hourly_price: HourlyPrice,
+) -> None:
+    # required_battery_reserve_soc is 25.0 (20.0 + 5.0); dropping to 24.5 is inside the
+    # 1.0 hysteresis margin and must not flip an already-active FEED_IN_PRIORITY mode, so
+    # evaluation continues and lands back on the unchanged FEED_IN_PRIORITY mode.
+    state = replace(
+        state,
+        inverter_storage_mode=StorageMode.FEED_IN_PRIORITY,
+        battery_soc=BatterySoc(24.5),
+        hourly_price=EnergyPrice.per_mwh(Money.pln(Decimal(250))),
+    )
+
+    now = datetime.fromisoformat("2025-10-10T10:00:00+00:00")
+
+    mock_price_forecast.find_min_hour.return_value = any_hourly_price
+
+    hourly_period = HourlyPeriod(now)
+
+    mock_production_forecast.hourly.return_value = [HourlyProductionEnergy(hourly_period, EnergyKwh(15.0))]
+    mock_consumption_forecast.hourly.return_value = [HourlyConsumptionEnergy(hourly_period, EnergyKwh(4.0))]
+
+    storage_mode = storage_mode_estimator.estimate_storage_mode(state, now)
+
+    assert storage_mode is None
+
+
+def test_estimator_stays_feed_in_priority_when_price_dips_inside_hysteresis_margin(
+    storage_mode_estimator: StorageModeEstimator,
+    state: SolarState,
+    mock_production_forecast: Mock,
+    mock_consumption_forecast: Mock,
+    mock_price_forecast: Mock,
+    any_hourly_price: HourlyPrice,
+) -> None:
+    # price_threshold is 200 PLN/MWh; 190 is inside the 10% hysteresis margin (180) and must
+    # not flip an already-active FEED_IN_PRIORITY mode, so evaluation continues and lands
+    # back on the unchanged FEED_IN_PRIORITY mode.
+    state = replace(
+        state,
+        inverter_storage_mode=StorageMode.FEED_IN_PRIORITY,
+        battery_soc=BatterySoc(80.0),
+        hourly_price=EnergyPrice.per_mwh(Money.pln(Decimal(190))),
+    )
+
+    now = datetime.fromisoformat("2025-10-10T10:00:00+00:00")
+
+    mock_price_forecast.find_min_hour.return_value = any_hourly_price
+
+    hourly_period = HourlyPeriod(now)
+
+    mock_production_forecast.hourly.return_value = [HourlyProductionEnergy(hourly_period, EnergyKwh(8.0))]
+    mock_consumption_forecast.hourly.return_value = [HourlyConsumptionEnergy(hourly_period, EnergyKwh(4.0))]
+
+    storage_mode = storage_mode_estimator.estimate_storage_mode(state, now)
+
+    assert storage_mode is None
+
+
+def test_estimator_stays_feed_in_priority_when_surplus_dips_inside_hysteresis_margin(
+    storage_mode_estimator: StorageModeEstimator,
+    state: SolarState,
+    mock_production_forecast: Mock,
+    mock_consumption_forecast: Mock,
+    mock_price_forecast: Mock,
+    any_hourly_price: HourlyPrice,
+) -> None:
+    # This mirrors the 2026-09-15 10:29-10:36 log flapping: battery gap to full is 2.0kWh,
+    # so required_surplus is 2.4kWh; a remaining_surplus of 2.3kWh is inside the 10% margin
+    # (2.16kWh) and must not flip an already-active FEED_IN_PRIORITY mode.
+    state = replace(
+        state,
+        inverter_storage_mode=StorageMode.FEED_IN_PRIORITY,
+        battery_soc=BatterySoc(80.0),
+        hourly_price=EnergyPrice.per_mwh(Money.pln(Decimal(250))),
+    )
+
+    now = datetime.fromisoformat("2025-10-10T10:00:00+00:00")
+
+    mock_price_forecast.find_min_hour.return_value = any_hourly_price
+
+    hourly_period = HourlyPeriod(now)
+
+    mock_production_forecast.hourly.return_value = [HourlyProductionEnergy(hourly_period, EnergyKwh(6.3))]
+    mock_consumption_forecast.hourly.return_value = [HourlyConsumptionEnergy(hourly_period, EnergyKwh(4.0))]
+
+    storage_mode = storage_mode_estimator.estimate_storage_mode(state, now)
+
+    assert storage_mode is None
+
+
+def test_estimator_leaves_feed_in_priority_when_surplus_clears_hysteresis_margin(
+    storage_mode_estimator: StorageModeEstimator,
+    state: SolarState,
+    mock_production_forecast: Mock,
+    mock_consumption_forecast: Mock,
+    mock_price_forecast: Mock,
+    any_hourly_price: HourlyPrice,
+) -> None:
+    # Same setup as above, but remaining_surplus (2.0kWh) is clearly below the 2.16kWh
+    # margin band, so the estimator must still fall back to SELF_USE.
+    state = replace(
+        state,
+        inverter_storage_mode=StorageMode.FEED_IN_PRIORITY,
+        battery_soc=BatterySoc(80.0),
+        hourly_price=EnergyPrice.per_mwh(Money.pln(Decimal(250))),
+    )
+
+    now = datetime.fromisoformat("2025-10-10T10:00:00+00:00")
+
+    mock_price_forecast.find_min_hour.return_value = any_hourly_price
+
+    hourly_period = HourlyPeriod(now)
+
+    mock_production_forecast.hourly.return_value = [HourlyProductionEnergy(hourly_period, EnergyKwh(6.0))]
+    mock_consumption_forecast.hourly.return_value = [HourlyConsumptionEnergy(hourly_period, EnergyKwh(4.0))]
+
+    storage_mode = storage_mode_estimator.estimate_storage_mode(state, now)
+
+    assert storage_mode == StorageMode.SELF_USE
+
+
 def test_estimator_skip_when_storage_mode_unchanged(
     storage_mode_estimator: StorageModeEstimator,
     state: SolarState,
