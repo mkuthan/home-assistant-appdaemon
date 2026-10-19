@@ -12,8 +12,14 @@ from solar.weather_forecast import WeatherForecast
 
 
 @pytest.fixture
-def forecast_factory(mock_appdaemon_logger: Mock, configuration: SolarConfiguration) -> DefaultForecastFactory:
-    return DefaultForecastFactory(appdaemon_logger=mock_appdaemon_logger, configuration=configuration)
+def forecast_factory(
+    mock_appdaemon_logger: Mock, mock_sensor_publisher: Mock, configuration: SolarConfiguration
+) -> DefaultForecastFactory:
+    return DefaultForecastFactory(
+        appdaemon_logger=mock_appdaemon_logger,
+        sensor_publisher=mock_sensor_publisher,
+        configuration=configuration,
+    )
 
 
 def test_create_production_forecast(

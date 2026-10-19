@@ -20,6 +20,7 @@ from units.energy_kwh import EnergyKwh
 from units.energy_price import EnergyPrice
 from units.money import Money
 from utils.appdaemon_utils import LoggingAppdaemonService, is_dry_run
+from utils.sensor_publisher import DefaultSensorPublisher
 
 
 class SolarApp(hass.Hass):
@@ -30,6 +31,8 @@ class SolarApp(hass.Hass):
         appdaemon_logger = self
         appdaemon_state = self
         appdaemon_service = LoggingAppdaemonService(self) if is_dry_run(self) else self
+        # Diagnostics only, published also in dry run to tune configuration before enabling control
+        sensor_publisher = DefaultSensorPublisher(appdaemon_logger, self, "solar")
 
         configuration = SolarConfiguration(
             time_zone=str(self.get_timezone()),
@@ -84,7 +87,7 @@ class SolarApp(hass.Hass):
         )
 
         state_factory = DefaultSolarStateFactory(appdaemon_logger, appdaemon_state)
-        forecast_factory = DefaultForecastFactory(appdaemon_logger, configuration)
+        forecast_factory = DefaultForecastFactory(appdaemon_logger, sensor_publisher, configuration)
 
         self.solar = Solar(
             appdaemon_logger=appdaemon_logger,
@@ -93,10 +96,14 @@ class SolarApp(hass.Hass):
             state_factory=state_factory,
             battery_max_current_estimator=BatteryMaxCurrentEstimator(appdaemon_logger, configuration),
             battery_discharge_slot_estimator=BatteryDischargeSlotEstimator(
-                appdaemon_logger, configuration, forecast_factory
+                appdaemon_logger, sensor_publisher, configuration, forecast_factory
             ),
-            battery_reserve_soc_estimator=BatteryReserveSocEstimator(appdaemon_logger, configuration, forecast_factory),
-            storage_mode_estimator=StorageModeEstimator(appdaemon_logger, configuration, forecast_factory),
+            battery_reserve_soc_estimator=BatteryReserveSocEstimator(
+                appdaemon_logger, sensor_publisher, configuration, forecast_factory
+            ),
+            storage_mode_estimator=StorageModeEstimator(
+                appdaemon_logger, sensor_publisher, configuration, forecast_factory
+            ),
             excess_energy_estimator=ExcessEnergyEstimator(appdaemon_logger, configuration),
         )
 

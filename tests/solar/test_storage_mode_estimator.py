@@ -1,7 +1,7 @@
 from dataclasses import replace
 from datetime import datetime
 from decimal import Decimal
-from unittest.mock import Mock
+from unittest.mock import ANY, Mock
 
 import pytest
 from solar.solar_configuration import SolarConfiguration
@@ -21,6 +21,7 @@ from units.money import Money
 def storage_mode_estimator(
     configuration: SolarConfiguration,
     mock_appdaemon_logger: Mock,
+    mock_sensor_publisher: Mock,
     mock_forecast_factory: Mock,
 ) -> StorageModeEstimator:
     configuration = replace(
@@ -33,6 +34,7 @@ def storage_mode_estimator(
 
     return StorageModeEstimator(
         appdaemon_logger=mock_appdaemon_logger,
+        sensor_publisher=mock_sensor_publisher,
         configuration=configuration,
         forecast_factory=mock_forecast_factory,
     )
@@ -74,6 +76,7 @@ def test_estimator_self_use_when_battery_soc_below_reserve(
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
+    mock_sensor_publisher: Mock,
 ) -> None:
     state = replace(
         state,
@@ -88,6 +91,19 @@ def test_estimator_self_use_when_battery_soc_below_reserve(
     mock_production_forecast.hourly.assert_not_called()
     mock_consumption_forecast.hourly.assert_not_called()
     mock_price_forecast.find_min_hour.assert_not_called()
+
+    mock_sensor_publisher.publish.assert_called_once_with(
+        "storage_mode",
+        "Self-Use",
+        {
+            "currently_feed_in_priority": True,
+            "estimated_at": now,
+            "battery_soc": BatterySoc(22.0),
+            "required_battery_reserve_soc": BatterySoc(25.0),
+            "effective_battery_reserve_soc": BatterySoc(24.0),
+            "reason": "battery SoC 22.00% < 24.00%",
+        },
+    )
 
     assert storage_mode == StorageMode.SELF_USE
 
@@ -194,6 +210,7 @@ def test_estimator_feed_in_priority(
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
+    mock_sensor_publisher: Mock,
     any_hourly_price: HourlyPrice,
 ) -> None:
     state = replace(
@@ -221,6 +238,32 @@ def test_estimator_feed_in_priority(
     mock_production_forecast.hourly.assert_called_once_with(now, remaining_hours)
     mock_consumption_forecast.hourly.assert_called_once_with(now, remaining_hours)
     mock_price_forecast.find_min_hour.assert_called_once_with(today_8_am, day_hours)
+
+    mock_sensor_publisher.publish.assert_called_once_with(
+        "storage_mode",
+        "Feed-In Priority",
+        {
+            "currently_feed_in_priority": False,
+            "estimated_at": now,
+            "battery_soc": BatterySoc(80.0),
+            "required_battery_reserve_soc": BatterySoc(25.0),
+            "effective_battery_reserve_soc": BatterySoc(26.0),
+            "min_price_hour": any_hourly_price.period.start,
+            "min_price": any_hourly_price.price,
+            "pv_export_threshold_price": EnergyPrice.per_mwh(Money.pln(Decimal(200))),
+            "current_price": EnergyPrice.per_mwh(Money.pln(Decimal(250))),
+            "price_threshold": EnergyPrice.per_mwh(Money.pln(Decimal(200))),
+            "effective_price_threshold": EnergyPrice.per_mwh(Money.pln(Decimal(220))),
+            "remaining_hours": remaining_hours,
+            "remaining_consumption": EnergyKwh(4.0),
+            "remaining_production": EnergyKwh(8.0),
+            "remaining_surplus": EnergyKwh(4.0),
+            "battery_gap_to_full": EnergyKwh(2.0),
+            "required_surplus": EnergyKwh(2.4),
+            "effective_required_surplus": EnergyKwh(2.64),
+            "reason": ANY,
+        },
+    )
 
     assert storage_mode == StorageMode.FEED_IN_PRIORITY
 

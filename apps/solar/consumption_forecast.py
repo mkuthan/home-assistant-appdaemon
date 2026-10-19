@@ -9,6 +9,7 @@ from units.hourly_energy import HourlyConsumptionEnergy
 from units.hourly_period import HourlyPeriod
 from units.hourly_weather import HourlyWeather
 from utils.hvac_estimators import estimate_heating_energy_consumption, estimate_heating_idle_until
+from utils.sensor_publisher import SensorPublisher
 from utils.time_utils import truncate_to_hour
 
 
@@ -64,6 +65,7 @@ class ConsumptionForecastHvacHeating:
         forecast_weather: WeatherForecast,
         temp_out_fallback: Celsius,
         humidity_out_fallback: float,
+        sensor_publisher: SensorPublisher,
         energy_estimator: HeatingEnergyEstimator = estimate_heating_energy_consumption,
         idle_estimator: HeatingIdleEstimator = estimate_heating_idle_until,
     ) -> None:
@@ -78,6 +80,7 @@ class ConsumptionForecastHvacHeating:
         self.forecast_weather = forecast_weather
         self.temp_out_fallback = temp_out_fallback
         self.humidity_out_fallback = humidity_out_fallback
+        self.sensor_publisher = sensor_publisher
 
         self.energy_estimator = energy_estimator
         self.idle_estimator = idle_estimator
@@ -92,13 +95,15 @@ class ConsumptionForecastHvacHeating:
                 for hour_offset in range(period_hours)
             ]
 
+        idle_weather = self._hourly_weather(truncate_to_hour(self.now), self._IDLE_HORIZON_HOURS)
         heating_idle_until = self.idle_estimator(
             now=self.now,
             t_in_actual=self.t_in_actual,
             t_in_target=self.t_in_target,
-            hourly_weather=self._hourly_weather(truncate_to_hour(self.now), self._IDLE_HORIZON_HOURS),
+            hourly_weather=idle_weather,
             decay_rate=self.decay_rate,
         )
+        self._publish_heating_idle_until(heating_idle_until, idle_weather)
 
         periods = []
         for weather in self._hourly_weather(period_start, period_hours):
@@ -120,6 +125,27 @@ class ConsumptionForecastHvacHeating:
                 )
             )
         return periods
+
+    def _publish_heating_idle_until(self, heating_idle_until: datetime, idle_weather: list[HourlyWeather]) -> None:
+        idle_hours = max((heating_idle_until - self.now).total_seconds() / 3600, 0.0)
+        temperatures = [weather.temperature.value for weather in idle_weather]
+
+        self.sensor_publisher.publish(
+            "heating_idle_until",
+            heating_idle_until.isoformat(),
+            {
+                "device_class": "timestamp",
+                "hvac_heating_mode": self.hvac_heating_mode,
+                "t_in_actual": self.t_in_actual,
+                "t_in_target": self.t_in_target,
+                "excess": self.t_in_actual - self.t_in_target,
+                "decay_rate": self.decay_rate,
+                "idle_hours": round(idle_hours, 2),
+                "t_out_avg": round(sum(temperatures) / len(temperatures), 1),
+                "t_out_min": min(temperatures),
+                "estimated_at": self.now,
+            },
+        )
 
     def _hourly_weather(self, period_start: datetime, period_hours: int) -> list[HourlyWeather]:
         return self.forecast_weather.hourly(

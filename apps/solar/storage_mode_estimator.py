@@ -9,7 +9,8 @@ from solar.solar_state import SolarState
 from solar.storage_mode import StorageMode
 from units.battery_soc import BatterySoc
 from utils.battery_estimators import estimate_battery_energy_gap_to_full
-from utils.energy_aggregators import total_surplus
+from utils.energy_aggregators import total_energy, total_surplus
+from utils.sensor_publisher import SensorPublisher
 from utils.time_utils import truncate_to_hour
 
 
@@ -27,19 +28,26 @@ class StorageModeEstimator:
     def __init__(
         self,
         appdaemon_logger: AppdaemonLogger,
+        sensor_publisher: SensorPublisher,
         configuration: SolarConfiguration,
         forecast_factory: ForecastFactory,
     ) -> None:
         self.appdaemon_logger = appdaemon_logger
+        self.sensor_publisher = sensor_publisher
         self.configuration = configuration
         self.forecast_factory = forecast_factory
 
     def estimate_storage_mode(self, state: SolarState, now: datetime) -> StorageMode | None:
+        currently_feed_in_priority = state.inverter_storage_mode == StorageMode.FEED_IN_PRIORITY
+
+        diagnostics: dict[str, object] = {
+            "currently_feed_in_priority": currently_feed_in_priority,
+            "estimated_at": now,
+        }
+
         if now.hour >= self._FEED_IN_PRIORITY_END_HOUR:
             reason = "past feed-in priority end hour"
-            return self._return_if_changed(state, StorageMode.SELF_USE, reason)
-
-        currently_feed_in_priority = state.inverter_storage_mode == StorageMode.FEED_IN_PRIORITY
+            return self._return_if_changed(state, StorageMode.SELF_USE, reason, diagnostics)
 
         required_battery_reserve_soc = (
             self.configuration.battery_reserve_soc_min + self.configuration.battery_reserve_soc_margin
@@ -51,9 +59,12 @@ class StorageModeEstimator:
             if currently_feed_in_priority
             else required_battery_reserve_soc + self._SOC_HYSTERESIS_MARGIN
         )
+        diagnostics["battery_soc"] = current_battery_soc
+        diagnostics["required_battery_reserve_soc"] = required_battery_reserve_soc
+        diagnostics["effective_battery_reserve_soc"] = effective_battery_reserve_soc
         if current_battery_soc < effective_battery_reserve_soc:
             reason = f"battery SoC {current_battery_soc} < {effective_battery_reserve_soc}"
-            return self._return_if_changed(state, StorageMode.SELF_USE, reason)
+            return self._return_if_changed(state, StorageMode.SELF_USE, reason, diagnostics)
 
         today_8_am = now.replace(hour=8, minute=0, second=0, microsecond=0)
         day_hours = 8
@@ -62,7 +73,11 @@ class StorageModeEstimator:
         min_price = price_forecast.find_min_hour(today_8_am, day_hours)
         if min_price is None:
             reason = "minimum price not found in the forecast"
-            return self._return_if_changed(state, StorageMode.SELF_USE, reason)
+            return self._return_if_changed(state, StorageMode.SELF_USE, reason, diagnostics)
+
+        diagnostics["min_price_hour"] = min_price.period.start
+        diagnostics["min_price"] = min_price.price
+        diagnostics["pv_export_threshold_price"] = self.configuration.pv_export_threshold_price
 
         price_threshold = max(min_price.price.non_negative(), self.configuration.pv_export_threshold_price)
         current_price = state.hourly_price.non_negative()
@@ -72,9 +87,12 @@ class StorageModeEstimator:
             if currently_feed_in_priority
             else price_threshold * (Decimal(1) + self._PRICE_HYSTERESIS_MARGIN)
         )
+        diagnostics["current_price"] = current_price
+        diagnostics["price_threshold"] = price_threshold
+        diagnostics["effective_price_threshold"] = effective_price_threshold
         if current_price < effective_price_threshold:
             reason = f"price {current_price} < {effective_price_threshold}"
-            return self._return_if_changed(state, StorageMode.SELF_USE, reason)
+            return self._return_if_changed(state, StorageMode.SELF_USE, reason, diagnostics)
 
         current_hour = truncate_to_hour(now)
         remaining_hours = self._BATTERY_FULL_BY_HOUR - now.hour
@@ -97,17 +115,32 @@ class StorageModeEstimator:
             if currently_feed_in_priority
             else required_surplus * (1 + self._SURPLUS_HYSTERESIS_MARGIN)
         )
+        diagnostics["remaining_hours"] = remaining_hours
+        diagnostics["remaining_consumption"] = total_energy(remaining_consumptions)
+        diagnostics["remaining_production"] = total_energy(remaining_productions)
+        diagnostics["remaining_surplus"] = remaining_surplus
+        diagnostics["battery_gap_to_full"] = battery_gap_to_full
+        diagnostics["required_surplus"] = required_surplus
+        diagnostics["effective_required_surplus"] = effective_required_surplus
         if remaining_surplus < effective_required_surplus:
             reason = f"remaining surplus: {remaining_surplus} < required: {effective_required_surplus}"
-            return self._return_if_changed(state, StorageMode.SELF_USE, reason)
+            return self._return_if_changed(state, StorageMode.SELF_USE, reason, diagnostics)
 
         reason = (
             f"current price: {current_price}, threshold price: {price_threshold}, "
             + f"battery gap to full: {battery_gap_to_full}, remaining surplus: {remaining_surplus}"
         )
-        return self._return_if_changed(state, StorageMode.FEED_IN_PRIORITY, reason)
+        return self._return_if_changed(state, StorageMode.FEED_IN_PRIORITY, reason, diagnostics)
 
-    def _return_if_changed(self, state: SolarState, storage_mode: StorageMode, reason: str) -> StorageMode | None:
+    def _return_if_changed(
+        self,
+        state: SolarState,
+        storage_mode: StorageMode,
+        reason: str,
+        diagnostics: dict[str, object],
+    ) -> StorageMode | None:
+        self.sensor_publisher.publish("storage_mode", storage_mode.value, {**diagnostics, "reason": reason})
+
         if storage_mode != state.inverter_storage_mode:
             self.appdaemon_logger.log("Use %s, %s", storage_mode, reason, level=logging.DEBUG)
             return storage_mode

@@ -16,6 +16,7 @@ from units.hourly_period import HourlyPeriod
 def battery_reserve_soc_estimator(
     configuration: SolarConfiguration,
     mock_appdaemon_logger: Mock,
+    mock_sensor_publisher: Mock,
     mock_forecast_factory: Mock,
 ) -> BatteryReserveSocEstimator:
     configuration = replace(
@@ -32,6 +33,7 @@ def battery_reserve_soc_estimator(
 
     return BatteryReserveSocEstimator(
         appdaemon_logger=mock_appdaemon_logger,
+        sensor_publisher=mock_sensor_publisher,
         configuration=configuration,
         forecast_factory=mock_forecast_factory,
     )
@@ -42,8 +44,9 @@ def test_estimate_soc_tomorrow_at_7_am_when_higher_than_current(
     state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
+    mock_sensor_publisher: Mock,
 ) -> None:
-    state = replace(state, battery_reserve_soc=BatterySoc(50.0))
+    state = replace(state, battery_soc=BatterySoc(30.0), battery_reserve_soc=BatterySoc(50.0))
 
     now = datetime.fromisoformat("2025-10-10T22:05:00+00:00")
     high_tariff_hours = 6
@@ -62,6 +65,23 @@ def test_estimate_soc_tomorrow_at_7_am_when_higher_than_current(
 
     mock_production_forecast.hourly.assert_called_once_with(tomorrow_7_am, high_tariff_hours)
     mock_consumption_forecast.hourly.assert_called_once_with(tomorrow_7_am, high_tariff_hours)
+
+    mock_sensor_publisher.publish.assert_any_call(
+        "battery_reserve_soc_7am",
+        65.0,
+        {
+            "unit_of_measurement": "%",
+            "window_start": tomorrow_7_am,
+            "window_hours": high_tariff_hours,
+            "consumption": EnergyKwh(6.0),
+            "production": EnergyKwh(2.0),
+            "energy_reserve": EnergyKwh(4.0),
+            "battery_soc": BatterySoc(30.0),
+            "battery_reserve_soc": BatterySoc(50.0),
+            "estimated_at": now,
+            "reason": "use target",
+        },
+    )
 
     # 4.0 kWh deficit (40%) + 20% min + 5% margin = 65%
     assert battery_reserve_soc == BatterySoc(65.0)
@@ -102,6 +122,7 @@ def test_estimate_soc_today_at_4_pm_when_grid_charging_needed(
     state: SolarState,
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
+    mock_sensor_publisher: Mock,
 ) -> None:
     state = replace(state, battery_soc=BatterySoc(40.0), battery_reserve_soc=BatterySoc(20.0))
 
@@ -122,6 +143,29 @@ def test_estimate_soc_today_at_4_pm_when_grid_charging_needed(
     ]
 
     battery_reserve_soc = battery_reserve_soc_estimator.estimate_battery_reserve_soc(state, now)
+
+    mock_sensor_publisher.publish.assert_any_call(
+        "battery_reserve_soc_4pm",
+        75.0,
+        {
+            "unit_of_measurement": "%",
+            "window_start": today_4_pm,
+            "window_hours": 6,
+            "remaining_hours": 1,
+            "remaining_consumption": EnergyKwh(1.0),
+            "remaining_production": EnergyKwh(1.5),
+            "evening_consumption": EnergyKwh(6.0),
+            "evening_production": EnergyKwh(0.5),
+            "energy_surplus": EnergyKwh(0.5),
+            "evening_deficit": EnergyKwh(5.5),
+            "energy_reserve": EnergyKwh(5.0),
+            "battery_soc_solar_only": BatterySoc(45.0),
+            "battery_soc": BatterySoc(40.0),
+            "battery_reserve_soc": BatterySoc(20.0),
+            "estimated_at": now,
+            "reason": "use target",
+        },
+    )
 
     # Evening deficit: 6.0 kWh - 0.5 kWh = 5.5 kWh
     # Afternoon surplus: 1.5 kWh - 1.0 kWh = 0.5 kWh
@@ -199,6 +243,7 @@ def test_estimate_soc_timer_idle_in_low_tariff_forces_battery_soc_max(
     battery_reserve_soc_estimator: BatteryReserveSocEstimator,
     state: SolarState,
     mock_forecast_factory: Mock,
+    mock_sensor_publisher: Mock,
 ) -> None:
     state = replace(
         state,
@@ -211,6 +256,18 @@ def test_estimate_soc_timer_idle_in_low_tariff_forces_battery_soc_max(
     battery_reserve_soc = battery_reserve_soc_estimator.estimate_battery_reserve_soc(state, now)
 
     assert battery_reserve_soc == BATTERY_SOC_MAX
+    mock_sensor_publisher.publish.assert_called_once_with(
+        "battery_reserve_soc",
+        100.0,
+        {
+            "unit_of_measurement": "%",
+            "tariff": "full_charge",
+            "battery_full_charge_timer_state": "idle",
+            "battery_reserve_soc": BatterySoc(90.0),
+            "changed": True,
+            "estimated_at": now,
+        },
+    )
     mock_forecast_factory.create_consumption_forecast.assert_not_called()
     mock_forecast_factory.create_production_forecast.assert_not_called()
 
@@ -219,6 +276,7 @@ def test_estimate_soc_timer_idle_outside_low_tariff_uses_default_minimum(
     battery_reserve_soc_estimator: BatteryReserveSocEstimator,
     state: SolarState,
     mock_forecast_factory: Mock,
+    mock_sensor_publisher: Mock,
 ) -> None:
     state = replace(
         state,
@@ -231,5 +289,17 @@ def test_estimate_soc_timer_idle_outside_low_tariff_uses_default_minimum(
     battery_reserve_soc = battery_reserve_soc_estimator.estimate_battery_reserve_soc(state, now)
 
     assert battery_reserve_soc == BatterySoc(20.0)
+    mock_sensor_publisher.publish.assert_called_once_with(
+        "battery_reserve_soc",
+        20.0,
+        {
+            "unit_of_measurement": "%",
+            "tariff": "high",
+            "battery_full_charge_timer_state": "idle",
+            "battery_reserve_soc": BatterySoc(30.0),
+            "changed": True,
+            "estimated_at": now,
+        },
+    )
     mock_forecast_factory.create_consumption_forecast.assert_not_called()
     mock_forecast_factory.create_production_forecast.assert_not_called()

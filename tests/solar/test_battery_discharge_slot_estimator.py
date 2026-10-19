@@ -1,7 +1,7 @@
 from dataclasses import replace
 from datetime import datetime, time
 from decimal import Decimal
-from unittest.mock import Mock, call
+from unittest.mock import ANY, Mock, call
 
 import pytest
 from solar.battery_discharge_slot import BatteryDischargeSlot
@@ -23,6 +23,7 @@ from units.money import Money
 def battery_discharge_slot_estimator(
     configuration: SolarConfiguration,
     mock_appdaemon_logger: Mock,
+    mock_sensor_publisher: Mock,
     mock_forecast_factory: Mock,
 ) -> BatteryDischargeSlotEstimator:
     configuration = replace(
@@ -39,6 +40,7 @@ def battery_discharge_slot_estimator(
 
     return BatteryDischargeSlotEstimator(
         appdaemon_logger=mock_appdaemon_logger,
+        sensor_publisher=mock_sensor_publisher,
         configuration=configuration,
         forecast_factory=mock_forecast_factory,
     )
@@ -58,6 +60,7 @@ def test_estimate_battery_discharge_at_4_pm(
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
+    mock_sensor_publisher: Mock,
     battery_soc: float,
     expected_start_time: time,
     expected_end_time: time,
@@ -110,6 +113,10 @@ def test_estimate_battery_discharge_at_4_pm(
     ]
     mock_price_forecast.hourly.assert_called_once_with(this_day_4_pm, this_day_10_pm)
     mock_price_forecast.average_price.assert_called_once_with(tomorrow_10_30_am, midday_hours)
+
+    mock_sensor_publisher.publish.assert_called_once_with(
+        "battery_discharge_4pm", f"{expected_start_time:%H:%M}-{expected_end_time:%H:%M}", ANY
+    )
 
     assert battery_discharge_slot == BatteryDischargeSlot(
         start_time=expected_start_time,
@@ -174,6 +181,7 @@ def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_below_threshold(
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
+    mock_sensor_publisher: Mock,
 ) -> None:
     state = replace(state, battery_soc=BatterySoc(30.0))
 
@@ -213,6 +221,21 @@ def test_estimate_battery_discharge_at_4_pm_when_surplus_energy_below_threshold(
     ]
     mock_price_forecast.hourly.assert_not_called()
     mock_price_forecast.average_price.assert_called_once_with(tomorrow_10_30_am, midday_hours)
+
+    mock_sensor_publisher.publish.assert_called_once_with(
+        "battery_discharge_4pm",
+        "none",
+        {
+            "battery_soc": BatterySoc(30.0),
+            "high_tariff_consumption": EnergyKwh(4.0),
+            "high_tariff_production": EnergyKwh(2.0),
+            "high_tariff_reserve": EnergyKwh(2.0),
+            "high_tariff_surplus": EnergyKwh(0.0),
+            "export_threshold_energy": EnergyKwh(1.0),
+            "estimated_at": this_day,
+            "reason": "skip, high tariff surplus below threshold",
+        },
+    )
 
     assert battery_discharge_slot is None
 
@@ -300,6 +323,7 @@ def test_estimate_battery_discharge_at_6_am_when_solar_cannot_replenish(
     mock_production_forecast: Mock,
     mock_consumption_forecast: Mock,
     mock_price_forecast: Mock,
+    mock_sensor_publisher: Mock,
 ) -> None:
     state = replace(state, battery_soc=BatterySoc(70.0))
 
@@ -337,6 +361,25 @@ def test_estimate_battery_discharge_at_6_am_when_solar_cannot_replenish(
     ]
     mock_price_forecast.hourly.assert_not_called()
     mock_price_forecast.average_price.assert_called_once_with(today_10_30_am, midday_hours)
+
+    mock_sensor_publisher.publish.assert_called_once_with(
+        "battery_discharge_6am",
+        "none",
+        {
+            "battery_soc": BatterySoc(70.0),
+            "high_tariff_consumption": EnergyKwh(1.0),
+            "high_tariff_production": EnergyKwh(2.0),
+            "high_tariff_reserve": EnergyKwh(0.0),
+            "high_tariff_surplus": EnergyKwh(9.0),
+            "export_threshold_energy": EnergyKwh(1.0),
+            "estimated_at": this_day,
+            "daytime_consumption": EnergyKwh(1.0),
+            "daytime_production": EnergyKwh(5.0),
+            "daytime_surplus": EnergyKwh(4.0),
+            "energy_to_battery_replenish": EnergyKwh(15.0),
+            "reason": "skip, daytime surplus can't replenish battery",
+        },
+    )
 
     assert battery_discharge_slot is None
 

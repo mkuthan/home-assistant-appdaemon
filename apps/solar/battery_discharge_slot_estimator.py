@@ -11,8 +11,9 @@ from units.energy_kwh import EnergyKwh
 from units.energy_price import EnergyPrice
 from units.hourly_energy import HourlyConsumptionEnergy, HourlyProductionEnergy
 from utils.battery_estimators import estimate_battery_energy_to_full, estimate_battery_surplus_energy
-from utils.energy_aggregators import maximum_cumulative_deficit, total_surplus
+from utils.energy_aggregators import maximum_cumulative_deficit, total_energy, total_surplus
 from utils.revenue_estimators import find_max_revenue_period
+from utils.sensor_publisher import SensorPublisher
 
 
 class BatteryDischargeSlotEstimator:
@@ -21,10 +22,12 @@ class BatteryDischargeSlotEstimator:
     def __init__(
         self,
         appdaemon_logger: AppdaemonLogger,
+        sensor_publisher: SensorPublisher,
         configuration: SolarConfiguration,
         forecast_factory: ForecastFactory,
     ) -> None:
         self.appdaemon_logger = appdaemon_logger
+        self.sensor_publisher = sensor_publisher
         self.configuration = configuration
         self.forecast_factory = forecast_factory
 
@@ -50,6 +53,8 @@ class BatteryDischargeSlotEstimator:
         midday_average_price = price_forecast.average_price(tomorrow_10_30_am, midday_hours)
 
         return self._estimate_battery_discharge_slot(
+            "battery_discharge_4pm",
+            now,
             state,
             self.configuration.battery_discharge_evening_margin,
             evening_consumptions,
@@ -85,6 +90,8 @@ class BatteryDischargeSlotEstimator:
         midday_average_price = price_forecast.average_price(today_10_30_am, midday_hours)
 
         return self._estimate_battery_discharge_slot(
+            "battery_discharge_6am",
+            now,
             state,
             self.configuration.battery_discharge_morning_margin,
             morning_consumptions,
@@ -99,6 +106,8 @@ class BatteryDischargeSlotEstimator:
 
     def _estimate_battery_discharge_slot(
         self,
+        sensor_name: str,
+        now: datetime,
         state: SolarState,
         margin: EnergyPrice,
         high_tariff_consumptions: list[HourlyConsumptionEnergy],
@@ -122,6 +131,16 @@ class BatteryDischargeSlotEstimator:
         )
         self.appdaemon_logger.log("High tariff surplus: %s", high_tariff_surplus, level=logging.DEBUG)
 
+        diagnostics: dict[str, object] = {
+            "battery_soc": state.battery_soc,
+            "high_tariff_consumption": total_energy(high_tariff_consumptions),
+            "high_tariff_production": total_energy(high_tariff_productions),
+            "high_tariff_reserve": high_tariff_reserve,
+            "high_tariff_surplus": high_tariff_surplus,
+            "export_threshold_energy": self.configuration.battery_export_threshold_energy,
+            "estimated_at": now,
+        }
+
         if high_tariff_surplus < self.configuration.battery_export_threshold_energy:
             self.appdaemon_logger.log(
                 "Skip, high tariff surplus %s < threshold %s",
@@ -129,6 +148,7 @@ class BatteryDischargeSlotEstimator:
                 self.configuration.battery_export_threshold_energy,
                 level=logging.DEBUG,
             )
+            self._publish(sensor_name, None, "skip, high tariff surplus below threshold", diagnostics)
             return None
 
         daytime_surplus = total_surplus(daytime_consumptions, daytime_productions)
@@ -140,6 +160,11 @@ class BatteryDischargeSlotEstimator:
             self.configuration.battery_reserve_soc_margin,
         )
 
+        diagnostics["daytime_consumption"] = total_energy(daytime_consumptions)
+        diagnostics["daytime_production"] = total_energy(daytime_productions)
+        diagnostics["daytime_surplus"] = daytime_surplus
+        diagnostics["energy_to_battery_replenish"] = energy_to_battery_replenish
+
         if daytime_surplus <= energy_to_battery_replenish:
             self.appdaemon_logger.log(
                 "Skip, daytime surplus %s <= energy to battery replenish %s",
@@ -147,17 +172,25 @@ class BatteryDischargeSlotEstimator:
                 energy_to_battery_replenish,
                 level=logging.DEBUG,
             )
+            self._publish(sensor_name, None, "skip, daytime surplus can't replenish battery", diagnostics)
             return None
 
         hourly_prices = price_forecast.hourly(discharge_window_start, discharge_window_end)
 
         price_threshold = midday_average_price.non_negative() + margin if midday_average_price is not None else margin
 
+        diagnostics["discharge_window"] = f"{discharge_window_start:%H:%M}-{discharge_window_end:%H:%M}"
+        diagnostics["margin"] = margin
+        diagnostics["midday_average_price"] = midday_average_price
+        diagnostics["price_threshold"] = price_threshold
+        diagnostics["max_hourly_price"] = max((hourly.price for hourly in hourly_prices), default=None)
+
         battery_discharge_energy_1h = EnergyKwh(
             self.configuration.battery_maximum_current.value * self.configuration.battery_voltage.value / 1000
         )
         battery_export_energy_1h = EnergyKwh(battery_discharge_energy_1h.value * self._BATTERY_DISCHARGE_EFFICIENCY)
         hours = high_tariff_surplus * self._BATTERY_DISCHARGE_EFFICIENCY / battery_discharge_energy_1h
+        diagnostics["discharge_hours"] = round(hours, 2)
 
         revenue_period = find_max_revenue_period(
             hourly_prices,
@@ -179,8 +212,21 @@ class BatteryDischargeSlotEstimator:
                     revenue,
                     discharge_slot,
                 )
-
+                diagnostics["revenue"] = revenue
+                diagnostics["discharge_current"] = discharge_slot.current
+                self._publish(sensor_name, discharge_slot, "use slot", diagnostics)
                 return discharge_slot
             case None:
                 self.appdaemon_logger.log("Skip, no suitable revenue for price threshold %s", price_threshold)
+                self._publish(sensor_name, None, "skip, no suitable revenue", diagnostics)
                 return None
+
+    def _publish(
+        self,
+        sensor_name: str,
+        discharge_slot: BatteryDischargeSlot | None,
+        reason: str,
+        diagnostics: dict[str, object],
+    ) -> None:
+        state = discharge_slot.time_str() if discharge_slot is not None else "none"
+        self.sensor_publisher.publish(sensor_name, state, {**diagnostics, "reason": reason})

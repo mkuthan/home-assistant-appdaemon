@@ -13,6 +13,7 @@ from solar.production_forecast import ProductionForecast, ProductionForecastComp
 from solar.solar_configuration import SolarConfiguration
 from solar.solar_state import SolarState
 from solar.weather_forecast import WeatherForecast
+from utils.sensor_publisher import SensorPublisher
 
 
 class ForecastFactory(Protocol):
@@ -23,8 +24,14 @@ class ForecastFactory(Protocol):
 
 
 class DefaultForecastFactory:
-    def __init__(self, appdaemon_logger: AppdaemonLogger, configuration: SolarConfiguration) -> None:
+    def __init__(
+        self,
+        appdaemon_logger: AppdaemonLogger,
+        sensor_publisher: SensorPublisher,
+        configuration: SolarConfiguration,
+    ) -> None:
         self.appdaemon_logger = appdaemon_logger
+        self.sensor_publisher = sensor_publisher
         self.configuration = configuration
 
     def create_production_forecast(self, state: SolarState) -> ProductionForecast:
@@ -55,6 +62,7 @@ class DefaultForecastFactory:
             decay_rate=self.configuration.heating_decay_rate,
             temp_out_fallback=self.configuration.temp_out_fallback,
             humidity_out_fallback=self.configuration.humidity_out_fallback,
+            sensor_publisher=self.sensor_publisher,
         )
 
         return ConsumptionForecastComposite(regular, hvac_heating)

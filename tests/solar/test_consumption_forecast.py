@@ -101,6 +101,7 @@ class TestForecastConsumptionHvacHeating:
         self,
         any_datetime: datetime,
         mock_forecast_weather: Mock,
+        mock_sensor_publisher: Mock,
         mock_energy_estimator: Mock,
         mock_idle_estimator: Mock,
     ) -> ConsumptionForecastHvacHeating:
@@ -116,6 +117,7 @@ class TestForecastConsumptionHvacHeating:
             forecast_weather=mock_forecast_weather,
             temp_out_fallback=Celsius(5.0),
             humidity_out_fallback=75.0,
+            sensor_publisher=mock_sensor_publisher,
             energy_estimator=mock_energy_estimator,
             idle_estimator=mock_idle_estimator,
         )
@@ -143,6 +145,7 @@ class TestForecastConsumptionHvacHeating:
     def test_hourly_heating_mode_off(
         self,
         any_consumption_forecast_hvac_heating: ConsumptionForecastHvacHeating,
+        mock_sensor_publisher: Mock,
         mock_idle_estimator: Mock,
         mock_energy_estimator: Mock,
         any_datetime: datetime,
@@ -158,6 +161,7 @@ class TestForecastConsumptionHvacHeating:
         assert result[1].period == HourlyPeriod(any_datetime + timedelta(hours=1))
         assert result[1].energy.value == pytest.approx(0.0)
 
+        mock_sensor_publisher.publish.assert_not_called()
         mock_idle_estimator.assert_not_called()
         mock_energy_estimator.assert_not_called()
 
@@ -166,6 +170,7 @@ class TestForecastConsumptionHvacHeating:
         any_consumption_forecast_hvac_heating: ConsumptionForecastHvacHeating,
         any_hourly_weather: list[HourlyWeather],
         mock_forecast_weather: Mock,
+        mock_sensor_publisher: Mock,
         mock_idle_estimator: Mock,
         mock_energy_estimator: Mock,
         any_datetime: datetime,
@@ -199,6 +204,23 @@ class TestForecastConsumptionHvacHeating:
             t_in_target=Celsius(19.0),
             hourly_weather=any_hourly_weather,
             decay_rate=0.02,
+        )
+
+        mock_sensor_publisher.publish.assert_called_once_with(
+            "heating_idle_until",
+            "2025-10-03T10:00:00+00:00",
+            {
+                "device_class": "timestamp",
+                "hvac_heating_mode": "heat",
+                "t_in_actual": Celsius(21.0),
+                "t_in_target": Celsius(19.0),
+                "excess": Celsius(2.0),
+                "decay_rate": 0.02,
+                "idle_hours": 0.0,
+                "t_out_avg": 5.0,
+                "t_out_min": 3.0,
+                "estimated_at": any_datetime,
+            },
         )
 
         assert mock_energy_estimator.call_count == 3

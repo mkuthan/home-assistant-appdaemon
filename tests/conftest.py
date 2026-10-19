@@ -16,3 +16,8 @@ def mock_appdaemon_state() -> Mock:
 @pytest.fixture
 def mock_appdaemon_service() -> Mock:
     return Mock()
+
+
+@pytest.fixture
+def mock_sensor_publisher() -> Mock:
+    return Mock()

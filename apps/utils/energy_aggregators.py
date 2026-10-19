@@ -2,6 +2,10 @@ from units.energy_kwh import ENERGY_KWH_ZERO, EnergyKwh
 from units.hourly_energy import HourlyConsumptionEnergy, HourlyProductionEnergy
 
 
+def total_energy(hourly: list[HourlyConsumptionEnergy] | list[HourlyProductionEnergy]) -> EnergyKwh:
+    return sum((item.energy for item in hourly), ENERGY_KWH_ZERO)
+
+
 def total_surplus(consumptions: list[HourlyConsumptionEnergy], productions: list[HourlyProductionEnergy]) -> EnergyKwh:
     total_surplus = ENERGY_KWH_ZERO
 
