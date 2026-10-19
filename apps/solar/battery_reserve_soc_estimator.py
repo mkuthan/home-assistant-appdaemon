@@ -66,7 +66,7 @@ class BatteryReserveSocEstimator:
         else:
             upcoming_7_am = now.replace(hour=7, minute=0, second=0, microsecond=0)
 
-        consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
+        consumption_forecast = self.forecast_factory.create_consumption_forecast(state, now)
         production_forecast = self.forecast_factory.create_production_forecast(state)
 
         morning_consumptions = consumption_forecast.hourly(upcoming_7_am, next_high_tariff_hours)
@@ -106,7 +106,7 @@ class BatteryReserveSocEstimator:
         current_hour = truncate_to_hour(now)
         remaining_hours = upcoming_4_pm.hour - current_hour.hour
 
-        consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
+        consumption_forecast = self.forecast_factory.create_consumption_forecast(state, now)
         production_forecast = self.forecast_factory.create_production_forecast(state)
 
         remaining_consumptions = consumption_forecast.hourly(current_hour, remaining_hours)

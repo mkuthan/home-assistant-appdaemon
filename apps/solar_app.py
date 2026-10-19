@@ -53,6 +53,8 @@ class SolarApp(hass.Hass):
             heating_cop_at_7c=4.0,
             # coefficient representing building heat loss rate in kW/°C
             heating_h=0.18,
+            # indoor temperature decay rate k = h / thermal capacity (1/h), ~44h time constant
+            heating_decay_rate=0.0226,
             # outdoor temperature if weather forecast isn't available
             temp_out_fallback=Celsius(2.0),
             # outdoor humidity if weather forecast isn't available

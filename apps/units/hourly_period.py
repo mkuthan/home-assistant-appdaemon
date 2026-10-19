@@ -16,11 +16,15 @@ class HourlyPeriod:
     def __str__(self) -> str:
         return self.start.isoformat()
 
+    @property
+    def end(self) -> datetime:
+        return self.start + timedelta(hours=1)
+
     def start_time(self) -> time:
         return self.start.time()
 
     def end_time(self) -> time:
-        return (self.start + timedelta(hours=1)).time()
+        return self.end.time()
 
     @classmethod
     def parse(cls, date_string: str) -> "HourlyPeriod":

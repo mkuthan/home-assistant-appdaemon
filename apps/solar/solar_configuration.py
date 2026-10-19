@@ -25,6 +25,7 @@ class SolarConfiguration:
 
     heating_cop_at_7c: float
     heating_h: float
+    heating_decay_rate: float
 
     temp_out_fallback: Celsius
     humidity_out_fallback: float

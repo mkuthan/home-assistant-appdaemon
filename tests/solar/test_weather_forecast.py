@@ -82,3 +82,68 @@ def test_find_by_datetime_empty_periods() -> None:
     result = forecast_weather.find_by_datetime(dt)
 
     assert result is None
+
+
+def test_hourly(forecast_weather: WeatherForecast) -> None:
+    period_start = datetime.fromisoformat("2025-10-03T14:00:00+00:00")
+
+    result = forecast_weather.hourly(period_start, 2, Celsius(5.0), 80.0)
+
+    assert len(result) == 2
+    assert result[0] == HourlyWeather(
+        period=HourlyPeriod.parse("2025-10-03T14:00:00+00:00"),
+        temperature=Celsius(12.0),
+        humidity=46.0,
+    )
+    assert result[1] == HourlyWeather(
+        period=HourlyPeriod.parse("2025-10-03T15:00:00+00:00"),
+        temperature=Celsius(13.0),
+        humidity=45.0,
+    )
+
+
+def test_hourly_missing_periods(forecast_weather: WeatherForecast) -> None:
+    period_start = datetime.fromisoformat("2025-10-03T13:00:00+00:00")
+
+    result = forecast_weather.hourly(period_start, 4, Celsius(5.0), 80.0)
+
+    assert len(result) == 4
+    assert result[0] == HourlyWeather(
+        period=HourlyPeriod.parse("2025-10-03T13:00:00+00:00"),
+        temperature=Celsius(5.0),
+        humidity=80.0,
+    )
+    assert result[1] == HourlyWeather(
+        period=HourlyPeriod.parse("2025-10-03T14:00:00+00:00"),
+        temperature=Celsius(12.0),
+        humidity=46.0,
+    )
+    assert result[2] == HourlyWeather(
+        period=HourlyPeriod.parse("2025-10-03T15:00:00+00:00"),
+        temperature=Celsius(13.0),
+        humidity=45.0,
+    )
+    assert result[3] == HourlyWeather(
+        period=HourlyPeriod.parse("2025-10-03T16:00:00+00:00"),
+        temperature=Celsius(5.0),
+        humidity=80.0,
+    )
+
+
+def test_hourly_empty_periods() -> None:
+    period_start = datetime.fromisoformat("2025-10-03T14:00:00+00:00")
+    forecast_weather = WeatherForecast([])
+
+    result = forecast_weather.hourly(period_start, 2, Celsius(5.0), 80.0)
+
+    assert len(result) == 2
+    assert result[0] == HourlyWeather(
+        period=HourlyPeriod.parse("2025-10-03T14:00:00+00:00"),
+        temperature=Celsius(5.0),
+        humidity=80.0,
+    )
+    assert result[1] == HourlyWeather(
+        period=HourlyPeriod.parse("2025-10-03T15:00:00+00:00"),
+        temperature=Celsius(5.0),
+        humidity=80.0,
+    )

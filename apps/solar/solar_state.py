@@ -14,7 +14,7 @@ class SolarState:
     battery_reserve_soc: BatterySoc  # configured battery reserve state of charge
     battery_max_charge_current: BatteryCurrent  # configured maximum battery charge current
     battery_max_discharge_current: BatteryCurrent  # configured maximum battery discharge current
-    indoor_temperature: Celsius  # unused
+    indoor_temperature: Celsius  # actual indoor temperature
     outdoor_temperature: Celsius  # unused
     is_away_mode: bool  # away mode status
     is_eco_mode: bool  # eco mode status
@@ -23,7 +23,7 @@ class SolarState:
     slot1_discharge_time: str  # discharge time for slot 1
     slot1_discharge_current: BatteryCurrent  # discharge current for slot 1
     hvac_heating_mode: str  # heating mode
-    hvac_heating_temperature: Celsius  # unused
+    hvac_heating_temperature: Celsius  # heating setpoint
     hourly_price: EnergyPrice  # current hourly energy price
     is_excess_energy_mode_enabled: bool  # excess energy mode status
     pv_forecast_today: list  # today's PV forecast

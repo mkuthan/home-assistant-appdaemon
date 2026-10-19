@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import Mock
 
 import pytest
@@ -29,7 +30,9 @@ def test_create_consumption_forecast(
     forecast_factory: DefaultForecastFactory,
     state: SolarState,
 ) -> None:
-    consumption_forecast = forecast_factory.create_consumption_forecast(state)
+    consumption_forecast = forecast_factory.create_consumption_forecast(
+        state, datetime.fromisoformat("2025-10-03T10:30:00+00:00")
+    )
 
     assert isinstance(consumption_forecast, ConsumptionForecastComposite)
     assert len(consumption_forecast.components) == 2

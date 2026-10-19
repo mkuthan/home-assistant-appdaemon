@@ -79,7 +79,7 @@ class StorageModeEstimator:
         current_hour = truncate_to_hour(now)
         remaining_hours = self._BATTERY_FULL_BY_HOUR - now.hour
 
-        consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
+        consumption_forecast = self.forecast_factory.create_consumption_forecast(state, now)
         remaining_consumptions = consumption_forecast.hourly(current_hour, remaining_hours)
 
         production_forecast = self.forecast_factory.create_production_forecast(state)

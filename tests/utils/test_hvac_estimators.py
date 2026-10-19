@@ -1,6 +1,12 @@
+from datetime import datetime, timedelta
+
 import pytest
 from units.celsius import Celsius
-from utils.hvac_estimators import estimate_heating_energy_consumption
+from units.hourly_period import HourlyPeriod
+from units.hourly_weather import HourlyWeather
+from utils.hvac_estimators import estimate_heating_energy_consumption, estimate_heating_idle_until
+
+DECAY_RATE = 0.0226  # hour⁻¹
 
 
 def test_heating_energy_consumption_at_reference_temperature() -> None:
@@ -75,3 +81,54 @@ def test_heating_energy_consumption_no_heating_needed() -> None:
     result = estimate_heating_energy_consumption(t_out, t_in, humidity, cop_at_7c, h)
 
     assert result.value == 0.0
+
+
+@pytest.fixture
+def constant_hourly_weather() -> list[HourlyWeather]:
+    start = datetime.fromisoformat("2025-01-01T14:00:00+00:00")
+    return [
+        HourlyWeather(period=HourlyPeriod(start + timedelta(hours=i)), temperature=Celsius(5.0), humidity=50.0)
+        for i in range(24)
+    ]
+
+
+def test_estimate_heating_idle_until(constant_hourly_weather: list[HourlyWeather]) -> None:
+    now = datetime.fromisoformat("2025-01-01T14:37:00+00:00")
+    t_in_actual = Celsius(22.0)
+    t_in_target = Celsius(20.0)
+
+    result = estimate_heating_idle_until(now, t_in_actual, t_in_target, constant_hourly_weather, DECAY_RATE)
+
+    # Decay from the current hour: ln((22 - 5) / (20 - 5)) / 0.0226 ≈ 5.54h
+    assert result.isoformat(timespec="minutes") == "2025-01-01T19:32+00:00"
+
+
+@pytest.mark.parametrize(
+    "t_in_actual",
+    [
+        # At target
+        Celsius(20.0),
+        # Below target
+        Celsius(19.0),
+    ],
+)
+def test_estimate_heating_idle_until_no_excess(
+    constant_hourly_weather: list[HourlyWeather],
+    t_in_actual: Celsius,
+) -> None:
+    now = datetime.fromisoformat("2025-01-01T14:37:00+00:00")
+    t_in_target = Celsius(20.0)
+
+    result = estimate_heating_idle_until(now, t_in_actual, t_in_target, constant_hourly_weather, DECAY_RATE)
+
+    assert result == datetime.fromisoformat("2025-01-01T14:00:00+00:00")
+
+
+def test_estimate_heating_idle_until_excess_capped(constant_hourly_weather: list[HourlyWeather]) -> None:
+    now = datetime.fromisoformat("2025-01-01T14:37:00+00:00")
+    t_in_target = Celsius(20.0)
+
+    result_at_cap = estimate_heating_idle_until(now, Celsius(25.0), t_in_target, constant_hourly_weather, DECAY_RATE)
+    result_above_cap = estimate_heating_idle_until(now, Celsius(30.0), t_in_target, constant_hourly_weather, DECAY_RATE)
+
+    assert result_above_cap == result_at_cap

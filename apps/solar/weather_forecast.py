@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from units.celsius import Celsius
 from units.hourly_period import HourlyPeriod
@@ -37,3 +37,23 @@ class WeatherForecast:
             if period.period.start == dt:
                 return period
         return None
+
+    def hourly(
+        self,
+        period_start: datetime,
+        period_hours: int,
+        temperature_fallback: Celsius,
+        humidity_fallback: float,
+    ) -> list[HourlyWeather]:
+        periods = []
+        for hour_offset in range(period_hours):
+            current = period_start + timedelta(hours=hour_offset)
+            weather = self.find_by_datetime(current)
+            if weather is None:
+                weather = HourlyWeather(
+                    period=HourlyPeriod(current),
+                    temperature=temperature_fallback,
+                    humidity=humidity_fallback,
+                )
+            periods.append(weather)
+        return periods

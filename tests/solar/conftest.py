@@ -56,6 +56,7 @@ def configuration() -> SolarConfiguration:
         temp_in=Celsius(-1.0),
         heating_cop_at_7c=-1.0,
         heating_h=-1.0,
+        heating_decay_rate=-1.0,
         temp_out_fallback=Celsius(-1.0),
         humidity_out_fallback=-1.0,
         regular_consumption_away=ENERGY_KWH_ZERO,

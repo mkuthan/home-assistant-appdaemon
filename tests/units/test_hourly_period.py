@@ -36,6 +36,12 @@ def test_str() -> None:
     assert f"{period}" == start
 
 
+def test_end() -> None:
+    period = HourlyPeriod.parse("2025-10-03T15:00:00+00:00")
+
+    assert period.end == datetime.fromisoformat("2025-10-03T16:00:00+00:00")
+
+
 def test_start_time_end_time() -> None:
     period = HourlyPeriod.parse("2025-10-03T15:00:00+00:00")
 

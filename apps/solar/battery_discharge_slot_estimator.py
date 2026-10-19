@@ -39,7 +39,7 @@ class BatteryDischargeSlotEstimator:
         tomorrow_10_30_am = (now + timedelta(days=1)).replace(hour=10, minute=30, second=0, microsecond=0)
         midday_hours = 4
 
-        consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
+        consumption_forecast = self.forecast_factory.create_consumption_forecast(state, now)
         production_forecast = self.forecast_factory.create_production_forecast(state)
         price_forecast = self.forecast_factory.create_price_forecast(state)
 
@@ -74,7 +74,7 @@ class BatteryDischargeSlotEstimator:
 
         daytime_hours = 9
 
-        consumption_forecast = self.forecast_factory.create_consumption_forecast(state)
+        consumption_forecast = self.forecast_factory.create_consumption_forecast(state, now)
         production_forecast = self.forecast_factory.create_production_forecast(state)
         price_forecast = self.forecast_factory.create_price_forecast(state)
 
