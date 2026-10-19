@@ -17,10 +17,10 @@ class HvacConfiguration:
 
     heating_temp_eco_off: Celsius
     heating_temp_eco_on: Celsius
-    heating_boost_time_start_eco_on: time
-    heating_boost_time_end_eco_on: time
-    heating_boost_time_start_eco_off: time
-    heating_boost_time_end_eco_off: time
+    heating_reduce_time_start_eco_on: time
+    heating_reduce_time_end_eco_on: time
+    heating_reduce_time_start_eco_off: time
+    heating_reduce_time_end_eco_off: time
 
     cooling_temp_eco_off: Celsius
     cooling_temp_eco_on: Celsius

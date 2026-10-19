@@ -12,16 +12,16 @@ from units.celsius import Celsius
 @pytest.mark.parametrize(
     "now, expected_temp",
     [
-        # Just before boost period
-        ("2025-10-29T04:59:00+00:00", 21.0),
-        # At boost start boundary
-        ("2025-10-29T05:00:00+00:00", 22.0),
-        # Inside boost period
-        ("2025-10-29T12:00:00+00:00", 22.0),
-        # At boost end boundary
-        ("2025-10-29T21:00:00+00:00", 22.0),
-        # Just after boost period
-        ("2025-10-29T21:01:00+00:00", 21.0),
+        # Just before reduce period
+        ("2025-10-29T20:59:00+00:00", 21.0),
+        # At reduce start boundary
+        ("2025-10-29T21:00:00+00:00", 20.0),
+        # Inside reduce period
+        ("2025-10-30T02:00:00+00:00", 20.0),
+        # At reduce end boundary
+        ("2025-10-30T05:00:00+00:00", 20.0),
+        # Just after reduce period
+        ("2025-10-30T05:01:00+00:00", 21.0),
     ],
 )
 def test_estimate_temperature_normal_mode(
@@ -34,8 +34,8 @@ def test_estimate_temperature_normal_mode(
     configuration = replace(
         configuration,
         heating_temp_eco_off=Celsius(21.0),
-        heating_boost_time_start_eco_off=time.fromisoformat("05:00:00"),
-        heating_boost_time_end_eco_off=time.fromisoformat("21:00:00"),
+        heating_reduce_time_start_eco_off=time.fromisoformat("21:00:00"),
+        heating_reduce_time_end_eco_off=time.fromisoformat("05:00:00"),
     )
     heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
 
@@ -49,16 +49,16 @@ def test_estimate_temperature_normal_mode(
 @pytest.mark.parametrize(
     "now, expected_temp",
     [
-        # Just before boost period
-        ("2025-10-29T22:04:00+00:00", 18.0),
-        # At boost start boundary
-        ("2025-10-29T22:05:00+00:00", 19.0),
-        # Inside boost period
-        ("2025-10-23T02:00:00+00:00", 19.0),
-        # At boost end boundary
-        ("2025-10-30T06:55:00+00:00", 19.0),
-        # Just after boost period
-        ("2025-10-30T06:56:00+00:00", 18.0),
+        # Just before reduce period
+        ("2025-10-29T15:59:00+00:00", 19.0),
+        # At reduce start boundary
+        ("2025-10-29T16:00:00+00:00", 18.0),
+        # Inside reduce period
+        ("2025-10-29T19:00:00+00:00", 18.0),
+        # At reduce end boundary
+        ("2025-10-29T22:00:00+00:00", 18.0),
+        # Just after reduce period
+        ("2025-10-29T22:01:00+00:00", 19.0),
     ],
 )
 def test_estimate_temperature_eco_mode(
@@ -70,9 +70,9 @@ def test_estimate_temperature_eco_mode(
 ) -> None:
     configuration = replace(
         configuration,
-        heating_temp_eco_on=Celsius(18.0),
-        heating_boost_time_start_eco_on=time.fromisoformat("22:05:00"),
-        heating_boost_time_end_eco_on=time.fromisoformat("06:55:00"),
+        heating_temp_eco_on=Celsius(19.0),
+        heating_reduce_time_start_eco_on=time.fromisoformat("16:00:00"),
+        heating_reduce_time_end_eco_on=time.fromisoformat("22:00:00"),
     )
     heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
 
@@ -91,8 +91,8 @@ def test_estimate_temperature_adjustment(
     configuration = replace(
         configuration,
         heating_temp_eco_off=Celsius(21.0),
-        heating_boost_time_start_eco_off=time.fromisoformat("05:00:00"),
-        heating_boost_time_end_eco_off=time.fromisoformat("21:00:00"),
+        heating_reduce_time_start_eco_off=time.fromisoformat("21:00:00"),
+        heating_reduce_time_end_eco_off=time.fromisoformat("05:00:00"),
     )
     heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
 
@@ -104,8 +104,8 @@ def test_estimate_temperature_adjustment(
         temperature_adjustment=Celsius(1.0),
     )
 
-    outside_boost_datetime = datetime.fromisoformat("2025-10-29T04:00:00+00:00")
-    result = heating_estimator.estimate_temperature(state, outside_boost_datetime)
+    outside_reduce_datetime = datetime.fromisoformat("2025-10-29T12:00:00+00:00")
+    result = heating_estimator.estimate_temperature(state, outside_reduce_datetime)
 
     assert result == Celsius(22.0)
 
@@ -118,15 +118,15 @@ def test_estimate_temperature_no_change(
     configuration = replace(
         configuration,
         heating_temp_eco_off=Celsius(21.0),
-        heating_boost_time_start_eco_off=time.fromisoformat("05:00:00"),
-        heating_boost_time_end_eco_off=time.fromisoformat("21:00:00"),
+        heating_reduce_time_start_eco_off=time.fromisoformat("21:00:00"),
+        heating_reduce_time_end_eco_off=time.fromisoformat("05:00:00"),
     )
     heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
 
     state = replace(state, heating_mode="heat", is_eco_mode=False, heating_target_temperature=Celsius(21.0))
 
-    outside_boost_datetime = datetime.fromisoformat("2025-10-29T04:00:00+00:00")
-    result = heating_estimator.estimate_temperature(state, outside_boost_datetime)
+    outside_reduce_datetime = datetime.fromisoformat("2025-10-29T12:00:00+00:00")
+    result = heating_estimator.estimate_temperature(state, outside_reduce_datetime)
 
     assert result is None
 
@@ -162,7 +162,7 @@ def test_estimate_curve_high_temperature_normal_mode(
     result = heating_estimator.estimate_curve_high_temperature(state)
 
     # 21 + 8 offset
-    assert result == Celsius(29.0)
+    assert result == Celsius(28.0)
 
 
 def test_estimate_curve_high_temperature_eco_mode(
@@ -181,7 +181,7 @@ def test_estimate_curve_high_temperature_eco_mode(
     result = heating_estimator.estimate_curve_high_temperature(state)
 
     # 18 + 8 offset
-    assert result == Celsius(26.0)
+    assert result == Celsius(25.0)
 
 
 def test_estimate_curve_high_temperature_no_change(
@@ -199,7 +199,7 @@ def test_estimate_curve_high_temperature_no_change(
         state,
         heating_mode="heat",
         is_eco_mode=False,
-        heating_curve_target_high_temp=Celsius(29.0),
+        heating_curve_target_high_temp=Celsius(28.0),
     )
 
     result = heating_estimator.estimate_curve_high_temperature(state)
@@ -237,7 +237,7 @@ def test_estimate_curve_low_temperature_normal_mode(
     result = heating_estimator.estimate_curve_low_temperature(state)
 
     # 21 + 4 offset
-    assert result == Celsius(25.0)
+    assert result == Celsius(24.0)
 
 
 def test_estimate_curve_low_temperature_eco_mode(
@@ -256,7 +256,7 @@ def test_estimate_curve_low_temperature_eco_mode(
     result = heating_estimator.estimate_curve_low_temperature(state)
 
     # 18 + 4 offset
-    assert result == Celsius(22.0)
+    assert result == Celsius(21.0)
 
 
 def test_estimate_curve_low_temperature_no_change(
@@ -274,7 +274,7 @@ def test_estimate_curve_low_temperature_no_change(
         state,
         heating_mode="heat",
         is_eco_mode=False,
-        heating_curve_target_low_temp=Celsius(25.0),
+        heating_curve_target_low_temp=Celsius(24.0),
     )
 
     result = heating_estimator.estimate_curve_low_temperature(state)

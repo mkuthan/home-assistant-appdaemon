@@ -33,17 +33,16 @@ class HvacApp(hass.Hass):
             # 5 minutes before high tariff starts to avoid clocks drift issues
             dhw_boost_end=time.fromisoformat("15:55:00"),
             # heating temperature
-            heating_temp_eco_off=Celsius(20.0),
+            heating_temp_eco_off=Celsius(21.0),
             # heating temperature in eco mode
-            heating_temp_eco_on=Celsius(18.0),
-            # 5 minutes after low tariff starts to avoid clocks drift issues
-            heating_boost_time_start_eco_on=time.fromisoformat("22:05:00"),
-            # avoid evening consumption
-            heating_boost_time_end_eco_on=time.fromisoformat("15:55:00"),
-            # 1 hour before wake up time
-            heating_boost_time_start_eco_off=time.fromisoformat("05:00:00"),
+            heating_temp_eco_on=Celsius(19.0),
+            # pause compressor during high tariff
+            heating_reduce_time_start_eco_on=time.fromisoformat("16:00:00"),
+            heating_reduce_time_end_eco_on=time.fromisoformat("22:00:00"),
             # 1 hour before bed time
-            heating_boost_time_end_eco_off=time.fromisoformat("21:00:00"),
+            heating_reduce_time_start_eco_off=time.fromisoformat("21:00:00"),
+            # 1 hour before wake up time
+            heating_reduce_time_end_eco_off=time.fromisoformat("05:00:00"),
             # cooling temperature
             cooling_temp_eco_off=Celsius(24.0),
             # cooling temperature in eco mode

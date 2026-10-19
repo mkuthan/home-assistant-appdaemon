@@ -23,8 +23,6 @@ class SolarConfiguration:
 
     temp_in: Celsius
 
-    heating_boost_start_eco_on: time
-    heating_boost_end_eco_on: time
     heating_cop_at_7c: float
     heating_h: float
 

@@ -10,9 +10,9 @@ from utils.time_utils import is_time_in_range
 
 
 class HeatingEstimator:
-    _HEATING_TARGET_OFFSET = Celsius(1.0)
-    _HEATING_CURVE_OFFSET_HIGH = Celsius(8.0)
-    _HEATING_CURVE_OFFSET_LOW = Celsius(4.0)
+    _HEATING_TARGET_OFFSET = Celsius(-1.0)
+    _HEATING_CURVE_OFFSET_HIGH = Celsius(7.0)
+    _HEATING_CURVE_OFFSET_LOW = Celsius(3.0)
 
     def __init__(
         self,
@@ -28,16 +28,16 @@ class HeatingEstimator:
 
         if state.is_eco_mode:
             temperature_target = self.configuration.heating_temp_eco_on
-            heating_boost_start = self.configuration.heating_boost_time_start_eco_on
-            heating_boost_end = self.configuration.heating_boost_time_end_eco_on
+            heating_reduce_start = self.configuration.heating_reduce_time_start_eco_on
+            heating_reduce_end = self.configuration.heating_reduce_time_end_eco_on
         else:
             temperature_target = self.configuration.heating_temp_eco_off
-            heating_boost_start = self.configuration.heating_boost_time_start_eco_off
-            heating_boost_end = self.configuration.heating_boost_time_end_eco_off
+            heating_reduce_start = self.configuration.heating_reduce_time_start_eco_off
+            heating_reduce_end = self.configuration.heating_reduce_time_end_eco_off
 
-        in_boost_window = is_time_in_range(now.time(), heating_boost_start, heating_boost_end)
+        in_reduce_window = is_time_in_range(now.time(), heating_reduce_start, heating_reduce_end)
 
-        if in_boost_window:
+        if in_reduce_window:
             temperature_target += self._HEATING_TARGET_OFFSET
 
         temperature_target += state.temperature_adjustment

@@ -25,7 +25,7 @@ Additionally, it provides smart HVAC control for heating, cooling, and domestic 
 ### HVAC Control
 
 - *Domestic Hot Water (DHW) Management* - Intelligent temperature control with eco-mode support and configurable boost windows
-- *Heating Temperature Control* - Dynamic heating setpoint and heating curve adjustment based on eco-mode and configurable boost windows
+- *Heating Temperature Control* - Dynamic heating setpoint and heating curve adjustment based on eco-mode and configurable reduce windows
 - *Cooling Temperature Control* - Automatic cooling setpoint adjustment based on eco-mode and configurable boost windows
 
 ## Architecture
@@ -78,7 +78,7 @@ Applications are configured in `apps/apps.yaml`. See configuration files for ava
 
 - DHW, heating, and cooling temperature setpoints (normal and eco modes)
 - Temperature boost deltas for each mode
-- Time windows for temperature boosting
+- Time windows for temperature boosting (DHW, cooling) and reducing (heating)
 - Eco-mode scheduling
 
 ## References

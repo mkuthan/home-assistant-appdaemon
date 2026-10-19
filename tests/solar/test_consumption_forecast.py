@@ -1,4 +1,4 @@
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 from unittest.mock import Mock
 
 import pytest
@@ -97,11 +97,8 @@ class TestForecastConsumptionHvacHeating:
         self, mock_forecast_weather: Mock, mock_energy_estimator: Mock
     ) -> ConsumptionForecastHvacHeating:
         return ConsumptionForecastHvacHeating(
-            is_eco_mode=False,
             hvac_heating_mode="heat",
             t_in=Celsius(20.0),
-            heating_boost_start=time.fromisoformat("22:05:00"),
-            heating_boost_end=time.fromisoformat("15:55:00"),
             cop_at_7c=3.5,
             h=0.18,
             forecast_weather=mock_forecast_weather,
@@ -109,64 +106,6 @@ class TestForecastConsumptionHvacHeating:
             humidity_out_fallback=75.0,
             energy_estimator=mock_energy_estimator,
         )
-
-    def test_hourly_eco_mode_on_outside_boost_window(
-        self,
-        any_consumption_forecast_hvac_heating: ConsumptionForecastHvacHeating,
-        mock_forecast_weather: Mock,
-    ) -> None:
-        forecast_consumption = any_consumption_forecast_hvac_heating
-        forecast_consumption.is_eco_mode = True
-
-        # 16:00-17:00 is outside boost window (22:05-15:55)
-        period_start = datetime.fromisoformat("2025-10-03T16:00:00+00:00")
-        mock_forecast_weather.find_by_datetime.return_value = None
-
-        result = forecast_consumption.hourly(period_start=period_start, period_hours=2)
-
-        assert len(result) == 2
-        assert result[0].energy.value == pytest.approx(0.0)
-        assert result[1].energy.value == pytest.approx(0.0)
-
-    def test_hourly_eco_mode_on_inside_boost_window(
-        self,
-        any_consumption_forecast_hvac_heating: ConsumptionForecastHvacHeating,
-        mock_forecast_weather: Mock,
-        mock_energy_estimator: Mock,
-    ) -> None:
-        forecast_consumption = any_consumption_forecast_hvac_heating
-        forecast_consumption.is_eco_mode = True
-
-        # 10:00-12:00 is inside boost window (22:05-15:55)
-        period_start = datetime.fromisoformat("2025-10-03T10:00:00+00:00")
-        mock_forecast_weather.find_by_datetime.return_value = None
-        mock_energy_estimator.side_effect = [EnergyKwh(1.5), EnergyKwh(2.0)]
-
-        result = forecast_consumption.hourly(period_start=period_start, period_hours=2)
-
-        assert len(result) == 2
-        assert result[0].energy.value == pytest.approx(1.5)
-        assert result[1].energy.value == pytest.approx(2.0)
-
-    def test_hourly_eco_mode_on_spanning_boost_boundary(
-        self,
-        any_consumption_forecast_hvac_heating: ConsumptionForecastHvacHeating,
-        mock_forecast_weather: Mock,
-        mock_energy_estimator: Mock,
-    ) -> None:
-        forecast_consumption = any_consumption_forecast_hvac_heating
-        forecast_consumption.is_eco_mode = True
-
-        # 15:00 inside boost, 16:00 outside boost (boost ends at 15:55)
-        period_start = datetime.fromisoformat("2025-10-03T15:00:00+00:00")
-        mock_forecast_weather.find_by_datetime.return_value = None
-        mock_energy_estimator.return_value = EnergyKwh(1.5)
-
-        result = forecast_consumption.hourly(period_start=period_start, period_hours=2)
-
-        assert len(result) == 2
-        assert result[0].energy.value == pytest.approx(1.5)  # 15:00 inside boost
-        assert result[1].energy.value == pytest.approx(0.0)  # 16:00 outside boost
 
     def test_hourly_heating_mode_off(
         self,
@@ -194,7 +133,6 @@ class TestForecastConsumptionHvacHeating:
         mock_energy_estimator: Mock,
     ) -> None:
         forecast_consumption = any_consumption_forecast_hvac_heating
-        forecast_consumption.is_eco_mode = False
         forecast_consumption.hvac_heating_mode = "heat"
 
         period_1 = datetime.fromisoformat("2025-10-03T10:00:00+00:00")
@@ -254,7 +192,6 @@ class TestForecastConsumptionHvacHeating:
         mock_energy_estimator: Mock,
     ) -> None:
         forecast_consumption = any_consumption_forecast_hvac_heating
-        forecast_consumption.is_eco_mode = False
         forecast_consumption.hvac_heating_mode = "heat"
 
         period_1 = datetime.fromisoformat("2025-10-03T10:00:00+00:00")
