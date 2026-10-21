@@ -41,7 +41,7 @@ class SolarApp(hass.Hass):
             # nominal battery voltage
             battery_voltage=BatteryVoltage(52.0),
             # maximum battery discharge/charge current
-            battery_maximum_current=BatteryCurrent(160.0),
+            battery_maximum_current=BatteryCurrent(140.0),
             # night charge current during low tariff periods
             battery_night_charge_current=BatteryCurrent(40.0),
             # minimum reserve SOC
