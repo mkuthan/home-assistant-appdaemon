@@ -10,7 +10,9 @@ Home Assistant AppDaemon applications for solar and HVAC energy optimization.
 - Format code: `uv run ruff format`
 - Run linter: `uv run ruff check`
 - Run type checker: `uv run ty check`
-- Run tests: `uv run pytest`
+- Run tests (with coverage gate): `uv run pytest`
+- Run a subset without coverage: `uv run pytest --no-cov -q [path::test]`
+- Re-run only failures: `uv run pytest --lf --no-cov`
 - Run all checks (lint, format, type, test): `mise run check`
 
 ## General rules

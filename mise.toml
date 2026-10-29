@@ -1,7 +1,6 @@
 [tools]
 python = "3.12"
 
-
 [tasks.check]
 description = "Run all checks (lint, lint-format, typecheck, test)"
 run = ["uv run ruff format", "uv run ruff check --fix", "uv run ty check", "uv run pytest"]
