@@ -36,9 +36,9 @@ class HvacApp(hass.Hass):
             heating_temp_eco_off=Celsius(21.0),
             # heating temperature in eco mode
             heating_temp_eco_on=Celsius(19.0),
-            # pause compressor during high tariff
-            heating_reduce_time_start_eco_on=time.fromisoformat("16:00:00"),
-            heating_reduce_time_end_eco_on=time.fromisoformat("22:00:00"),
+            # heating reduce time disabled in eco mode
+            heating_reduce_time_start_eco_on=None,
+            heating_reduce_time_end_eco_on=None,
             # 1 hour before bed time
             heating_reduce_time_start_eco_off=time.fromisoformat("21:00:00"),
             # 1 hour before wake up time

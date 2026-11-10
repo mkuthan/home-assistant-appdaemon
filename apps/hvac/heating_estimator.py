@@ -35,7 +35,11 @@ class HeatingEstimator:
             heating_reduce_start = self.configuration.heating_reduce_time_start_eco_off
             heating_reduce_end = self.configuration.heating_reduce_time_end_eco_off
 
-        in_reduce_window = is_time_in_range(now.time(), heating_reduce_start, heating_reduce_end)
+        in_reduce_window = (
+            heating_reduce_start is not None
+            and heating_reduce_end is not None
+            and is_time_in_range(now.time(), heating_reduce_start, heating_reduce_end)
+        )
 
         if in_reduce_window:
             temperature_target += self._HEATING_TARGET_OFFSET

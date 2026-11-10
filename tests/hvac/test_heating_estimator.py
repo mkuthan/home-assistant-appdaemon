@@ -83,6 +83,78 @@ def test_estimate_temperature_eco_mode(
     assert result == Celsius(expected_temp)
 
 
+def test_estimate_temperature_normal_mode_no_reduce_time(
+    mock_appdaemon_logger: Mock,
+    configuration: HvacConfiguration,
+    state: HvacState,
+) -> None:
+    configuration = replace(
+        configuration,
+        heating_temp_eco_off=Celsius(21.0),
+        heating_reduce_time_start_eco_off=None,
+        heating_reduce_time_end_eco_off=None,
+    )
+    heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
+
+    state = replace(state, heating_mode="heat", is_eco_mode=False)
+
+    during_night_datetime = datetime.fromisoformat("2025-10-30T02:00:00+00:00")
+    result = heating_estimator.estimate_temperature(state, during_night_datetime)
+
+    assert result == Celsius(21.0)
+
+
+def test_estimate_temperature_eco_mode_no_reduce_time(
+    mock_appdaemon_logger: Mock,
+    configuration: HvacConfiguration,
+    state: HvacState,
+) -> None:
+    configuration = replace(
+        configuration,
+        heating_temp_eco_on=Celsius(19.0),
+        heating_reduce_time_start_eco_on=None,
+        heating_reduce_time_end_eco_on=None,
+    )
+    heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
+
+    state = replace(state, heating_mode="heat", is_eco_mode=True)
+
+    during_peak_datetime = datetime.fromisoformat("2025-10-29T19:00:00+00:00")
+    result = heating_estimator.estimate_temperature(state, during_peak_datetime)
+
+    assert result == Celsius(19.0)
+
+
+@pytest.mark.parametrize(
+    "start, end",
+    [
+        (time.fromisoformat("21:00:00"), None),
+        (None, time.fromisoformat("05:00:00")),
+    ],
+)
+def test_estimate_temperature_partial_reduce_time(
+    mock_appdaemon_logger: Mock,
+    configuration: HvacConfiguration,
+    state: HvacState,
+    start: time | None,
+    end: time | None,
+) -> None:
+    configuration = replace(
+        configuration,
+        heating_temp_eco_off=Celsius(21.0),
+        heating_reduce_time_start_eco_off=start,
+        heating_reduce_time_end_eco_off=end,
+    )
+    heating_estimator = HeatingEstimator(mock_appdaemon_logger, configuration)
+
+    state = replace(state, heating_mode="heat", is_eco_mode=False)
+
+    during_night_datetime = datetime.fromisoformat("2025-10-30T02:00:00+00:00")
+    result = heating_estimator.estimate_temperature(state, during_night_datetime)
+
+    assert result == Celsius(21.0)
+
+
 def test_estimate_temperature_adjustment(
     mock_appdaemon_logger: Mock,
     configuration: HvacConfiguration,
